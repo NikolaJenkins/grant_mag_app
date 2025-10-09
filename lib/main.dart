@@ -36,9 +36,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AppState extends ChangeNotifier {
-}
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -122,7 +119,14 @@ class _MyHomePageState extends State<MyHomePage> {
               // }
               print("button pressed $_counter times");
             }, 
-            child: Text('next'))
+            child: Text('next')),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage(),
+                ),
+                );
+              }, child: child)
           ],
         ),
       ),
@@ -135,16 +139,3 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class ArticlesPage extends StatelessWidget {
-  const ArticlesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Articles',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
-      )
-    );
-  }
-}
