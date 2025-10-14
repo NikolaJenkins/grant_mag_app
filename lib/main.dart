@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:grant_mag_app/articles.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,6 +13,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
+      home: const IntroPage(),
+      routes: {
+        '/homepage': (context) => const HomePage(),
+        '/articlespage': (context) => const ArticlesPage(),
+      },
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
