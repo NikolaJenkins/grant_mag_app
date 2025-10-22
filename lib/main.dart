@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Grant Magazine'),
     );
   }
 }
@@ -76,6 +76,42 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
+          setState(() {
+            _counter = index;
+          });
+        },
+        indicatorColor: Colors.amber,
+        selectedIndex: _counter,
+        destinations: const <Widget>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.newspaper_rounded)),
+            label: 'News',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.star)),
+            label: 'Features',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+            label: 'Opinion',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.bookmark)),
+            label: 'Bookmarks',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.search)),
+            label: 'Search',
+          ),
+        ],
+      ),
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
@@ -112,11 +148,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
