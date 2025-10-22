@@ -8,45 +8,26 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  static const appTitle = 'Burger bar'
+  static const appTitle = 'Home Page';
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: const IntroPage(),
+      theme: ThemeData(primarySwatch: Colors.blueGrey),
+      home: HomePage(title: appTitle),
       routes: {
-        '/homepage': (context) => const HomePage(),
-        '/articlespage': (context) => const ArticlesPage(),
+        '/homepage': (context) => const HomePage(title: appTitle),
+        '/examplearticlepage': (context) => ExampleArticlePage(),
       },
       title: appTitle,
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: appTitle),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -60,10 +41,10 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> { 
+class _HomePageState extends State<HomePage> { 
 
   @override
   Widget build(BuildContext context) {
@@ -75,90 +56,91 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
+        // Here we take the value from the HomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: const Text('Burgers for everyone'),
+        title: const Text(MyApp.appTitle),
         leading: Builder(
           builder: (context) {
             return IconButton(
-              icon: const Icon(Icons.menu),
+              icon: const Icon(Icons.bento),
               onPressed: () {
                 Scaffold.of(context).openDrawer();
-              }
-            )
-          }
-        )
+              },
+            );
+          },
+        ),
       ),
+      backgroundColor: Colors.blueGrey,
+
       drawer: Drawer(
-        backgroundColor: Colors.deepPurple[100]
+        backgroundColor: const Color.fromARGB(255, 31, 80, 104),
         child: ListView( // lets user scroll through options if they need more vertical space
           // remove padding from ListView
-          padding: EdgeInsets.zero
+          padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(color: Colors.blueGrey),
-              child: Text('Brioche buns'),
+              child: Text('Customization'),
             ),
             ListTile(
-              title: const Text('Lettuce'),
+              title: const Text('Settings'),
               onTap: () {
                 // update state of the app
                 // then close the drawer
-                Navigator.pop(context)
+                Navigator.pop(context);
               },
+              leading: Icon(Icons.settings_outlined),
             ),
             ListTile(
-              title: const Text('Tomato'),
+              title: const Text('Games'),
               onTap: () {
                 // update state of the app
-              }
-            )
+              },
+              leading: Icon(Icons.videogame_asset)
+            ),
             ListTile(
-              title: const Text('Patty'),
+              title: const Text('Profile'),
               onTap: () {
                 // update state of the app
-              }
-            )
+              },
+              leading: Icon(Icons.person_outline_outlined)
+            ),
             ListTile(
-              title: const Text('Cheese'),
+              title: const Text('Feedback'),
               onTap: () {
                 // update state of the app
-              }
-            )
-          ]
-        )
-      )
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          
+              },
+              leading: Icon(Icons.chat_rounded)
+            ),
+            ListTile(
+              title: const Text('About'),
+              onTap: () {
+                // update state of the app
+              },
+              leading: Icon(Icons.person_pin_rounded)
+            ),
+            ListTile(
+              title: const Text('Credits'),
+              onTap: () {
+                // update state of the app
+              },
+              leading: Icon(Icons.source_rounded)
+            ),
+          ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      builder: (BuildContext context, BoxConstraints viewportConstraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: viewportConstraints.maxHeight))
+        )
+      }
     );
   }
 }
