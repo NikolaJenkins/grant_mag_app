@@ -48,6 +48,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    
 
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
@@ -135,12 +136,13 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      builder: (BuildContext context, BoxConstraints viewportConstraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: viewportConstraints.maxHeight))
-        )
-      }
+
+      body: ListView.builder(
+        itemCount: 20,
+        itemBuilder: (BuildContext context, int index) {
+          return ListTile()
+        }
+      )
     );
   }
 }
