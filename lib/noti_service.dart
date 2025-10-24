@@ -26,11 +26,35 @@ class NotiService {
     );
 
     //initialize the plugin
-    await notificationsPlugin.initialize(initSettings);
+    await notificationsPlugin.initialize(initsettings);
   }
   //NOTIFICATIONS DETAIL SETUP
-
+  NotificationDetails notificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'daily_channel_id', 
+        'Daily Notifications',
+        channelDescription: 'Daily Notification Channel',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+  }
   //SHOW NOTIFICATIONS
+  Future<void> showNotification({
+    int id = 0,
+    String? title,
+    String? body,
+    }) async {
+      return notificationsPlugin.show(
+        id, 
+        title, 
+        body, 
+        const NotificationDetails(),
+      );
 
+  }
+    
+  }
   //ON NOTI TAP
-}
