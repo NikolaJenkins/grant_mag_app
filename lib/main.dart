@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
+import 'package:grant_mag_app/settings.dart';
 
 void main() {
   runApp(const MyApp());
@@ -46,6 +47,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> { 
 
+  final List<String> entries = <String>['A', 'B', 'C', 'D', 'E', 'F'];
+  final List<int> colorCodes = <int>[600, 500, 100, 50];
+
   @override
   Widget build(BuildContext context) {
     
@@ -77,8 +81,10 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
+
       backgroundColor: Colors.blueGrey,
 
+      // drawer on side
       drawer: Drawer(
         backgroundColor: const Color.fromARGB(255, 31, 80, 104),
         child: ListView( // lets user scroll through options if they need more vertical space
@@ -94,7 +100,8 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 // update state of the app
                 // then close the drawer
-                Navigator.pop(context);
+                Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SettingsPage()));
               },
               leading: Icon(Icons.settings_outlined),
             ),
@@ -137,13 +144,54 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-      body: ListView.builder(
-        itemCount: 20,
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile()
-        }
+      // scroll through articles
+      body: SingleChildScrollView(
+        child: Container(
+          child: Column(
+            children: [
+              Container(
+                color: const Color.fromARGB(255, 103, 98, 201),
+                child: ListTile(
+                  leading: Text('bee movie'),
+                  trailing: Text('buzz'),
+                  onTap: () => Navigator.push(context, 
+                  MaterialPageRoute(builder: (context) => ExampleArticlePage())),
+                )
+              ),
+            ],
+          )
+        )
       )
-    );
+      // body: ListView.separated(
+      //   padding: const EdgeInsets.all(24),
+      //   itemCount: entries.length,
+      //   // itemBuilder: (BuildContext context, int index) {
+      //   //   return Container(
+      //   //     height: 50,
+      //   //     color: Colors.amber[colorCodes[index]],
+      //   //     child: Center(child: Text('Entry ${entries[index]}'))
+      //   //     );
+      //   // },
+
+      //   children: <Widget>[
+      //     Container(
+      //       height: 50,
+      //       color: Colors.amber[colorCodes[0]],
+      //       child: const Center(child: Text('The Bee Movie')),
+      //     ),
+      //     Container(
+      //       height: 50,
+      //       color: Colors.amber[colorCodes[1]],
+      //       child: const Center(child: Text('Boo')),
+      //     ),
+      //     Container(
+      //       height: 50,
+      //       color: Colors.amber[colorCodes[2]],
+      //       child: const Center(child: Text('Buzz')),
+      //     )
+      //   ],
+      //   separatorBuilder: (BuildContext context, int index) => const Divider(),
+      //   )
+      );
   }
 }
-
