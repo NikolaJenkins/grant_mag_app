@@ -14,7 +14,7 @@ class GrantMagRSS extends StatefulWidget{
 }
 
 class GrantMagRSState extends State<GrantMagRSS>{
-  static const String FEED_URL = 'http://grantcompsci.com/test.rss';
+  static const String FEED_URL = 'https://grantmagazine.com/feed/';
   RssFeed? _feed;
   String _title = '';
   static const String loadingFeedMsg = 'Loading...';
@@ -22,6 +22,7 @@ class GrantMagRSState extends State<GrantMagRSS>{
   static const String placeholder = 'assets/Image-not-found.png';
 
 updateTitle(title){
+print('updateTitle called with type: ${title.runtimeType}');
 setState(() {
   _title = title;
 });
@@ -48,7 +49,7 @@ load() async {
     print('loadedfeed');
     updateFeed(result);
     print('updatedfeed');
-    updateTitle(_feed?.title);
+    updateTitle(_feed?.title.toString());
   });
 }
 
@@ -78,18 +79,30 @@ Future<RssFeed> loadFeed() async{
 
   }
 
-  title(title){
+  title(apptitle){
+    final String displayTitle;
+    if (apptitle == null){
+      displayTitle = '';
+    } else {
+      displayTitle = (apptitle is DateTime) ? (apptitle).toIso8601String() : apptitle?.toString() ?? '';
+    }
     return Text(
-      title,
+      displayTitle,
       style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w500),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );
   }
 
-  subtitle(title){
+  subtitle(subtitle){
+    final String displaySubTitle;
+    if (subtitle == null){
+      displaySubTitle = '';
+    } else {
+      displaySubTitle = (subtitle is DateTime) ? (subtitle).toIso8601String() : subtitle?.toString() ?? '';
+    }
     return Text(
-      title,
+      displaySubTitle,
       style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w100),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -100,8 +113,8 @@ Future<RssFeed> loadFeed() async{
     return Padding(
       padding: EdgeInsetsGeometry.only(left:15.0),
       child: CachedNetworkImage(
-        placeholder: (context, url) => Image.asset('placeholder'),
-        imageUrl: imgUrl, 
+        placeholder: (context, url) => Image.asset(placeholder),
+        imageUrl: imgUrl ?? placeholder,
         height: 50,
         width: 70,
         alignment: Alignment.center,
@@ -146,7 +159,7 @@ Future<RssFeed> loadFeed() async{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_title),),
+      appBar: AppBar(title: Text(Text(_title) as String),),
       body: body(),
     );
   }
