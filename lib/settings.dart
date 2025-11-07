@@ -3,8 +3,9 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class SettingsPage extends StatelessWidget {
-  ColorEntry? _selectedOption;  
+class SettingsPage extends StatefulWidget {
+  SettingsPage({super.key})
+  Color? _selectedOption;  
 
   @override 
   Widget build(BuildContext context) {
@@ -18,17 +19,16 @@ class SettingsPage extends StatelessWidget {
                 color: Colors.blue,
                 child: ListTile(
                   leading: Text('Theme'),
-                  trailing: DropdownButton<ColorEntry>(
+                  trailing: DropdownButton<Color>(
                     value: _selectedOption,
                     hint: const Text('Choose'),
-                    items: ColorEntry.map((ColorLabel entry) {
+                    items: ColorLabel.colorLabels.map((ColorLabel entry) {
                       return DropdownMenuItem<Color>(
                         value: entry.color,
                         child: Text(entry.label),
                       );
-                    }
-                    ),
-                    onChanged: (ColorEntry? newValue) {
+                    }).toList(),
+                    onChanged: (Color? newValue) {
                       setState(() {
                         _selectedOption = newValue;
                       });
@@ -44,40 +44,21 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-typedef ColorEntry = DropdownMenuEntry<ColorLabel>;
+enum ColorLabel{
 
-// enum ColorLabel {
-//     blue('Blue', Colors.blue),
-//     purple('Purple', Colors.purple),
+  blue(label: 'Blue', color: Colors.blue),
+  pink(label: 'Pink', color: Colors.pink),
+  green(label: 'Green', color: Colors.green),
+  orange(label: 'Orange', color: Colors.orange),
+  grey(label: 'Grey', color: Colors.grey);
 
-//     const ColorLabel(this.label, this.color);
-//     final String label;
-//     final Color color;
+  const ColorLabel({
+    required this.label,
+    required this.color,
+  });
 
-//     static final List<ColorEntry> entries = UnmodifiableListView<ColorEntry>(
-//       values.map<ColorEntry>(
-//         (ColorLabel color) => ColorEntry(
-//           value: color,
-//           label: color.label,
-//           enabled: color.label != 'Grey',
-//           style: MenuItemButton.styleFrom(foregroundColor: color.color),
-//         )
-//       )
-//     )
-//   }
-enum ColorLabel {
-
-  blue('Blue', Colors.blue),
-  pink('Pink', Colors.pink),
-  green('Green', Colors.green),
-  yellow('Orange', Colors.orange),
-  grey('Grey', Colors.grey);
-
-  const ColorLabel(this.label, this.color);
   final String label;
   final Color color;
 
-  static final List<ColorLabel> colorLabels = UnmodifiableListView<ColorLabel>(
-    values.map<ColorLabel>((color) => color).toList(),
-  );
+  static List<ColorLabel> get colorLabels => values.map<ColorLabel>((color) => color).toList();
 }
