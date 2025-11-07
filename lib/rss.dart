@@ -19,7 +19,9 @@ class GrantMagRSState extends State<GrantMagRSS>{
   String _title = '';
   static const String loadingFeedMsg = 'Loading...';
   static const String loadError = 'Error Loading Feed';
+  static const String feedOpenError = 'Error Opening Feed';
   static const String placeholder = 'assets/Image-not-found.png';
+  GlobalKey<RefreshIndicatorState>? _refreshKey;
 
 updateTitle(title){
 print('updateTitle called with type: ${title.runtimeType}');
@@ -33,6 +35,14 @@ updateFeed(feed){
 setState(() {
   _feed = feed;
 });
+}
+
+Future<void> openFeed(String url) async{
+  if(await canLaunchUrl(Uri.parse(url))){
+    await launchUrl(Uri.parse(url));
+    return;
+  }
+  updateTitle(feedOpenError);
 }
 
 load() async {
@@ -72,8 +82,12 @@ Future<RssFeed> loadFeed() async{
 
   @override
   void initState() {
+    print("test");
+    print("test2");
+    print('initstate goes');
     super.initState();
-    print('debug0 start');
+    _refreshKey = GlobalKey<RefreshIndicatorState>();
+   print('debug0 start');
     updateTitle(widget.title);
     load();
 
@@ -94,20 +108,23 @@ Future<RssFeed> loadFeed() async{
     );
   }
 
-  subtitle(subtitle){
-    final String displaySubTitle;
-    if (subtitle == null){
-      displaySubTitle = '';
-    } else {
-      displaySubTitle = (subtitle is DateTime) ? (subtitle).toIso8601String() : subtitle?.toString() ?? '';
-    }
-    return Text(
-      displaySubTitle,
-      style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w100),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
+subtitle(dynamic value) {
+  final String displaySubTitle;
+  if (value == null) {
+    displaySubTitle = '';
+  } else {
+    print(value.runtimeType);
+    //displaySubTitle = value.toString();
+    displaySubTitle = "";
   }
+
+  return Text(
+    displaySubTitle,
+    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w100),
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  );
+}
 
   thumbnail(imgUrl){
     return Padding(
@@ -135,12 +152,12 @@ Future<RssFeed> loadFeed() async{
       return ListTile(
         title: title(item!.title),
         subtitle: subtitle(item.pubDate),
-        leading: thumbnail(item.img?.url),
+        leading: (item.img?.url != null && item.img!.url!.startsWith('http'))
+        ? thumbnail(item.img!.url!)
+        : const Icon(Icons.image_not_supported),
         trailing: rightIcon(),
         contentPadding: EdgeInsets.all(5.0),
-        onTap: () {
-
-        },
+        onTap: () => openFeed(item.link as String),
       );
     },
     );
@@ -153,13 +170,17 @@ Future<RssFeed> loadFeed() async{
 
   body(){
     return isFeedEmpty() ? Center(child: CircularProgressIndicator(),)
-    : list();
+    : RefreshIndicator(
+      key: _refreshKey,
+      child: list(),
+      onRefresh: () => load(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(Text(_title) as String),),
+      appBar: AppBar(title: Text(_title),),
       body: body(),
     );
   }

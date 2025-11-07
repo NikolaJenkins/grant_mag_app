@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:grant_mag_app/rss.dart';
 
 void main() {
+  print('test');
   runApp(new HomeApp(),);
   print('runsapp');
 }
