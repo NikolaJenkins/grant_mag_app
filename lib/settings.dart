@@ -4,7 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class SettingsPage extends StatefulWidget {
-  SettingsPage({super.key})
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
   Color? _selectedOption;  
 
   @override 
