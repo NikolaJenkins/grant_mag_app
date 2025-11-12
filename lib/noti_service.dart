@@ -6,6 +6,7 @@ class NotiService {
   bool _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
+  
 
   //INITIAlIZE
   Future<void> initNotif() async {
@@ -26,7 +27,11 @@ class NotiService {
     );
 
     //initialize the plugin
-    await notificationsPlugin.initialize(initsettings);
+    FlutterLocalNotificationsPlugin test = new FlutterLocalNotificationsPlugin();
+    await test.initialize(const InitializationSettings(
+      android: initSettingsAndroid,
+      iOS: initSettingsIOS
+    ));
   }
   //NOTIFICATIONS DETAIL SETUP
   NotificationDetails notificationDetails() {
@@ -55,6 +60,5 @@ class NotiService {
       );
 
   }
-    
   }
   //ON NOTI TAP

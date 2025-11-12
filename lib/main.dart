@@ -88,8 +88,9 @@ class _MyHomePageState extends State<MyHomePage> {
             title: 'Title',
             body: 'Body',
             );
+            print("nieheiufbuierb");
         },
-        child: const Text("Send Notifications"),
+        child: const Text("AAAAAAAAA"),
         )
         ),
       bottomNavigationBar: NavigationBar(
