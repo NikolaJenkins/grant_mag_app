@@ -2,9 +2,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/settings.dart';
+// import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const MyApp()
+    // MultiProvider(
+    //   providers: [
+    //     ChangeNotifierProvider(create: (context) => MyApp()),
+    //     Provider(create: (context) => SettingsPage()),
+    //   ],
+    //   child: const MyApp()
+    // )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,7 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blueGrey),
+      theme: ThemeData(primarySwatch: SettingsPageState._selectedOption),
       home: HomePage(title: appTitle),
       routes: {
         '/homepage': (context) => const HomePage(title: appTitle),

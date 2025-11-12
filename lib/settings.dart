@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
-  _SettingsPageState createState() => _SettingsPageState();
+  SettingsPageState createState() => SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  Color? _selectedOption;  
+class ColorProvider extends ChangeNotifier { // figure out provider stuff??
+  Color? _selectedOption;
+}
+
+class SettingsPageState extends State<SettingsPage> {
 
   @override 
   Widget build(BuildContext context) {
@@ -24,7 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ListTile(
                   leading: Text('Theme'),
                   trailing: DropdownButton<Color>(
-                    value: _selectedOption,
+                    value: Provider.of<ColorProvider>(context), // figure out provider stuff??
                     hint: const Text('Choose'),
                     items: ColorLabel.colorLabels.map((ColorLabel entry) {
                       return DropdownMenuItem<Color>(
