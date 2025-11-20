@@ -1,19 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
+import 'package:grant_mag_app/color_theme_model.dart';
 import 'package:grant_mag_app/settings.dart';
-// import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    const MyApp()
-    // MultiProvider(
-    //   providers: [
-    //     ChangeNotifierProvider(create: (context) => MyApp()),
-    //     Provider(create: (context) => SettingsPage()),
-    //   ],
-    //   child: const MyApp()
-    // )
+    // const MyApp()
+    ChangeNotifierProvider(
+      create: (context) => ColorThemeModel(),
+      child: const MyApp(),
+    ),
   );
 }
 
@@ -26,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: SettingsPageState._selectedOption),
+      theme: ThemeData(primarySwatch: Colors.amber),
       home: HomePage(title: appTitle),
       routes: {
         '/homepage': (context) => const HomePage(title: appTitle),
@@ -62,21 +60,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    
-
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
+    return Consumer<ColorThemeModel>(builder: (context, value, child) => Scaffold(
 
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor : value.colorTheme,
         // Here we take the value from the HomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: const Text(MyApp.appTitle),
@@ -92,11 +82,9 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-      backgroundColor: Colors.blueGrey,
-
       // drawer on side
       drawer: Drawer(
-        backgroundColor: const Color.fromARGB(255, 31, 80, 104),
+        backgroundColor: value.colorTheme,
         child: ListView( // lets user scroll through options if they need more vertical space
           // remove padding from ListView
           padding: EdgeInsets.zero,
@@ -160,7 +148,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               Container(
-                color: const Color.fromARGB(255, 103, 98, 201),
+                color: value.colorTheme,
                 child: ListTile(
                   leading: Text('bee movie'),
                   trailing: Text('buzz'),
@@ -202,6 +190,7 @@ class _HomePageState extends State<HomePage> {
       //   ],
       //   separatorBuilder: (BuildContext context, int index) => const Divider(),
       //   )
+      ),
       );
   }
 }

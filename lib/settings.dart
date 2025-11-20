@@ -2,32 +2,31 @@ import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:grant_mag_app/color_theme_model.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
   SettingsPageState createState() => SettingsPageState();
 }
 
-class ColorProvider extends ChangeNotifier { // figure out provider stuff??
-  Color? _selectedOption;
-}
-
 class SettingsPageState extends State<SettingsPage> {
 
   @override 
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Consumer<ColorThemeModel>(
+      builder: (context, value, child) => Scaffold(
       appBar: AppBar(title: const Text("Settings")),
       body: SingleChildScrollView(
         child: Container(
           child: Column(
             children: [
               Container(
-                color: Colors.blue,
+                color: value.colorTheme,
                 child: ListTile(
                   leading: Text('Theme'),
                   trailing: DropdownButton<Color>(
-                    value: Provider.of<ColorProvider>(context), // figure out provider stuff??
+                    value: value.colorTheme, // figure out provider stuff??
                     hint: const Text('Choose'),
                     items: ColorLabel.colorLabels.map((ColorLabel entry) {
                       return DropdownMenuItem<Color>(
@@ -36,9 +35,9 @@ class SettingsPageState extends State<SettingsPage> {
                       );
                     }).toList(),
                     onChanged: (Color? newValue) {
-                      setState(() {
-                        _selectedOption = newValue;
-                      });
+                      final colorThemeChooser = context.read<ColorThemeModel>();
+
+                      colorThemeChooser.changeColorTheme(newValue);
                     },
                   )
                 )
@@ -47,6 +46,7 @@ class SettingsPageState extends State<SettingsPage> {
           )
         )
       )
+    ),
     );
   }
 }
@@ -57,7 +57,7 @@ enum ColorLabel{
   pink(label: 'Pink', color: Colors.pink),
   green(label: 'Green', color: Colors.green),
   orange(label: 'Orange', color: Colors.orange),
-  grey(label: 'Grey', color: Colors.grey);
+  grey(label: 'Gray', color: Colors.grey); // change the spelling
 
   const ColorLabel({
     required this.label,
