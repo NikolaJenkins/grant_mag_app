@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
-import 'package:grant_mag_app/color_theme_model.dart';
+import 'package:grant_mag_app/theme_model.dart';
 import 'package:grant_mag_app/settings.dart';
 import 'package:provider/provider.dart';
 
@@ -9,7 +9,7 @@ void main() {
   runApp(
     // const MyApp()
     ChangeNotifierProvider(
-      create: (context) => ColorThemeModel(),
+      create: (context) => ThemeModel(),
       child: const MyApp(),
     ),
   );
@@ -24,7 +24,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.amber),
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
+        primarySwatch: Colors.amber
+      ),
       home: HomePage(title: appTitle),
       routes: {
         '/homepage': (context) => const HomePage(title: appTitle),
@@ -60,13 +63,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ColorThemeModel>(builder: (context, value, child) => Scaffold(
+    return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
 
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
-        backgroundColor : value.colorTheme,
+        backgroundColor : value.ThemeLabel!.headerColor,
         // Here we take the value from the HomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: const Text(MyApp.appTitle),
@@ -84,22 +87,21 @@ class _HomePageState extends State<HomePage> {
 
       // drawer on side
       drawer: Drawer(
-        backgroundColor: value.colorTheme,
+        backgroundColor: value.ThemeLabel!.shelfColor,
         child: ListView( // lets user scroll through options if they need more vertical space
           // remove padding from ListView
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blueGrey),
+              decoration: BoxDecoration(color: Colors.grey/*value.ThemeLabel.headerColor*/),
               child: Text('Customization'),
             ),
             ListTile(
               title: const Text('Settings'),
               onTap: () {
-                // update state of the app
-                // then close the drawer
                 Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SettingsPage()));
+                MaterialPageRoute(builder: (context) => SettingsPage())
+              );
               },
               leading: Icon(Icons.settings_outlined),
             ),
@@ -113,7 +115,8 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               title: const Text('Profile'),
               onTap: () {
-                // update state of the app
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage())
+                );
               },
               leading: Icon(Icons.person_outline_outlined)
             ),
@@ -148,7 +151,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               Container(
-                color: value.colorTheme,
+                color: value.ThemeLabel!.shelfColor,
                 child: ListTile(
                   leading: Text('bee movie'),
                   trailing: Text('buzz'),
