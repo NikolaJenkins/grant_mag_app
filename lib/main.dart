@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:grant_mag_app/noti_service.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
   //initialize notifications
   NotiService().initNotif();
 
@@ -60,6 +60,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  
+  final FlutterLocalNotificationsPlugin notificationsPlugin = 
+  FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    
+    NotiService service = NotiService();
+    service.initNotif();
+    super.initState();
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -85,12 +96,11 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           NotiService test = new NotiService();
           test.showNotification(
-            title: 'Title',
-            body: 'Body',
+            title: 'Title!',
+            body: 'Body!',
             );
-            print("nieheiufbuierb");
         },
-        child: const Text("AAAAAAAAA"),
+        child: const Text("Teacher"),
         )
         ),
       bottomNavigationBar: NavigationBar(
