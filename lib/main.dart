@@ -15,22 +15,22 @@ void main() {
   NotiService().initNotif();
   
   runApp(
-    // const MyApp()
+    // const GrantMagApp()
     // ChangeNotifierProvider(
     //   create: (context) => ThemeModel(),
-    //   child: const MyApp(),
+    //   child: const GrantMagApp(),
     // ),
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeModel()),
         ChangeNotifierProvider(create: (_) => ProfileModel()),
       ],
-      child: MyApp(),
+      child: GrantMagApp(),
       )
   );
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+}
+class GrantMagApp extends StatelessWidget {
+  const GrantMagApp({super.key});
   static const appTitle = 'Home Page';
 
   // This widget is the root of your application.
@@ -70,7 +70,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomePageState extends State<HomePage> {
   int _counter = 0;
   
   final FlutterLocalNotificationsPlugin notificationsPlugin = 
@@ -144,7 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor : value.ThemeLabel!.headerColor,
         // Here we take the value from the HomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: const Text(MyApp.appTitle),
+        title: const Text(GrantMagApp.appTitle),
         leading: Builder(
           builder: (context) {
             return IconButton(
@@ -155,7 +155,8 @@ class _MyHomePageState extends State<MyHomePage> {
             );
           },
         ),
-        
+      ),
+      
         // drawer on side
       drawer: Drawer(
         backgroundColor: value.ThemeLabel!.shelfColor,
@@ -220,23 +221,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
 
       // scroll through articles
-      body: SingleChildScrollView(
-        child: Container(
-          child: Column(
-            children: [
-              Container(
-                color: value.ThemeLabel!.shelfColor,
-                child: ListTile(
-                  leading: Text('bee movie'),
-                  trailing: Text('buzz'),
-                  onTap: () => Navigator.push(context, 
-                  MaterialPageRoute(builder: (context) => ExampleArticlePage())),
-                )
-              ),
-            ],
-          )
-        )
-      )
-      ),
+      
+      
+    ),
+    );
   }
 }
