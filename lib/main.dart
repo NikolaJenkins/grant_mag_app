@@ -1,17 +1,26 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
+import 'package:grant_mag_app/profile_model.dart';
 import 'package:grant_mag_app/theme_model.dart';
 import 'package:grant_mag_app/settings.dart';
+import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   runApp(
     // const MyApp()
-    ChangeNotifierProvider(
-      create: (context) => ThemeModel(),
-      child: const MyApp(),
-    ),
+    // ChangeNotifierProvider(
+    //   create: (context) => ThemeModel(),
+    //   child: const MyApp(),
+    // ),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeModel()),
+        ChangeNotifierProvider(create: (_) => ProfileModel()),
+      ],
+      child: MyApp(),
+      )
   );
 }
 
@@ -99,8 +108,9 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               title: const Text('Settings'),
               onTap: () {
-                Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SettingsPage())
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsPage())
               );
               },
               leading: Icon(Icons.settings_outlined),
@@ -115,7 +125,9 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               title: const Text('Profile'),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage())
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage())
                 );
               },
               leading: Icon(Icons.person_outline_outlined)
