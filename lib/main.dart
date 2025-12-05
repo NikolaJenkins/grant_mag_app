@@ -6,8 +6,14 @@ import 'package:grant_mag_app/theme_model.dart';
 import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:grant_mag_app/noti_service.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  //initialize notifications
+  NotiService().initNotif();
+  
   runApp(
     // const MyApp()
     // ChangeNotifierProvider(
@@ -22,7 +28,6 @@ void main() {
       child: MyApp(),
       )
   );
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -65,7 +70,19 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> { 
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+  
+  final FlutterLocalNotificationsPlugin notificationsPlugin = 
+  FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    
+    NotiService service = NotiService();
+    service.initNotif();
+    super.initState();
+  }
 
   final List<String> entries = <String>['A', 'B', 'C', 'D', 'E', 'F'];
   final List<int> colorCodes = <int>[600, 500, 100, 50];
@@ -73,7 +90,53 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
-
+      body: Center(child: ElevatedButton(
+        onPressed: () {
+          NotiService test = new NotiService();
+          test.showNotification(
+            title: 'Title!',
+            body: 'Body!',
+            );
+        },
+        child: const Text("Teacher"),
+        )
+        ),
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
+          setState(() {
+            _counter = index;
+          });
+        },
+        indicatorColor: Colors.amber,
+        selectedIndex: _counter,
+        destinations: const <Widget>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.newspaper_rounded)),
+            label: 'News',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.star)),
+            label: 'Features',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+            label: 'Opinion',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.bookmark)),
+            label: 'Bookmark',
+          ),
+          NavigationDestination(
+            icon: Badge(child: Icon(Icons.search)),
+            label: 'Search',
+          ),
+        ],
+      ),
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
@@ -92,9 +155,8 @@ class _HomePageState extends State<HomePage> {
             );
           },
         ),
-      ),
-
-      // drawer on side
+        
+        // drawer on side
       drawer: Drawer(
         backgroundColor: value.ThemeLabel!.shelfColor,
         child: ListView( // lets user scroll through options if they need more vertical space
@@ -175,37 +237,6 @@ class _HomePageState extends State<HomePage> {
           )
         )
       )
-      // body: ListView.separated(
-      //   padding: const EdgeInsets.all(24),
-      //   itemCount: entries.length,
-      //   // itemBuilder: (BuildContext context, int index) {
-      //   //   return Container(
-      //   //     height: 50,
-      //   //     color: Colors.amber[colorCodes[index]],
-      //   //     child: Center(child: Text('Entry ${entries[index]}'))
-      //   //     );
-      //   // },
-
-      //   children: <Widget>[
-      //     Container(
-      //       height: 50,
-      //       color: Colors.amber[colorCodes[0]],
-      //       child: const Center(child: Text('The Bee Movie')),
-      //     ),
-      //     Container(
-      //       height: 50,
-      //       color: Colors.amber[colorCodes[1]],
-      //       child: const Center(child: Text('Boo')),
-      //     ),
-      //     Container(
-      //       height: 50,
-      //       color: Colors.amber[colorCodes[2]],
-      //       child: const Center(child: Text('Buzz')),
-      //     )
-      //   ],
-      //   separatorBuilder: (BuildContext context, int index) => const Divider(),
-      //   )
       ),
-      );
   }
 }
