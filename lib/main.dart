@@ -1,47 +1,59 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:grant_mag_app/articles.dart';
+import 'package:grant_mag_app/profile_model.dart';
+import 'package:grant_mag_app/theme_model.dart';
+import 'package:grant_mag_app/settings.dart';
+import 'package:grant_mag_app/profile.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:grant_mag_app/noti_service.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   //initialize notifications
   NotiService().initNotif();
-
-  runApp(const MyApp());
-}
+  
+  runApp(
+    // const MyApp()
+    // ChangeNotifierProvider(
+    //   create: (context) => ThemeModel(),
+    //   child: const MyApp(),
+    // ),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeModel()),
+        ChangeNotifierProvider(create: (_) => ProfileModel()),
+      ],
+      child: MyApp(),
+      )
+  );
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  static const appTitle = 'Home Page';
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
+        primarySwatch: Colors.amber
       ),
-      home: const MyHomePage(title: 'Grant Magazine'),
+      home: HomePage(title: appTitle),
+      routes: {
+        '/homepage': (context) => const HomePage(title: appTitle),
+        '/examplearticlepage': (context) => ExampleArticlePage(),
+      },
+      title: appTitle,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -55,7 +67,7 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -72,26 +84,12 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final List<String> entries = <String>['A', 'B', 'C', 'D', 'E', 'F'];
+  final List<int> colorCodes = <int>[600, 500, 100, 50];
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
+    return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
       body: Center(child: ElevatedButton(
         onPressed: () {
           NotiService test = new NotiService();
@@ -131,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           NavigationDestination(
             icon: Badge(child: Icon(Icons.bookmark)),
-            label: 'Bookmarks',
+            label: 'Bookmark',
           ),
           NavigationDestination(
             icon: Badge(child: Icon(Icons.search)),
@@ -143,38 +141,102 @@ class _MyHomePageState extends State<MyHomePage> {
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
+        backgroundColor : value.ThemeLabel!.headerColor,
+        // Here we take the value from the HomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text(MyApp.appTitle),
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(Icons.bento),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
+        
+        // drawer on side
+      drawer: Drawer(
+        backgroundColor: value.ThemeLabel!.shelfColor,
+        child: ListView( // lets user scroll through options if they need more vertical space
+          // remove padding from ListView
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.grey/*value.ThemeLabel.headerColor*/),
+              child: Text('Customization'),
+            ),
+            ListTile(
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsPage())
+              );
+              },
+              leading: Icon(Icons.settings_outlined),
+            ),
+            ListTile(
+              title: const Text('Games'),
+              onTap: () {
+                // update state of the app
+              },
+              leading: Icon(Icons.videogame_asset)
+            ),
+            ListTile(
+              title: const Text('Profile'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage())
+                );
+              },
+              leading: Icon(Icons.person_outline_outlined)
+            ),
+            ListTile(
+              title: const Text('Feedback'),
+              onTap: () {
+                // update state of the app
+              },
+              leading: Icon(Icons.chat_rounded)
+            ),
+            ListTile(
+              title: const Text('About'),
+              onTap: () {
+                // update state of the app
+              },
+              leading: Icon(Icons.person_pin_rounded)
+            ),
+            ListTile(
+              title: const Text('Credits'),
+              onTap: () {
+                // update state of the app
+              },
+              leading: Icon(Icons.source_rounded)
+            ),
+          ],
+        ),
       ),
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          //mainAxisAlignment: MainAxisAlignment.center,
-          //children: <Widget>[
-            //const Text('You have pushed the button this many times:'),
-            //Text(
-              //'$_counter',
-              //style: Theme.of(context).textTheme.headlineMedium,
-           // ),
-         // ],
-        
-      
-       // This trailing comma makes auto-formatting nicer for build methods.
-    );
+
+      // scroll through articles
+      body: SingleChildScrollView(
+        child: Container(
+          child: Column(
+            children: [
+              Container(
+                color: value.ThemeLabel!.shelfColor,
+                child: ListTile(
+                  leading: Text('bee movie'),
+                  trailing: Text('buzz'),
+                  onTap: () => Navigator.push(context, 
+                  MaterialPageRoute(builder: (context) => ExampleArticlePage())),
+                )
+              ),
+            ],
+          )
+        )
+      )
+      ),
   }
 }
