@@ -5,12 +5,54 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_html/flutter_html.dart';
+
+
+
 
 class GrantMagRSS extends StatefulWidget{
   GrantMagRSS() : super();
   final String title = 'Grant Mag RSS Feed';
   @override
   GrantMagRSState createState() => GrantMagRSState();
+}
+
+class ArticlePage extends StatelessWidget {
+  final RssItem article;
+   const ArticlePage({required this.article});
+   @override
+   Widget build(BuildContext context){
+    double screenWidth = MediaQuery.of(context).size.width;
+    String html = article.content?.value ?? '';
+      html = html.replaceAll(RegExp(r'style="width:\s*\d+px"'), '');
+      html = html.replaceAll(RegExp(r'width="\d+"'), '');
+      html = html.replaceAll(RegExp(r'height="\d+"'), '');
+      html = html.replaceAll(RegExp(r'srcset="[^"]+"'), '');
+      html = html.replaceAll(RegExp(r'sizes="[^"]*"'), '');
+debugPrint(html);
+      return Scaffold(
+      appBar: AppBar(title: Text(article.title ?? 'Article')),
+      body: SingleChildScrollView(
+        child: SizedBox(
+           width: MediaQuery.of(context).size.width,
+           child: 
+            Html( 
+              data: html,
+              style: {
+                "figure": Style(
+                  width: Width(screenWidth),
+                  fontSize: FontSize(11),
+                  height: Height.auto(),
+                  display: Display.block,
+                  textAlign: TextAlign.center,
+                  padding: HtmlPaddings.only(right: 16.0),
+                ),
+              },
+            ),
+          ),
+       ),
+    );
+   }
 }
 
 class GrantMagRSState extends State<GrantMagRSS>{
@@ -89,8 +131,11 @@ Future<RssFeed> loadFeed() async{
     _refreshKey = GlobalKey<RefreshIndicatorState>();
    print('debug0 start');
     updateTitle(widget.title);
+    final banned = ['PDF Issues'];
+    _feed?.items?.removeWhere((item){
+      return item.categories?.any((c) => banned.contains(c)) ?? false;
+    });
     load();
-
   }
 
   title(apptitle){
@@ -157,10 +202,18 @@ subtitle(dynamic value) {
         : const Icon(Icons.image_not_supported),
         trailing: rightIcon(),
         contentPadding: EdgeInsets.all(5.0),
-        onTap: () => openFeed(item.link as String),
+        onTap: () {
+          Navigator.push(
+          context,
+          MaterialPageRoute(
+          builder: (context) => ArticlePage(article: item),
+    ),
+  );
+},
       );
     },
     );
+    
   }
 
   isFeedEmpty(){
