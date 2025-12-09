@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
     return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
       body: Center(child: ElevatedButton(
         onPressed: () {
-          NotiService test = new NotiService();
+          NotiService test = NotiService();
           test.showNotification(
             title: 'Title!',
             body: 'Body!',

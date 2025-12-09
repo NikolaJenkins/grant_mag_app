@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
   ProfilePageState createState() => ProfilePageState();
 }

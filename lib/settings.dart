@@ -6,6 +6,8 @@ import 'package:grant_mag_app/theme_model.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
   @override
   SettingsPageState createState() => SettingsPageState();
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CogsPage extends StatefulWidget {
+  const CogsPage({super.key});
+
   @override
   _CogsPageState createState() => _CogsPageState();
 }
