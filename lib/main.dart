@@ -39,7 +39,8 @@ class GrantMagApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
+        scaffoldBackgroundColor: Colors.amber
+        , // use listener to get provider info
         primarySwatch: Colors.amber
       ),
       home: HomePage(title: appTitle),
