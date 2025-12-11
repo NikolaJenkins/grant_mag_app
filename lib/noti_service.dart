@@ -9,7 +9,7 @@ class NotiService {
   
 
   //INITIAlIZE
-  Future<void> initNotif() async {
+  Future<void> initNotification() async {
     
     if (_isInitialized) return; //prevent re-initialization
     //prepare android init settings
@@ -22,19 +22,17 @@ class NotiService {
     );
 
     // init settings
-    const initsettings = InitializationSettings(
+    const initSettings = InitializationSettings(
       android: initSettingsAndroid,
       iOS: initSettingsIOS,
     );
 
     //initialize the plugin
     FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
-    await test.initialize(const InitializationSettings(
-      android: initSettingsAndroid,
-      iOS: initSettingsIOS
-    ));
-    print("End of initNotif");
+    await test.initialize(initSettings);
+    print("End of initNotification");
   }
+
   //NOTIFICATIONS DETAIL SETUP
   NotificationDetails notificationDetails() {
     
@@ -45,11 +43,12 @@ class NotiService {
         'Daily Notifications',
         channelDescription: 'Daily Notification Channel',
         importance: Importance.max,
-        //priority: Priority.high,
+        priority: Priority.high,
       ),
       iOS: DarwinNotificationDetails(),
     );
   }
+
   //SHOW NOTIFICATIONS
   Future<void> showNotification({
     int id = 0,

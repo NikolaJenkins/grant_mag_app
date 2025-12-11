@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
@@ -12,7 +11,7 @@ import 'package:grant_mag_app/noti_service.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   //initialize notifications
-  NotiService().initNotif();
+  NotiService().initNotification();
   
   runApp(
     // const GrantMagApp()
@@ -81,12 +80,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     
     NotiService service = NotiService();
-    service.initNotif();
+    service.initNotification();
     super.initState();
   }
-
-  final List<String> entries = <String>['A', 'B', 'C', 'D', 'E', 'F'];
-  final List<int> colorCodes = <int>[600, 500, 100, 50];
 
   @override
   Widget build(BuildContext context) {
