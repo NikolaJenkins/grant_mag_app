@@ -22,17 +22,14 @@ class NotiService {
     );
 
     // init settings
-    const initsettings = InitializationSettings(
+    const initSettings = InitializationSettings(
       android: initSettingsAndroid,
       iOS: initSettingsIOS,
     );
 
     //initialize the plugin
     FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
-    await test.initialize(const InitializationSettings(
-      android: initSettingsAndroid,
-      iOS: initSettingsIOS
-    ));
+    await test.initialize(initSettings);
     print("End of initNotif");
   }
   //NOTIFICATIONS DETAIL SETUP

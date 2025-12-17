@@ -84,13 +84,39 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
-  final List<String> entries = <String>['A', 'B', 'C', 'D', 'E', 'F'];
   final List<int> colorCodes = <int>[600, 500, 100, 50];
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
-      body: Center(child: ElevatedButton(
+      body: Column(
+        children: [
+          ElevatedButton(
+          child: Text('Open Dialog'),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('I am a...'),
+                actions: [
+                  TextButton(
+                    child: Text('Student..eee.'),
+                    style: TextButton.styleFrom(
+                    ),
+                    onPressed: () => Navigator.pop(context)),
+                  TextButton(
+                    child: Text('Parent'),
+                    style: TextButton.styleFrom(
+                      alignment: Alignment.topLeft,
+                  ),
+                    onPressed: () => Navigator.pop(context),
+                   )
+                ]
+              ),
+            );
+          }
+        ),
+        ElevatedButton(
         onPressed: () {
           NotiService test = new NotiService();
           test.showNotification(
@@ -98,9 +124,10 @@ class _HomePageState extends State<HomePage> {
             body: 'Body!',
             );
         },
-        child: const Text("Teacher"),
+        child: const Text("Teachers"),
         )
-        ),
+        ]
+      ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
           setState(() {
