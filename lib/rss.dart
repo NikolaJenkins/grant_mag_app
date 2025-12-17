@@ -3,9 +3,9 @@
 import 'package:webfeed/webfeed.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 
 
@@ -29,9 +29,19 @@ class ArticlePage extends StatelessWidget {
       html = html.replaceAll(RegExp(r'height="\d+"'), '');
       html = html.replaceAll(RegExp(r'srcset="[^"]+"'), '');
       html = html.replaceAll(RegExp(r'sizes="[^"]*"'), '');
-debugPrint(html);
+      debugPrint(html);
       return Scaffold(
-      appBar: AppBar(title: Text(article.title ?? 'Article')),
+      appBar: AppBar(
+        toolbarHeight: 100, // max height
+        title: AutoSizeText(
+          article.title ?? 'Article',
+          style: TextStyle(fontSize: 24), // max font size
+          maxLines: 3,                      // wrap up to 
+          minFontSize: 12,                  // scale down min
+          overflow: TextOverflow.ellipsis,  // overflow protection
+        ),
+      ),
+
       body: SingleChildScrollView(
         child: SizedBox(
            width: MediaQuery.of(context).size.width,
@@ -68,7 +78,7 @@ class GrantMagRSState extends State<GrantMagRSS>{
 updateTitle(title){
 print('updateTitle called with type: ${title.runtimeType}');
 setState(() {
-  _title = title;
+  _title = 'Grant Magazine';
 });
 print('updatestitle');
 }
@@ -78,6 +88,7 @@ setState(() {
   _feed = feed;
 });
 }
+
 
 Future<void> openFeed(String url) async{
   if(await canLaunchUrl(Uri.parse(url))){
@@ -153,38 +164,6 @@ Future<RssFeed> loadFeed() async{
     );
   }
 
-subtitle(dynamic value) {
-  final String displaySubTitle;
-  if (value == null) {
-    displaySubTitle = '';
-  } else {
-    print(value.runtimeType);
-    //displaySubTitle = value.toString();
-    displaySubTitle = "";
-  }
-
-  return Text(
-    displaySubTitle,
-    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w100),
-    maxLines: 1,
-    overflow: TextOverflow.ellipsis,
-  );
-}
-
-  thumbnail(imgUrl){
-    return Padding(
-      padding: EdgeInsetsGeometry.only(left:15.0),
-      child: CachedNetworkImage(
-        placeholder: (context, url) => Image.asset(placeholder),
-        imageUrl: imgUrl ?? placeholder,
-        height: 50,
-        width: 70,
-        alignment: Alignment.center,
-        fit: BoxFit.fill,
-      )
-    );
-  }
-
   rightIcon(){
     return Icon(Icons.keyboard_arrow_right, color: Colors.grey, size: 30.0);
   }
@@ -196,24 +175,29 @@ subtitle(dynamic value) {
       final item = _feed?.items?[index];
       return ListTile(
         title: title(item!.title),
-        subtitle: subtitle(item.pubDate),
-        leading: (item.img?.url != null && item.img!.url!.startsWith('http'))
-        ? thumbnail(item.img!.url!)
-        : const Icon(Icons.image_not_supported),
+        subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? '',),
+        leading: const Icon(Icons.image_not_supported),
         trailing: rightIcon(),
         contentPadding: EdgeInsets.all(5.0),
         onTap: () {
-          Navigator.push(
-          context,
-          MaterialPageRoute(
-          builder: (context) => ArticlePage(article: item),
-    ),
-  );
-},
+          print("=== TILE TAPPED ===");
+          print("item: $item");
+          print("item.title: ${item.title}");
+          try {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+              builder: (_) => ArticlePage(article: item),
+              ),
+            );
+          } catch (e, st) {
+              print("NAVIGATION CRASH: $e");
+              print(st);
+          }
+        },
       );
     },
     );
-    
   }
 
   isFeedEmpty(){
@@ -237,8 +221,4 @@ subtitle(dynamic value) {
       body: body(),
     );
   }
-}
-
-extension on RssItem {
-  get img => null;
 }
