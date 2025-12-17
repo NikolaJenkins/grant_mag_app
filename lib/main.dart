@@ -78,10 +78,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    
+    super.initState();
     NotiService service = NotiService();
     service.initNotification();
-    super.initState();
   }
 
   @override
@@ -90,12 +89,13 @@ class _HomePageState extends State<HomePage> {
       body: Center(child: ElevatedButton(
         onPressed: () {
           NotiService test = NotiService();
-          test.showNotification(
+          test.showInstantNotification(
+            id: 0,
             title: 'Title!',
             body: 'Body!',
             );
         },
-        child: const Text("Teacher"),
+        child: const Text("Teacher Mandell"),
         )
         ),
       bottomNavigationBar: NavigationBar(

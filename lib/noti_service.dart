@@ -13,9 +13,9 @@ class NotiService {
     
     if (_isInitialized) return; //prevent re-initialization
     //prepare android init settings
-    const initSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher'); //FLUTTER ICON - CHANGE LATER
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher'); //FLUTTER ICON - CHANGE LATER
     //prepare ios init settings
-    const initSettingsIOS = DarwinInitializationSettings(
+    const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -23,13 +23,13 @@ class NotiService {
 
     // init settings
     const initSettings = InitializationSettings(
-      android: initSettingsAndroid,
-      iOS: initSettingsIOS,
+      android: androidSettings,
+      iOS: iosSettings,
     );
 
     //initialize the plugin
-    FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
-    await test.initialize(initSettings);
+    // FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
+    await notificationsPlugin.initialize(initSettings);
     print("End of initNotification");
   }
 
@@ -50,18 +50,39 @@ class NotiService {
   }
 
   //SHOW NOTIFICATIONS
-  Future<void> showNotification({
-    int id = 0,
-    String? title,
-    String? body,
-    }) async {
-      print("Just before returning notificationPlugin.show");
-      return notificationsPlugin.show(
-        id, 
-        title, 
-        body, 
-        const NotificationDetails(),
-      );
+  // Future<void> showNotification({
+  //   int id = 0,
+  //   String? title,
+  //   String? body,
+  //   }) async {
+  //     print("Just before returning notificationPlugin.show");
+  //     return notificationsPlugin.show(
+  //       id, 
+  //       title, 
+  //       body, 
+  //       const NotificationDetails(),
+  //     );
+
+    // Instant notifications
+  Future<void> showInstantNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await notificationsPlugin.show(
+      id,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'instant_notification_channel_id',
+          'Instant Notifications',
+          channelDescription: 'Instant notification channel',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails())
+    );
   }
   }
   //ON NOTI TAP
