@@ -69,6 +69,7 @@ class NotiService {
     required String title,
     required String body,
   }) async {
+    print("just before notificationsPlugin.show");
     await notificationsPlugin.show(
       id,
       title,
@@ -83,6 +84,7 @@ class NotiService {
         ),
         iOS: DarwinNotificationDetails())
     );
+    print("just after notificationsPlugin.show");
   }
   }
   //ON NOTI TAP
