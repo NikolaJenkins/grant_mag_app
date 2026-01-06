@@ -43,7 +43,8 @@ class GrantMagApp extends StatelessWidget {
         , // use listener to get provider info
         primarySwatch: Colors.amber
       ),
-      home: HomePage(title: appTitle),
+      title: 'Grant Mag RSS Test',
+      home: new GrantMagRSS(),
       routes: {
         '/homepage': (context) => const HomePage(title: appTitle),
         '/examplearticlepage': (context) => ExampleArticlePage(),
