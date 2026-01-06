@@ -1,17 +1,23 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotiService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  final bool _isInitialized = false;
+  // final bool _isInitialized = false;
 
-  bool get isInitialized => _isInitialized;
+  // bool get isInitialized => _isInitialized;
   
 
   //INITIAlIZE
   Future<void> initNotification() async {
+
+    print("Start of initNotification");
+    print("Target platform: $defaultTargetPlatform");
     
-    if (_isInitialized) return; //prevent re-initialization
+    // if (_isInitialized) return; //prevent re-initialization
     //prepare android init settings
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher'); //FLUTTER ICON - CHANGE LATER
     //prepare ios init settings
@@ -22,14 +28,14 @@ class NotiService {
     );
 
     // init settings
-    const initSettings = InitializationSettings(
+    const initializationSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
 
     //initialize the plugin
     // FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
-    await notificationsPlugin.initialize(initSettings);
+    await notificationsPlugin.initialize(initializationSettings);
     print("End of initNotification");
   }
 

@@ -71,7 +71,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _counter = 0;
+  int _counter = 1;
   
   final FlutterLocalNotificationsPlugin notificationsPlugin = 
   FlutterLocalNotificationsPlugin();
@@ -81,6 +81,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     NotiService service = NotiService();
     service.initNotification();
+    service.showInstantNotification(id: 0, title: 'Title!', body: 'Body');
   }
 
   @override
@@ -95,7 +96,7 @@ class _HomePageState extends State<HomePage> {
             body: 'Body!',
             );
         },
-        child: const Text("Teacher Mandell"),
+        child: const Text("Cool people commit"),
         )
         ),
       bottomNavigationBar: NavigationBar(
