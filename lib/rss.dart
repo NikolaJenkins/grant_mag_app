@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'package:webfeed/webfeed.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
