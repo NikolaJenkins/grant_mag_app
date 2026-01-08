@@ -100,14 +100,15 @@ class _HomePageState extends State<HomePage> {
                 title: Text('I am a...'),
                 actions: [
                   TextButton(
-                    child: Text('Student..eee.'),
+                    child: Text('Student.'),
                     style: TextButton.styleFrom(
-                    ),
+                    foregroundColor: Colors.black),
                     onPressed: () => Navigator.pop(context)),
                   TextButton(
                     child: Text('Parent'),
                     style: TextButton.styleFrom(
-                      alignment: Alignment.topLeft,
+                      foregroundColor: Colors.black,
+                      // padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                   ),
                     onPressed: () => Navigator.pop(context),
                    )
