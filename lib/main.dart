@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
-import 'package:grant_mag_app/theme_model.dart';
+import 'package:grant_mag_app/settings_model.dart';
 import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +21,7 @@ void main() {
     // ),
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeModel()),
+        ChangeNotifierProvider(create: (_) => SettingsModel()),
         ChangeNotifierProvider(create: (_) => ProfileModel()),
       ],
       child: GrantMagApp(),
@@ -85,7 +85,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
+    return Consumer<SettingsModel>(builder: (context, value, child) => Scaffold(
       body: Center(),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
@@ -293,7 +293,7 @@ class CustomSearchDelegate extends SearchDelegate {
     }
 
     // check decks
-    for (var fruit in titles) {
+    for (var fruit in decks) {
       if (fruit.toLowerCase().contains(query.toLowerCase())) {
         matchQuery.add(fruit);
       }
@@ -329,7 +329,7 @@ class CustomSearchDelegate extends SearchDelegate {
     }
 
     // check decks
-    for (var fruit in titles) {
+    for (var fruit in decks) {
       if (fruit.toLowerCase().contains(query.toLowerCase())) {
         matchQuery.add(fruit);
       }
