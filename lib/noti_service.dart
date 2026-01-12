@@ -15,7 +15,7 @@ class NotiService {
     //prepare android init settings
     const initSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher'); //FLUTTER ICON - CHANGE LATER
     //prepare ios init settings
-    const initSettingsIOS = DarwinInitializationSettings(
+    const initSettingsIOS = IOSInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -43,11 +43,11 @@ class NotiService {
       android: AndroidNotificationDetails(
         'daily_channel_id', 
         'Daily Notifications',
-        channelDescription: 'Daily Notification Channel',
+        'Daily Notification Channel',
         importance: Importance.max,
         //priority: Priority.high,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: IOSNotificationDetails(),
     );
   }
   //SHOW NOTIFICATIONS

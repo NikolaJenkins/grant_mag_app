@@ -39,12 +39,10 @@ class GrantMagApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.amber
-        , // use listener to get provider info
+        scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
         primarySwatch: Colors.amber
       ),
-      title: 'Grant Mag RSS Test',
-      home: new GrantMagRSS(),
+      home: HomePage(title: appTitle),
       routes: {
         '/homepage': (context) => const HomePage(title: appTitle),
         '/examplearticlepage': (context) => ExampleArticlePage(),
@@ -86,13 +84,40 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
-  final List<String> entries = <String>['A', 'B', 'C', 'D', 'E', 'F'];
   final List<int> colorCodes = <int>[600, 500, 100, 50];
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
-      body: Center(child: ElevatedButton(
+      body: Column(
+        children: [
+          ElevatedButton(
+          child: Text('Open Dialogsssssss'),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('I am a...'),
+                actions: [
+                  TextButton(
+                    child: Text('Student.'),
+                    style: TextButton.styleFrom(
+                    foregroundColor: Colors.black),
+                    onPressed: () => Navigator.pop(context)),
+                  TextButton(
+                    child: Text('Parent'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      // padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  ),
+                    onPressed: () => Navigator.pop(context),
+                   )
+                ]
+              ),
+            );
+          }
+        ),
+        ElevatedButton(
         onPressed: () {
           NotiService test = new NotiService();
           test.showNotification(
@@ -100,9 +125,10 @@ class _HomePageState extends State<HomePage> {
             body: 'Body!',
             );
         },
-        child: const Text("Teacher"),
+        child: const Text("Teachers"),
         )
-        ),
+        ]
+      ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
           setState(() {
