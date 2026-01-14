@@ -92,7 +92,8 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           ElevatedButton(
-          child: Text('Open Dialogsssssss'),
+          child: Text('Open Dialogsssssss'
+          ),
           onPressed: () {
             showDialog(
               context: context,
@@ -145,7 +146,7 @@ class _HomePageState extends State<HomePage> {
           ),
           NavigationDestination(
             icon: Badge(child: Icon(Icons.newspaper_rounded)),
-            label: 'News',
+            label: 'Newssss',
           ),
           NavigationDestination(
             icon: Badge(child: Icon(Icons.star)),
