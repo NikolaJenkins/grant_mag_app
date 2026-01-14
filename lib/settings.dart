@@ -11,7 +11,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  double _textSize = 20;
+  double _textSize = 100;
   bool year2023 = true;
 
   @override 
@@ -51,9 +51,9 @@ class SettingsPageState extends State<SettingsPage> {
                   subtitle: Slider(
                     year2023: year2023,
                     value: _textSize,
-                    max: 50,
-                    min: 10,
-                    divisions: 10,
+                    max: 200,
+                    min: 50,
+                    divisions: 15,
                     label: _textSize.round().toString(),
                     onChanged: (double newValue) {
                       // final textSizeChooser = context.read<SettingsModel>();

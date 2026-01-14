@@ -35,19 +35,25 @@ class GrantMagApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.amber
-        , // use listener to get provider info
-        primarySwatch: Colors.amber
-      ),
-      home: HomePage(title: appTitle),
-      routes: {
-        '/homepage': (context) => const HomePage(title: appTitle),
-        '/examplearticlepage': (context) => ExampleArticlePage(),
-      },
-      title: appTitle,
+    return Consumer<SettingsModel>(
+      builder: (context, settingsModel, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
+            primarySwatch: Colors.amber,
+            textTheme: Theme.of(context).textTheme.apply(
+              fontSizeFactor: settingsModel.TextSize / 100
+          )
+        ),
+        home: HomePage(title: appTitle),
+        routes: {
+          '/homepage': (context) => const HomePage(title: appTitle),
+          '/examplearticlepage': (context) => ExampleArticlePage(),
+        },
+        title: appTitle,
+        );  
+      }
     );
   }
 }
@@ -92,7 +98,9 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             _counter = index;
           });
-          if (index == 3) {
+          if (index == 0) {
+            print(value.TextSize);
+          } else if (index == 3) {
             NotiService test = NotiService();
             test.showInstantNotification(
               id: 0,
@@ -185,7 +193,7 @@ class _HomePageState extends State<HomePage> {
               leading: Icon(Icons.videogame_asset)
             ),
             ListTile(
-              title: const Text('Profile'),
+              title: const Text('Profile',),
               onTap: () {
                 Navigator.push(
                   context,
