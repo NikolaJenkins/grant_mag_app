@@ -97,22 +97,25 @@ class _HomePageState extends State<HomePage> {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text('I am a...'),
-                actions: [
-                  TextButton(
-                    child: Text('Student.'),
-                    style: TextButton.styleFrom(
-                    foregroundColor: Colors.black),
-                    onPressed: () => Navigator.pop(context)),
-                  TextButton(
-                    child: Text('Parent'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      // padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                  ),
-                    onPressed: () => Navigator.pop(context),
-                   )
-                ]
+                title: Text('I am a...', textAlign: TextAlign.center,),
+                content: Column(
+                  children: [
+                    TextButton(
+                      child: Text('Student', textAlign: TextAlign.left),
+                      style: TextButton.styleFrom(
+                      foregroundColor: Colors.black),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Align()),
+                    TextButton(
+                      child: Text('Parent', textAlign: TextAlign.left),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        // padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                    ),
+                      onPressed: () => Navigator.pop(context),
+                    )
+                  ]
+                )
               ),
             );
           }
