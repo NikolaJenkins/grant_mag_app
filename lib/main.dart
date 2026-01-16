@@ -101,19 +101,27 @@ class _HomePageState extends State<HomePage> {
                 content: Column(
                   children: [
                     TextButton(
-                      child: Text('Student', textAlign: TextAlign.left),
-                      style: TextButton.styleFrom(
-                      foregroundColor: Colors.black),
+                      style: ButtonStyle(fixedSize: Size.fromWidth(320), alignment: Alignment.topLeft),
                       onPressed: () => Navigator.pop(context),
-                      child: const Align()),
-                    TextButton(
-                      child: Text('Parent', textAlign: TextAlign.left),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.black,
-                        // padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                      child: Column(
+                        children: [
+                        Text('Studentss'),
+                        const Align(alignment: Alignment.bottomLeft,),
+                        ],
+                      
+                      ),
                     ),
+                      
+                    TextButton(
                       onPressed: () => Navigator.pop(context),
-                    )
+                      child: Column(
+                        children: [
+                        Text('Parent'),
+                        const Align(alignment: Alignment.bottomLeft,),
+                        ],
+                      
+                      ),
+                    ),
                   ]
                 )
               ),
