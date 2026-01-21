@@ -97,26 +97,28 @@ class _HomePageState extends State<HomePage> {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text('I am a...', textAlign: TextAlign.center,),
+                title: Text('I am a...', textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
                 content: Column(
                   children: [
+                    Text(''),
                     TextButton(
-                      style: ButtonStyle(fixedSize: Size.fromWidth(320), alignment: Alignment.topLeft),
+                      style: ButtonStyle(alignment: Alignment.topLeft),
                       onPressed: () => Navigator.pop(context),
                       child: Column(
                         children: [
-                        Text('Studentss'),
+                        Text('Studentss', style: TextStyle(fontSize: 20)),
                         const Align(alignment: Alignment.bottomLeft,),
                         ],
                       
                       ),
                     ),
-                      
+                    Text(''),
+                    Text(''),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: Column(
                         children: [
-                        Text('Parent'),
+                        Text('Parent', style: TextStyle(fontSize: 20)),
                         const Align(alignment: Alignment.bottomLeft,),
                         ],
                       
