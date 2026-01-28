@@ -89,7 +89,6 @@ class _HomePageState extends State<HomePage> {
     service.initNotification();
   }
 
-  final List<String> entries = <String>['A', 'B', 'C', 'D', 'E', 'F'];
   final List<int> colorCodes = <int>[600, 500, 100, 50];
 
   @override
@@ -98,27 +97,38 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           ElevatedButton(
-          child: Text('Open Dialogsssssss'),
+          child: Text('Open Dialog'),
           onPressed: () {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text('I am a...'),
-                actions: [
-                  TextButton(
-                    child: Text('Student.'),
-                    style: TextButton.styleFrom(
-                    foregroundColor: Colors.black),
-                    onPressed: () => Navigator.pop(context)),
-                  TextButton(
-                    child: Text('Parent'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      // padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                  ),
-                    onPressed: () => Navigator.pop(context),
-                   )
-                ]
+                title: Text('I am a...', textAlign: TextAlign.center,),
+                content: Column(
+                  children: [
+                    TextButton(
+                      style: ButtonStyle(alignment: Alignment.topLeft),
+                      onPressed: () => Navigator.pop(context),
+                      child: Column(
+                        children: [
+                        Text('Studentss'),
+                        const Align(alignment: Alignment.bottomLeft,),
+                        ],
+                      
+                      ),
+                    ),
+                      
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Column(
+                        children: [
+                        Text('Parent'),
+                        const Align(alignment: Alignment.bottomLeft,),
+                        ],
+                      
+                      ),
+                    ),
+                  ]
+                )
               ),
             );
           }
