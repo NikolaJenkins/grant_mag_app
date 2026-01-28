@@ -9,7 +9,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
-void main() {
+void main() { 
   WidgetsFlutterBinding.ensureInitialized();
 
   NotiService().initNotif();
@@ -25,7 +25,7 @@ void main() {
   );
 }
 
-class GrantMagApp extends StatelessWidget {
+class GrantMagApp extends StatelessWidget { //base widget constructor
   const GrantMagApp({super.key});
   static const appTitle = 'Home Page';
 
@@ -47,7 +47,7 @@ class GrantMagApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatefulWidget { //home page constructor
   const HomePage({super.key, required this.title});
 
   final String title;
@@ -56,12 +56,13 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> { //creates home page state using contructor
   int _counter = 0;
 
   final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  Widget getBody() {
+ 
+  Widget getBody() { //page navigation system and body generator
     switch (_counter) {
       case 0:
         return SingleChildScrollView(
@@ -108,7 +109,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { //drawer constructor
     return Consumer<ThemeModel>(
       builder: (context, value, child) => Scaffold(
         appBar: AppBar(

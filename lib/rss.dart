@@ -7,29 +7,28 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 
-class GrantMagFeed extends StatefulWidget {
+class GrantMagFeed extends StatefulWidget { //Mag Feed class
   const GrantMagFeed({super.key});
   
   @override State<GrantMagFeed> createState() => _GrantMagFeedState(); 
 }
 
-class _GrantMagFeedState extends State<GrantMagFeed> {
+class _GrantMagFeedState extends State<GrantMagFeed> { //actual feed state
   static const String FEED_URL = 'https://backfeed.app/jkLTDA9LpqPBIVdrjl/https://grantmagazine.com/feed/rss'; 
   RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
   
-  
-  @override void initState() {
+  @override void initState() { //initial state constructor
     super.initState(); _refreshKey = GlobalKey<RefreshIndicatorState>(); 
     load(); 
   } 
   
-  Future<void> load() async {
+  Future<void> load() async { //loads RSS feed data
     final result = await loadFeed(); 
     if (!mounted) return; 
     setState(() => _feed = result); 
   } 
   
-  Future<RssFeed> loadFeed() async { 
+  Future<RssFeed> loadFeed() async { //URL parse function
     try { 
       final response = await http.get(Uri.parse(FEED_URL));
       print(response.body);
@@ -38,8 +37,9 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
     catch (_) { return RssFeed(items: []); } 
   }
 
-  bool isFeedEmpty() => _feed == null || _feed!.items == null; 
-  Widget list() { 
+  bool isFeedEmpty() => _feed == null || _feed!.items == null;
+
+  Widget list() { //builds article list and page scaffold
     return ListView.builder( 
       itemCount: _feed?.items?.length ?? 0, 
       itemBuilder: (context, index) { final item = _feed!.items![index]; 
@@ -113,42 +113,42 @@ class _ArticlePageState extends State<ArticlePage> {
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
-      html = html.replaceAll(RegExp(r'style="width:\s*\d+px"'), '');
+      html = html.replaceAll(RegExp(r'style="width:\s*\d+px"'), ''); //regex stripper for consistency
       html = html.replaceAll(RegExp(r'width="\d+"'), '');
       html = html.replaceAll(RegExp(r'height="\d+"'), '');
       html = html.replaceAll(RegExp(r'srcset="[^"]+"'), '');
       html = html.replaceAll(RegExp(r'sizes="[^"]*"'), '');
       debugPrint('HTML: ');
       debugPrint(html);
-      return Scaffold(
+      return Scaffold( //scaffold constructor within home page
       appBar: AppBar(
         toolbarHeight: 100, // max height
         title: AutoSizeText(
           widget.article.title ?? 'Article',
           maxLines: 3,                      
           minFontSize: 12,                  
-          overflow: TextOverflow.ellipsis,  
+          overflow: TextOverflow.ellipsis, //wrapper cutoff 
         ),
       ),
 
-       body: SingleChildScrollView(
+       body: SingleChildScrollView( //article page body
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (loadingImage) const LinearProgressIndicator(),
             if (!loadingImage && featuredImage != null)
-              Image.network(
+              Image.network( //featured image grab + loading bar
                 featuredImage!,
                 width: screenWidth,
                 fit: BoxFit.cover,
               ),
             
-            SizedBox(
+            SizedBox( //box for containing article text
               width: MediaQuery.of(context).size.width,
               child: Html(
                 data: html,
                 style: {
-                  "figure": Style(
+                  "figure": Style( //image style manipulator to properly scale + center
                     width: Width(screenWidth),
                     fontSize: FontSize(11),
                     height: Height.auto(),
@@ -166,7 +166,7 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 }
 
-class GrantMagRSSPage extends StatelessWidget {
+class GrantMagRSSPage extends StatelessWidget { //page constructor
   const GrantMagRSSPage({super.key});
 
   @override
