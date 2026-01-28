@@ -45,20 +45,19 @@ class NotiService {
   }
 
   //NOTIFICATIONS DETAIL SETUP
-  NotificationDetails notificationDetails() {
+  // NotificationDetails notificationDetails() {
     
-    print("Beginning of NotificationDetails");
-    return const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'default_channel_id',
-        'General Notifications',
-        'General Notification state',
-        importance: Importance.max,
-        priority: Priority.high,
-      ),
-      iOS: IOSNotificationDetails(),
-    );
-  }
+  //   print("Beginning of NotificationDetails");
+  //   return const NotificationDetails(
+  //     android: AndroidNotificationDetails(
+  //       'default_channel_id',
+  //       'General Notifications',
+  //       importance: Importance.max,
+  //       priority: Priority.high,
+  //     ),
+  //     iOS: IOSNotificationDetails(),
+  //   );
+  // }
 
   //SHOW NOTIFICATIONS
   // Future<void> showNotification({
@@ -89,11 +88,11 @@ class NotiService {
         android: AndroidNotificationDetails(
           'instant_notification_channel_id',
           'Instant Notifications',
-          channelDescription: 'Instant notification channel',
+          'Instant notification channel',
           importance: Importance.max,
           priority: Priority.high,
         ),
-        iOS: DarwinNotificationDetails())
+        iOS: IOSNotificationDetails())
     );
     print("just after notificationsPlugin.show");
   }
