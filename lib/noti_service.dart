@@ -1,68 +1,68 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotiService {
-  final notificationsPlugin = FlutterLocalNotificationsPlugin();
+  NotiService._internal();
+  static final NotiService _instance = NotiService._internal();
+  factory NotiService() => _instance;
+
+  final FlutterLocalNotificationsPlugin notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   bool _isInitialized = false;
 
-  bool get isInitialized => _isInitialized;
-  
-
-  //INITIAlIZE
+  // INITIALIZE
   Future<void> initNotif() async {
-    
-    if (_isInitialized) return; //prevent re-initialization
-    //prepare android init settings
-    const initSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher'); //FLUTTER ICON - CHANGE LATER
-    //prepare ios init settings
-    const initSettingsIOS = IOSInitializationSettings(
+    if (_isInitialized) return;
+
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const iosInit = IOSInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
-    // init settings
-    const initsettings = InitializationSettings(
-      android: initSettingsAndroid,
-      iOS: initSettingsIOS,
+    const initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
     );
 
-    //initialize the plugin
-    FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
-    await test.initialize(const InitializationSettings(
-      android: initSettingsAndroid,
-      iOS: initSettingsIOS
-    ));
-    print("End of initNotif");
+    await notificationsPlugin.initialize(initSettings);
+
+    _isInitialized = true;
+    print('✅ Notifications initialized');
   }
-  //NOTIFICATIONS DETAIL SETUP
-  NotificationDetails notificationDetails() {
-    
-    print("Beginning of NotificationDetails");
+
+  // NOTIFICATION DETAILS
+  NotificationDetails _notificationDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
-        'daily_channel_id', 
-        'Daily Notifications',
-        'Daily Notification Channel',
+        'default_channel_id',
+        'General Notifications',
+        'General Notification state',
         importance: Importance.max,
-        //priority: Priority.high,
+        priority: Priority.high,
       ),
       iOS: IOSNotificationDetails(),
     );
   }
-  //SHOW NOTIFICATIONS
+
+  // SHOW NOTIFICATION
   Future<void> showNotification({
     int id = 0,
     String? title,
     String? body,
-    }) async {
-      print("Just before returning notificationPlugin.show");
-      return notificationsPlugin.show(
-        id, 
-        title, 
-        body, 
-        const NotificationDetails(),
-      );
+  }) async {
+    if (!_isInitialized) {
+      print('⚠️ NotiService not initialized');
+      return;
+    }
+
+      await notificationsPlugin.show(
+      id,
+      title,
+      body,
+      _notificationDetails(),
+    );
   }
-  }
-  //ON NOTI TAP
+}
