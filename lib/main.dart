@@ -72,6 +72,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _counter = 0;
+  int whoAreYou = 0;
+  List<String> notificationSelections = [];
   
   final FlutterLocalNotificationsPlugin notificationsPlugin = 
   FlutterLocalNotificationsPlugin();
@@ -82,6 +84,17 @@ class _HomePageState extends State<HomePage> {
     NotiService service = NotiService();
     service.initNotif();
     super.initState();
+  }
+  void makeStudent() {
+    whoAreYou = 1;
+  }
+  void makeParent() {
+    whoAreYou = 2;
+  }
+  void showMultiSelect() async {
+    final List<String> items = [
+      ''
+    ];
   }
 
   final List<int> colorCodes = <int>[600, 500, 100, 50];
@@ -103,7 +116,19 @@ class _HomePageState extends State<HomePage> {
                     Text(''),
                     TextButton(
                       style: ButtonStyle(alignment: Alignment.topLeft),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        Navigator.pop(context); 
+                        makeStudent();
+                        AlertDialog(
+                          title: Text("What are your notification preferences?", textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
+                          content: Column(
+                            children: [
+                              Text(''),
+                              
+                            ]
+                          )
+                        );
+                        },
                       child: Column(
                         children: [
                         Text('Studentss', style: TextStyle(fontSize: 20)),
@@ -115,7 +140,10 @@ class _HomePageState extends State<HomePage> {
                     Text(''),
                     Text(''),
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        makeParent();
+                      },
                       child: Column(
                         children: [
                         Text('Parent', style: TextStyle(fontSize: 20)),
