@@ -4,7 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotiService {
-  final notificationsPlugin = FlutterLocalNotificationsPlugin();
+  NotiService._internal();
+  static final NotiService _instance = NotiService._internal();
+  factory NotiService() => _instance;
+
+  final FlutterLocalNotificationsPlugin notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   // final bool _isInitialized = false;
 
@@ -45,9 +50,9 @@ class NotiService {
     print("Beginning of NotificationDetails");
     return const NotificationDetails(
       android: AndroidNotificationDetails(
-        'daily_channel_id', 
-        'Daily Notifications',
-        'Daily Notification Channel',
+        'default_channel_id',
+        'General Notifications',
+        'General Notification state',
         importance: Importance.max,
         priority: Priority.high,
       ),
@@ -92,5 +97,4 @@ class NotiService {
     );
     print("just after notificationsPlugin.show");
   }
-  }
-  //ON NOTI TAP
+}

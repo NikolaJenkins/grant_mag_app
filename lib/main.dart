@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
@@ -7,6 +10,7 @@ import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:grant_mag_app/noti_service.dart';
+import 'rss.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,25 +18,20 @@ void main() {
   NotiService().initNotification();
   
   runApp(
-    // const GrantMagApp()
-    // ChangeNotifierProvider(
-    //   create: (context) => ThemeModel(),
-    //   child: const GrantMagApp(),
-    // ),
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsModel()),
         ChangeNotifierProvider(create: (_) => ProfileModel()),
       ],
       child: GrantMagApp(),
-      )
+    ),
   );
 }
+
 class GrantMagApp extends StatelessWidget {
   const GrantMagApp({super.key});
   static const appTitle = 'Home Page';
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return Consumer<SettingsModel>(
@@ -60,15 +59,6 @@ class GrantMagApp extends StatelessWidget {
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -209,81 +199,85 @@ class _HomePageState extends State<HomePage> {
           builder: (context) {
             return IconButton(
               icon: const Icon(Icons.bento),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
         ),
-      ),
-      
-        // drawer on side
-      drawer: Drawer(
-        backgroundColor: value.ThemeLabel!.shelfColor,
-        child: ListView( // lets user scroll through options if they need more vertical space
-          // remove padding from ListView
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey/*value.ThemeLabel.headerColor*/),
-              child: Text('Customization'),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.push(
+        drawer: Drawer(
+          backgroundColor: value.ThemeLabel!.shelfColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.grey),
+                child: Text('Customization'),
+              ),
+              ListTile(
+                title: const Text('Settings'),
+                leading: Icon(Icons.settings_outlined),
+                onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SettingsPage())
-              );
-              },
-              leading: Icon(Icons.settings_outlined),
-            ),
-            ListTile(
-              title: const Text('Games'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.videogame_asset)
-            ),
-            ListTile(
-              title: const Text('Profile',),
-              onTap: () {
-                Navigator.push(
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Profile'),
+                leading: Icon(Icons.person_outline_outlined),
+                onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage())
-                );
-              },
-              leading: Icon(Icons.person_outline_outlined)
-            ),
-            ListTile(
-              title: const Text('Feedback'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.chat_rounded)
-            ),
-            ListTile(
-              title: const Text('About'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.person_pin_rounded)
-            ),
-            ListTile(
-              title: const Text('Credits'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.source_rounded)
-            ),
+                  MaterialPageRoute(builder: (_) => ProfilePage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Games'),
+                leading: Icon(Icons.videogame_asset),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Feedback'),
+                leading: Icon(Icons.chat_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('About'),
+                leading: Icon(Icons.person_pin_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Credits'),
+                leading: Icon(Icons.source_rounded),
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+
+        // CHANGED: body now dynamic depending on selected tab
+        body: getBody(),
+        bottomNavigationBar: NavigationBar(
+          onDestinationSelected: (index) => setState(() => _counter = index),
+          selectedIndex: _counter,
+          indicatorColor: Colors.amber,
+          destinations: const [
+            NavigationDestination(
+                selectedIcon: Icon(Icons.home),
+                icon: Icon(Icons.home_outlined),
+                label: 'Home'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.newspaper_rounded)),
+                label: 'News'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.star)), label: 'Features'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+                label: 'Opinion'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.bookmark)), label: 'Bookmark'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.search)), label: 'Search'),
           ],
         ),
       ),
-
-      // scroll through articles
-      
-      
-    ),
     );
   }
 }
