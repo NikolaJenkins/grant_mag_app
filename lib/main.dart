@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
@@ -172,8 +169,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-
-        // CHANGED: body now dynamic depending on selected tab
         body: getBody(),
         bottomNavigationBar: NavigationBar(
           onDestinationSelected: (index) => setState(() => _counter = index),
