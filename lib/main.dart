@@ -52,6 +52,20 @@ class GrantMagApp extends StatelessWidget {
   }
 }
 
+class Multiselect extends StatefulWidget {
+  final List<String> items;
+  const Multiselect({super.key});
+
+  @override
+  State<Multiselect> createState() => _MultiselectState();
+}
+
+class _MultiselectState extends State<Multiselect> {
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
 
@@ -88,13 +102,36 @@ class _HomePageState extends State<HomePage> {
   void makeStudent() {
     whoAreYou = 1;
   }
+  
   void makeParent() {
     whoAreYou = 2;
   }
+  
   void showMultiSelect() async {
     final List<String> items = [
-      ''
+      'Breaking News',
+      'Culture',
+      'Opinion'
+      'Profiles',
+      'Other/Updates'
     ];
+    List<String>? results = await showDialog(
+      context: context, 
+      builder: (BuildContext context) {
+        return Text("");
+      }
+    );
+    results = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return MultiSelect(items: items,);
+      }
+    );
+
+    if (results != null) {
+      notificationSelections = results;
+      //NAO DO NOTIFICATIONS THING HERE
+    }
   }
 
   final List<int> colorCodes = <int>[600, 500, 100, 50];
@@ -124,7 +161,8 @@ class _HomePageState extends State<HomePage> {
                           content: Column(
                             children: [
                               Text(''),
-                              
+                              SegmentedButton(child: Text('All'), style: ButtonStyle(alignment: Alignment.topLeft),
+                              onPressed: ())
                             ]
                           )
                         );
