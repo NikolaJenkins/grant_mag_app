@@ -53,8 +53,8 @@ class GrantMagApp extends StatelessWidget {
 }
 
 class Multiselect extends StatefulWidget {
-  final List<String> items;
-  const Multiselect({super.key});
+  //final List<String> items;
+  //const Multiselect({super.key});
 
   @override
   State<Multiselect> createState() => _MultiselectState();
@@ -161,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                           content: Column(
                             children: [
                               Text(''),
-                              SegmentedButton(segments: segments, selected: selected)
+                              SegmentedButton(segments: ButtonSegment(value: value), selected: selected)
                             ]
                           )
                         );
