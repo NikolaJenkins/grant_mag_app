@@ -106,15 +106,16 @@ class _HomePageState extends State<HomePage> {
   void makeParent() {
     whoAreYou = 2;
   }
+
+  Set<String> _selected = {'News'}; //TO CHECK WHAT'S CURRENTLY SELECTED, USE _selected.first
+
+  void updateSelected(Set<String> newSelection) {
+    setState(() {
+      _selected = newSelection;
+    });
+  }
   
   void showMultiSelect() async {
-    final List<String> items = [
-      'Breaking News',
-      'Culture',
-      'Opinion'
-      'Profiles',
-      'Other/Updates'
-    ];
     List<String>? results = await showDialog(
       context: context, 
       builder: (BuildContext context) {
@@ -135,14 +136,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   final List<int> colorCodes = <int>[600, 500, 100, 50];
-
+  final List<String> items = [
+      'Breaking News',
+      'Culture',
+      'Opinion'
+      'Profiles',
+      'Other/Updates'
+    ];
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
       body: Column(
         children: [
           ElevatedButton(
-          child: Text('Open Dialog'),
+          child: Text('Open Dialogss'),
           onPressed: () {
             showDialog(
               context: context,
@@ -156,14 +163,39 @@ class _HomePageState extends State<HomePage> {
                       onPressed: () {
                         Navigator.pop(context); 
                         makeStudent();
+                        showDialog(
+                          context: context,
+                          builder: (context) =>
                         AlertDialog(
                           title: Text("What are your notification preferences?", textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
                           content: Column(
                             children: [
                               Text(''),
-                              SegmentedButton(segments: ButtonSegment(value: value), selected: selected)
+                              SegmentedButton(
+                                multiSelectionEnabled: true,
+                                onSelectionChanged: updateSelected,
+                                selected: _selected,
+                                showSelectedIcon: true,
+                                style: ButtonStyle(fixedSize: Size.fromHeight(100)),
+                                segments:
+                                  <ButtonSegment<String>>[
+                                    ButtonSegment<String>(
+                                      value: 'News',
+                                      label: Text('News')
+                                    ),
+                                    ButtonSegment<String>(
+                                      value: 'Opinion',
+                                      label: Text('Opinion')
+                                    ),
+                                    ButtonSegment<String>(
+                                      value: 'Other',
+                                      label: Text('Other')
+                                    ),
+                                  ]
+                              )
                             ]
                           )
+                        )
                         );
                         },
                       child: Column(
