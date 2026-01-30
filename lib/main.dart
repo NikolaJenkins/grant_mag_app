@@ -124,7 +124,7 @@ class _HomePageState extends State<HomePage> {
     results = await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return MultiSelect(items: items,);
+        return Text("MultiSelect(items: items,);");
       }
     );
 
@@ -161,8 +161,7 @@ class _HomePageState extends State<HomePage> {
                           content: Column(
                             children: [
                               Text(''),
-                              SegmentedButton(child: Text('All'), style: ButtonStyle(alignment: Alignment.topLeft),
-                              onPressed: ())
+                              SegmentedButton(segments: segments, selected: selected)
                             ]
                           )
                         );
