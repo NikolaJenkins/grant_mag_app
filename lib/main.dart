@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:grant_mag_app/noti_service.dart';
 
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   //initialize notifications
@@ -107,11 +108,12 @@ class _HomePageState extends State<HomePage> {
     whoAreYou = 2;
   }
 
-  Set<String> _selected = {'News'}; //TO CHECK WHAT'S CURRENTLY SELECTED, USE _selected.first
+  Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
 
   void updateSelected(Set<String> newSelection) {
     setState(() {
       _selected = newSelection;
+      print(_selected);
     });
   }
   
@@ -175,8 +177,8 @@ class _HomePageState extends State<HomePage> {
                                 multiSelectionEnabled: true,
                                 onSelectionChanged: updateSelected,
                                 selected: _selected,
-                                showSelectedIcon: true,
-                                style: ButtonStyle(fixedSize: Size.fromHeight(100)),
+                                showSelectedIcon: false,
+                                style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
                                 segments:
                                   <ButtonSegment<String>>[
                                     ButtonSegment<String>(
