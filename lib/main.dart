@@ -175,8 +175,9 @@ class _HomePageState extends State<HomePage> {
                               Text(''),
                               SegmentedButton(
                                 multiSelectionEnabled: true,
-                                onSelectionChanged: updateSelected,
                                 selected: _selected,
+                                onSelectionChanged: updateSelected,
+                                emptySelectionAllowed: false,
                                 showSelectedIcon: false,
                                 style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
                                 segments:
