@@ -97,7 +97,7 @@ class _ArticlePageState extends State<ArticlePage> {
     if (url == null) return;
     try {
       final response = await http.get(Uri.parse(
-        'https://RAILWAY_URL/article?url=$url' // call backend instead of scraping
+        'https://grantmag-backend-production.up.railway.app/feed' // call backend instead of scraping
       ));
       if (response.statusCode != 200) return;
 
