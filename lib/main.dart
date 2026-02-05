@@ -200,59 +200,83 @@ class _HomePageState extends State<HomePage> {
             return IconButton(
               icon: const Icon(Icons.bento),
               onPressed: () => Scaffold.of(context).openDrawer(),
-            );
-          },
+            ),
+          ),
         ),
-      ),
+        drawer: Drawer(
+          backgroundColor: value.ThemeLabel!.shelfColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.grey),
+                child: Text('Customization'),
+              ),
+              ListTile(
+                title: const Text('Settings'),
+                leading: Icon(Icons.settings_outlined),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Profile'),
+                leading: Icon(Icons.person_outline_outlined),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProfilePage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Games'),
+                leading: Icon(Icons.videogame_asset),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Feedback'),
+                leading: Icon(Icons.chat_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('About'),
+                leading: Icon(Icons.person_pin_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Credits'),
+                leading: Icon(Icons.source_rounded),
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
 
-      drawer: Drawer(
-        backgroundColor: value.ThemeLabel!.shelfColor,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey),
-              child: Text('Customization'),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              leading: Icon(Icons.settings_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsPage()),
-              ),
-            ),
-            ListTile(
-              title: const Text('Profile'),
-              leading: Icon(Icons.person_outline_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ProfilePage()),
-              ),
-            ),
-            ListTile(
-              title: const Text('Games'),
-              leading: Icon(Icons.videogame_asset),
-              onTap: () {},
-            ),
-            ListTile(
-              title: const Text('Feedback'),
-              leading: Icon(Icons.chat_rounded),
-              onTap: () {},
-            ),
-            ListTile(
-              title: const Text('About'),
-              leading: Icon(Icons.person_pin_rounded),
-              onTap: () {},
-            ),
-            ListTile(
-              title: const Text('Credits'),
-              leading: Icon(Icons.source_rounded),
-              onTap: () {},
-            ),
+        // CHANGED: body now dynamic depending on selected tab
+        body: getBody(),
+        bottomNavigationBar: NavigationBar(
+          onDestinationSelected: (index) => setState(() => _counter = index),
+          selectedIndex: _counter,
+          indicatorColor: Colors.amber,
+          destinations: const [
+            NavigationDestination(
+                selectedIcon: Icon(Icons.home),
+                icon: Icon(Icons.home_outlined),
+                label: 'Home'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.newspaper_rounded)),
+                label: 'News'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.star)), label: 'Features'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+                label: 'Opinion'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.bookmark)), label: 'Bookmark'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.search)), label: 'Search'),
           ],
         ),
-      ),
       ),
     );
   }
