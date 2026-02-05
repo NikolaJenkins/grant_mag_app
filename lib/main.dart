@@ -110,11 +110,11 @@ class _HomePageState extends State<HomePage> {
 
   Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
 
-  void updateSelected(Set<String> newSelection) {
+  Set<String> updateSelected(Set<String> newSelection) {
     setState(() {
       _selected = newSelection;
-      print(_selected);
     });
+    return _selected;
   }
   
   void showMultiSelect() async {
@@ -151,13 +151,15 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           ElevatedButton(
-          child: Text('Open Dialogss'),
+          child: Text('Open Dialogsss'),
           onPressed: () {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
                 title: Text('I am a...', textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
-                content: Column(
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
                   children: [
                     Text(''),
                     TextButton(
@@ -176,8 +178,11 @@ class _HomePageState extends State<HomePage> {
                               SegmentedButton(
                                 multiSelectionEnabled: true,
                                 selected: _selected,
-                                onSelectionChanged: updateSelected,
-                                emptySelectionAllowed: false,
+                                onSelectionChanged: (Set<String> newSelection) {
+                                  setState(() {
+                                      _selected = newSelection.isNotEmpty ? newSelection :  _selected;
+                                  });
+                                },
                                 showSelectedIcon: false,
                                 style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
                                 segments:
@@ -225,6 +230,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ]
+                  )
                 )
               ),
             );
