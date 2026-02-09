@@ -37,6 +37,7 @@ dependencies:
   provider: ^6.1.5+1
   animated_custom_dropdown: ^3.1.1
   flutter_local_notifications: ^19.5.0
+  flutter_checklist: ^1.5.5
 
 
 dev_dependencies:
