@@ -140,11 +140,11 @@ class _HomePageState extends State<HomePage> {
 
   final List<int> colorCodes = <int>[600, 500, 100, 50];
   final List<Item> items = [
-      Item(title: 'Breaking News'),
-      Item(title: 'Culture'),
-      Item(title: 'Opinion'),
-      Item(title: 'Profiles'),
-      Item(title: 'Other/Updates')
+      Item(title: 'Breaking News', isChecked: false),
+      Item(title: 'Culture', isChecked: false),
+      Item(title: 'Opinion', isChecked: false),
+      Item(title: 'Profiles', isChecked: false),
+      Item(title: 'Other/Updates', isChecked: false)
     ];
 
   void onChanged(List<ChecklistLine> lines) {
@@ -152,6 +152,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   bool _isChecked = false;
+
 
   @override
   Widget build(BuildContext context) {
@@ -176,75 +177,69 @@ class _HomePageState extends State<HomePage> {
                         Navigator.pop(context); 
                         makeStudent();
                         showDialog(
-                          context: context,
-                          builder: (context) =>
-                        AlertDialog(
-                          title: Text("What are your notification preferences?", textAlign: TextAlign.center, style: TextStyle(fontSize: 25)),
-                          content: Column(
-                            children: [
-                              SizedBox(
-                                width: double.maxFinite,
-                                height: 300.0,
-                                child: ListView.builder(
-                                  itemCount: items.length,
-                                  itemBuilder: (context, index) {
-                                    final item = items[index];
-                                    return CheckboxListTile(
-                                      title: Text(item.title),
-                                      value: item.isChecked,
-                                      onChanged: (bool? newValue) {
-                                        setState(() {
-                                          item.isChecked = newValue ?? false;
-                                        });
-                                      },
-                                      activeColor: Colors.blue,
-                                      checkColor: Colors.blueGrey,
-                                      controlAffinity: ListTileControlAffinity.leading,
-                                      );
-                                  }
-                                  )
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                    Navigator.pop(context);
-                                  }, 
-                                child: const Text('Confirm')
-                              ),
-                            ],
-                          )
+                            context: context,
+                            builder: (context) {
+                              return StatefulBuilder(
+                                builder: (context, setStateForDialog) {
+                                  return AlertDialog(
+                                    title: Text('Select your preferences'),
+                                    content: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: items.length,
+                                      itemBuilder: (context, index) {
+                                        final item = items[index];
+                                        return CheckboxListTile(
+                                          title: Text(item.title),
+                                          value: item.isChecked,
+                                          onChanged: (bool? newValue) {
+                                            setState(() {
+                                              item.isChecked = newValue!;
+                                            });
+                                          },
+                                          activeColor: Colors.blue,
+                                          checkColor: Colors.blueGrey,
+                                          controlAffinity: ListTileControlAffinity.leading,
+                                          );
+                                      }
+                                      )
+                                    );
 
-                          // Column(
-                          //   children: [
-                              // Text(''),
-                              // SegmentedButton(
-                              //   multiSelectionEnabled: true,
-                              //   selected: _selected,
-                              //   onSelectionChanged: (Set<String> newSelection) {
-                              //     setState(() {
-                              //         _selected = newSelection.isNotEmpty ? newSelection :  _selected;
-                              //     });
-                              //   },
-                              //   showSelectedIcon: false,
-                              //   style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
-                              //   segments:
-                              //     <ButtonSegment<String>>[
-                              //       ButtonSegment<String>(
-                              //         value: 'News',
-                              //         label: Text('News')
-                              //       ),
-                              //       ButtonSegment<String>(
-                              //         value: 'Opinion',
-                              //         label: Text('Opinion')
-                              //       ),
-                              //       ButtonSegment<String>(
-                              //         value: 'Other',
-                              //         label: Text('Other')
-                              //       ),
-                              //     ]
-                              // )
-                          //   ]
-                          // )
-                        )
+                                    // Column(
+                                    //   children: [
+                                        // Text(''),
+                                        // SegmentedButton(
+                                        //   multiSelectionEnabled: true,
+                                        //   selected: _selected,
+                                        //   onSelectionChanged: (Set<String> newSelection) {
+                                        //     setState(() {
+                                        //         _selected = newSelection.isNotEmpty ? newSelection :  _selected;
+                                        //     });
+                                        //   },
+                                        //   showSelectedIcon: false,
+                                        //   style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
+                                        //   segments:
+                                        //     <ButtonSegment<String>>[
+                                        //       ButtonSegment<String>(
+                                        //         value: 'News',
+                                        //         label: Text('News')
+                                        //       ),
+                                        //       ButtonSegment<String>(
+                                        //         value: 'Opinion',
+                                        //         label: Text('Opinion')
+                                        //       ),
+                                        //       ButtonSegment<String>(
+                                        //         value: 'Other',
+                                        //         label: Text('Other')
+                                        //       ),
+                                        //     ]
+                                        // )
+                                    //   ]
+                                    // )
+                                  
+                                  
+                                }
+                              );
+                            },
                         );
                         },
                       child: Column(
@@ -420,5 +415,5 @@ class Item {
   String title;
   bool isChecked;
 
-  Item({required this.title, this.isChecked = false});
+  Item({required this.title, required this.isChecked});
 }
