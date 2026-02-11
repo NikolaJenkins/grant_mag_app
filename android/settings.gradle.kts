@@ -22,17 +22,13 @@ pluginManagement {
                 requested.id.id == "com.android.application" ||
                 requested.id.id == "com.android.library"
             ) {
-                useModule("com.android.tools.build:gradle:7.4.2")
+                useModule("com.android.tools.build:gradle:8.2.2")
             }
             if (requested.id.id == "org.jetbrains.kotlin.android") {
-                useVersion("1.8.22")
+                useVersion("1.9.22")
             }
         }
     }
-}
-
-plugins {
-    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
 }
 
 include(":app")
