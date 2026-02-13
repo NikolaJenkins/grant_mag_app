@@ -180,28 +180,39 @@ class _HomePageState extends State<HomePage> {
                             context: context,
                             builder: (context) {
                               return StatefulBuilder(
-                                builder: (context, setStateForDialog) {
+                                builder: (context, setState) {
                                   return AlertDialog(
                                     title: Text('Select your preferences'),
-                                    content: ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: items.length,
-                                      itemBuilder: (context, index) {
-                                        final item = items[index];
-                                        return CheckboxListTile(
-                                          title: Text(item.title),
-                                          value: item.isChecked,
-                                          onChanged: (bool? newValue) {
-                                            setState(() {
-                                              item.isChecked = newValue!;
-                                            });
-                                          },
-                                          activeColor: Colors.blue,
-                                          checkColor: Colors.blueGrey,
-                                          controlAffinity: ListTileControlAffinity.leading,
-                                          );
-                                      }
-                                      )
+                                    content: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 300.0,
+                                          width: double.maxFinite,
+                                          child: ListView.builder(
+                                          itemCount: items.length,
+                                          itemBuilder: (context, index) {
+                                            final item = items[index];
+                                            return CheckboxListTile(
+                                              title: Text(item.title),
+                                              value: item.isChecked,
+                                              onChanged: (bool? newValue) {
+                                                setState(() {
+                                                  item.isChecked = newValue!;
+                                                });
+                                              },
+                                              activeColor: Colors.blue,
+                                              checkColor: Colors.blueGrey,
+                                              controlAffinity: ListTileControlAffinity.leading,
+                                              );
+                                            }
+                                            ),
+                                          ),
+                                        TextButton(
+                                          onPressed: () {Navigator.pop(context);}, 
+                                          child: Text("Confirm")
+                                          )
+                                      ],
+                                    )
                                     );
 
                                     // Column(
