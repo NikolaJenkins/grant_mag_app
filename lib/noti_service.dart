@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotiService {
@@ -8,33 +11,43 @@ class NotiService {
   final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  bool _isInitialized = false;
+  // final bool _isInitialized = false;
 
-  // INITIALIZE
-  Future<void> initNotif() async {
-    if (_isInitialized) return;
+  // bool get isInitialized => _isInitialized;
+  
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  //INITIAlIZE
+  Future<void> initNotification() async {
 
-    const iosInit = IOSInitializationSettings(
+    print("Start of initNotification");
+    print("Target platform: $defaultTargetPlatform");
+    
+    // if (_isInitialized) return; //prevent re-initialization
+    //prepare android init settings
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher'); //FLUTTER ICON - CHANGE LATER
+    //prepare ios init settings
+    const iosSettings = IOSInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
-    const initSettings = InitializationSettings(
-      android: androidInit,
-      iOS: iosInit,
+    // init settings
+    const initializationSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
     );
 
-    await notificationsPlugin.initialize(initSettings);
-
-    _isInitialized = true;
-    print('✅ Notifications initialized');
+    //initialize the plugin
+    // FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
+    await notificationsPlugin.initialize(initializationSettings);
+    print("End of initNotification");
   }
 
-  // NOTIFICATION DETAILS
-  NotificationDetails _notificationDetails() {
+  //NOTIFICATIONS DETAIL SETUP
+  NotificationDetails notificationDetails() {
+    
+    print("Beginning of NotificationDetails");
     return const NotificationDetails(
       android: AndroidNotificationDetails(
         'default_channel_id',
@@ -47,22 +60,41 @@ class NotiService {
     );
   }
 
-  // SHOW NOTIFICATION
-  Future<void> showNotification({
-    int id = 0,
-    String? title,
-    String? body,
-  }) async {
-    if (!_isInitialized) {
-      print('⚠️ NotiService not initialized');
-      return;
-    }
+  //SHOW NOTIFICATIONS
+  // Future<void> showNotification({
+  //   int id = 0,
+  //   String? title,
+  //   String? body,
+  //   }) async {
+  //     print("Just before returning notificationPlugin.show");
+  //     return notificationsPlugin.show(
+  //       id, 
+  //       title, 
+  //       body, 
+  //       const NotificationDetails(),
+  //     );
 
-      await notificationsPlugin.show(
+    // Instant notifications
+  Future<void> showInstantNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    print("just before notificationsPlugin.show");
+    await notificationsPlugin.show(
       id,
       title,
       body,
-      _notificationDetails(),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'instant_notification_channel_id',
+          'Instant Notifications',
+          channelDescription: 'Instant notification channel',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails())
     );
+    print("just after notificationsPlugin.show");
   }
 }

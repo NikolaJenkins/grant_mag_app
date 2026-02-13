@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
-import 'package:grant_mag_app/theme_model.dart';
+import 'package:grant_mag_app/settings_model.dart';
 import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
@@ -11,13 +11,13 @@ import 'rss.dart';
 
 void main() { 
   WidgetsFlutterBinding.ensureInitialized();
-
-  NotiService().initNotif();
-
+  //initialize notifications
+  NotiService().initNotification();
+  
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeModel()),
+        ChangeNotifierProvider(create: (_) => SettingsModel()),
         ChangeNotifierProvider(create: (_) => ProfileModel()),
       ],
       child: GrantMagApp(),
@@ -31,18 +31,25 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.blueGrey,
-        primarySwatch: Colors.teal,
-      ),
-      home: HomePage(title: appTitle),
-      routes: {
-        '/homepage': (context) => const HomePage(title: appTitle),
-        '/examplearticlepage': (context) => ExampleArticlePage(),
-      },
-      title: appTitle,
+    return Consumer<SettingsModel>(
+      builder: (context, settingsModel, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
+            primarySwatch: Colors.amber,
+            textTheme: Theme.of(context).textTheme.apply(
+              fontSizeFactor: settingsModel.TextSize / 100
+          )
+        ),
+        home: HomePage(title: appTitle),
+        routes: {
+          '/homepage': (context) => const HomePage(title: appTitle),
+          '/examplearticlepage': (context) => ExampleArticlePage(),
+        },
+        title: appTitle,
+        );  
+      }
     );
   }
 }
@@ -56,13 +63,12 @@ class HomePage extends StatefulWidget { //home page constructor
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> { //creates home page state using contructor
+class _HomePageState extends State<HomePage> {
   int _counter = 0;
 
   final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
- 
-  Widget getBody() { //page navigation system and body generator
+  Widget getBody() {
     switch (_counter) {
       case 0:
         return SingleChildScrollView(
@@ -109,7 +115,7 @@ class _HomePageState extends State<HomePage> { //creates home page state using c
   }
 
   @override
-  Widget build(BuildContext context) { //drawer constructor
+  Widget build(BuildContext context) {
     return Consumer<ThemeModel>(
       builder: (context, value, child) => Scaffold(
         appBar: AppBar(
@@ -195,6 +201,126 @@ class _HomePageState extends State<HomePage> { //creates home page state using c
           ],
         ),
       ),
+    );
+  }
+}
+
+class CustomSearchDelegate extends SearchDelegate {
+
+  List<String> titles = [
+    'machine learning',
+    'Ray Tate',
+    'One of the boys',
+    'A new perspective',
+    'Budget "whats"',
+  ];
+
+  List<String> authors = [
+    'Eliot Logan',
+    'Logan Hendrickson',
+    'Margot Kalmanson',
+    'Amelia Shaw',
+    'Zoe Shaw',
+  ];
+
+  List<String> decks = [
+    'Three days after the Bondi Beach shooting, Grant High School\’s Jewish Student Alliance put up two posters at the school honoring the victims.',
+    'As artificial intelligence sweeps the nation, Portland Public Schools is exploring its use in education.',
+    'This year, Grantasia featured a production in collaboration with a nonprofit organization called Sing Me a Story. The performance celebrates joy, creativity and inclusion through student choreography and original music.',
+    'Grant High School math teacher Ray Tate’s worsening kidney disease has kept him from the classroom. Now, he is requesting a kidney donation from a living donor.',
+    'Grant Magazine is now taking applications for the 2024 – 2025 school year. Complete the application, found at this link, and email a copy with editing access for anyone with the link to grantmagazine1@gmail.com. Applications are due by February 13, 2024. No late applications will be accepted.',
+  ];
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        onPressed: () {
+          query = '';
+        },
+        icon: const Icon(Icons.clear),)
+    ];
+  }
+  
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed:  () {
+        close(context, null);
+      },
+    );
+  }
+  
+  @override
+  Widget buildResults(BuildContext context) {
+    List<String> matchQuery = [];
+
+    // check titles
+    for (var fruit in titles) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check authors
+    for (var fruit in authors) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check decks
+    for (var fruit in decks) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+    
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
+    );
+  }
+  
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    List<String> matchQuery = [];
+
+    // check titles
+    for (var fruit in titles) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check authors
+    for (var fruit in authors) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check decks
+    for (var fruit in decks) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+    
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
     );
   }
 }
