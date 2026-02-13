@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ExampleArticlePage extends StatelessWidget {
   var articleCount = 20;
+
+  ExampleArticlePage({super.key});
 
   @override 
   Widget build(BuildContext context) {

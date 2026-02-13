@@ -1,20 +1,22 @@
-import 'dart:collection';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:grant_mag_app/theme_model.dart';
+import 'package:grant_mag_app/settings_model.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
   @override
   SettingsPageState createState() => SettingsPageState();
 }
 
 class SettingsPageState extends State<SettingsPage> {
+  double _textSize = 100;
+  bool year2023 = true;
 
   @override 
   Widget build(BuildContext context) {
-    return Consumer<ThemeModel>(
+    return Consumer<SettingsModel>(
       builder: (context, value, child) => Scaffold(
       appBar: AppBar(title: const Text("Settings",),
                     backgroundColor: value.ThemeLabel!.headerColor,),
@@ -36,12 +38,33 @@ class SettingsPageState extends State<SettingsPage> {
                       );
                     }).toList(),
                     onChanged: (ThemeLabels? newValue) {
-                      final colorThemeChooser = context.read<ThemeModel>();
+                      final colorThemeChooser = context.read<SettingsModel>();
                       colorThemeChooser.changeTheme(newValue);
                     },
                   )
+                ),
+                ),
+              Container(
+                color: value.ThemeLabel!.shelfColor,
+                child: ListTile(
+                  title: Text('Text Size'),
+                  subtitle: Slider(
+                    year2023: year2023,
+                    value: _textSize,
+                    max: 200,
+                    min: 50,
+                    divisions: 15,
+                    label: _textSize.round().toString(),
+                    onChanged: (double newValue) {
+                      // final textSizeChooser = context.read<SettingsModel>();
+                      // textSizeChooser.changeTextSize(newValue);
+                      setState(() {
+                        _textSize = newValue;
+                      });
+                    }
+                  )
                 )
-                )
+              )
             ],
           )
         )

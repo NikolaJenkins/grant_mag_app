@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/profile_model.dart';
-import 'package:grant_mag_app/theme_model.dart';
+import 'package:grant_mag_app/settings_model.dart';
 import 'package:provider/provider.dart';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
   ProfilePageState createState() => ProfilePageState();
 }
@@ -17,7 +19,7 @@ class ProfilePageState extends State<ProfilePage> {
       print(message);
     }
 
-    return Consumer2<ThemeModel, ProfileModel>(
+    return Consumer2<SettingsModel, ProfileModel>(
       builder: (context, provider1, provider2, child) => Scaffold(
       appBar: AppBar(title: const Text("Profile",),
                     backgroundColor: provider1.ThemeLabel!.headerColor,),
