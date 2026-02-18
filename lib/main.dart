@@ -6,6 +6,7 @@ import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
@@ -65,9 +66,71 @@ class HomePage extends StatefulWidget { //home page constructor
 
 class _HomePageState extends State<HomePage> {
   int _counter = 0;
+  int whoAreYou = 0;
+  List<String> notificationSelections = [];
+  
+  final FlutterLocalNotificationsPlugin notificationsPlugin = 
+  FlutterLocalNotificationsPlugin();
 
-  final FlutterLocalNotificationsPlugin notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  @override
+  void initState() {
+    
+    NotiService service = NotiService();
+    service.initNotification();
+    super.initState();
+  }
+  void makeStudent() {
+    whoAreYou = 1;
+  }
+  
+  void makeParent() {
+    whoAreYou = 2;
+  }
+
+  Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
+
+  Set<String> updateSelected(Set<String> newSelection) {
+    setState(() {
+      _selected = newSelection;
+    });
+    return _selected;
+  }
+  
+  void showMultiSelect() async {
+    List<String>? results = await showDialog(
+      context: context, 
+      builder: (BuildContext context) {
+        return Text("");
+      }
+    );
+    results = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Text("MultiSelect(items: items,);");
+      }
+    );
+
+    if (results != null) {
+      notificationSelections = results;
+      //NAO DO NOTIFICATIONS THING HERE
+    }
+  }
+
+  final List<int> colorCodes = <int>[600, 500, 100, 50];
+  final List<Item> items = [
+      Item(title: 'Breaking News', isChecked: false),
+      Item(title: 'Culture', isChecked: false),
+      Item(title: 'Opinion', isChecked: false),
+      Item(title: 'Profiles', isChecked: false),
+      Item(title: 'Other/Updates', isChecked: false)
+    ];
+
+  void onChanged(List<ChecklistLine> lines) {
+    print(lines.toString());
+  }
+
+  bool _isChecked = false;
+
   Widget getBody() {
     switch (_counter) {
       case 0:
@@ -119,6 +182,134 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Consumer<SettingsModel>(
       builder: (context, value, child) => Scaffold(
+        body: Column(
+        children: [
+          ElevatedButton(
+          child: Text('Open Dialogsss'),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('I am a...', textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
+                  children: [
+                    Text(''),
+                    TextButton(
+                      style: ButtonStyle(alignment: Alignment.topLeft),
+                      onPressed: () {
+                        Navigator.pop(context); 
+                        makeStudent();
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return StatefulBuilder(
+                                builder: (context, setState) {
+                                  return AlertDialog(
+                                    title: Text('Select your preferences'),
+                                    content: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 300.0,
+                                          width: double.maxFinite,
+                                          child: ListView.builder(
+                                          itemCount: items.length,
+                                          itemBuilder: (context, index) {
+                                            final item = items[index];
+                                            return CheckboxListTile(
+                                              title: Text(item.title),
+                                              value: item.isChecked,
+                                              onChanged: (bool? newValue) {
+                                                setState(() {
+                                                  item.isChecked = newValue!;
+                                                });
+                                              },
+                                              activeColor: Colors.blue,
+                                              checkColor: Colors.blueGrey,
+                                              controlAffinity: ListTileControlAffinity.leading,
+                                              );
+                                            }
+                                            ),
+                                          ),
+                                        TextButton(
+                                          onPressed: () {Navigator.pop(context);}, 
+                                          child: Text("Confirm")
+                                          )
+                                      ],
+                                    )
+                                    );
+
+                                    // Column(
+                                    //   children: [
+                                        // Text(''),
+                                        // SegmentedButton(
+                                        //   multiSelectionEnabled: true,
+                                        //   selected: _selected,
+                                        //   onSelectionChanged: (Set<String> newSelection) {
+                                        //     setState(() {
+                                        //         _selected = newSelection.isNotEmpty ? newSelection :  _selected;
+                                        //     });
+                                        //   },
+                                        //   showSelectedIcon: false,
+                                        //   style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
+                                        //   segments:
+                                        //     <ButtonSegment<String>>[
+                                        //       ButtonSegment<String>(
+                                        //         value: 'News',
+                                        //         label: Text('News')
+                                        //       ),
+                                        //       ButtonSegment<String>(
+                                        //         value: 'Opinion',
+                                        //         label: Text('Opinion')
+                                        //       ),
+                                        //       ButtonSegment<String>(
+                                        //         value: 'Other',
+                                        //         label: Text('Other')
+                                        //       ),
+                                        //     ]
+                                        // )
+                                    //   ]
+                                    // )
+                                  
+                                  
+                                }
+                              );
+                            },
+                        );
+                        },
+                      child: Column(
+                        children: [
+                        Text('Studentss', style: TextStyle(fontSize: 20)),
+                        const Align(alignment: Alignment.bottomLeft,),
+                        ],
+                      
+                      ),
+                    ),
+                    Text(''),
+                    Text(''),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        makeParent();
+                      },
+                      child: Column(
+                        children: [
+                        Text('Parent', style: TextStyle(fontSize: 20)),
+                        const Align(alignment: Alignment.bottomLeft,),
+                        ],
+                      
+                      ),
+                    ),
+                  ],
+                  ),
+                ),
+              ),
+            );
+          },
+          ),
+        ],
+      ),
         appBar: AppBar(
           backgroundColor: value.ThemeLabel!.headerColor,
           title: const Text(GrantMagApp.appTitle),
@@ -177,7 +368,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        body: getBody(),
         bottomNavigationBar: NavigationBar(
           onDestinationSelected: (index) => setState(() => _counter = index),
           selectedIndex: _counter,
@@ -324,4 +514,11 @@ class CustomSearchDelegate extends SearchDelegate {
       },
     );
   }
+}
+
+class Item {
+  String title;
+  bool isChecked;
+
+  Item({required this.title, required this.isChecked});
 }
