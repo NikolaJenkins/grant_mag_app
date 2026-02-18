@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
@@ -12,7 +9,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
-void main() {
+void main() { 
   WidgetsFlutterBinding.ensureInitialized();
   //initialize notifications
   NotiService().initNotification();
@@ -28,7 +25,7 @@ void main() {
   );
 }
 
-class GrantMagApp extends StatelessWidget {
+class GrantMagApp extends StatelessWidget { //base widget constructor
   const GrantMagApp({super.key});
   static const appTitle = 'Home Page';
 
@@ -57,7 +54,7 @@ class GrantMagApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatefulWidget { //home page constructor
   const HomePage({super.key, required this.title});
 
   final String title;
@@ -67,192 +64,143 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _counter = 1;
-  
-  final FlutterLocalNotificationsPlugin notificationsPlugin = 
-  FlutterLocalNotificationsPlugin();
+  int _counter = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    NotiService service = NotiService();
-    service.initNotification();
+  final FlutterLocalNotificationsPlugin notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  Widget getBody() {
+    switch (_counter) {
+      case 0:
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              ElevatedButton(
+                child: Text('Open Dialogsssssss'),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('I am a...'),
+                      actions: [
+                        TextButton(
+                            child: Text('Student.'),
+                            style: TextButton.styleFrom(foregroundColor: Colors.black),
+                            onPressed: () => Navigator.pop(context)),
+                        TextButton(
+                            child: Text('Parent'),
+                            style: TextButton.styleFrom(foregroundColor: Colors.black),
+                            onPressed: () => Navigator.pop(context))
+                      ],
+                    ),
+                  );
+                },
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotiService().showNotification(
+                    id: 0,
+                    title: 'Title!',
+                    body: 'Body!',
+                  );
+                },
+                child: const Text("Teachers"),
+              ),
+            ],
+          ),
+        );
+      case 1:
+        return const GrantMagFeed(); 
+      default:
+        return Center(child: Text('Content coming soon'));
+    }
   }
-
-  final List<int> colorCodes = <int>[600, 500, 100, 50];
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SettingsModel>(builder: (context, value, child) => Scaffold(
-      body: Column(
-        children: [
-          ElevatedButton(
-          child: Text('Open Dialog'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text('I am a...', textAlign: TextAlign.center,),
-                content: Column(
-                  children: [
-                    TextButton(
-                      style: ButtonStyle(alignment: Alignment.topLeft),
-                      onPressed: () => Navigator.pop(context),
-                      child: Column(
-                        children: [
-                        Text('Studentss'),
-                        const Align(alignment: Alignment.bottomLeft,),
-                        ],
-                      
-                      ),
-                    ),
-                      
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Column(
-                        children: [
-                        Text('Parent'),
-                        const Align(alignment: Alignment.bottomLeft,),
-                        ],
-                      
-                      ),
-                    ),
-                  ]
-                )
-              ),
-            );
-          }
-        ),
-        ElevatedButton(
-        onPressed: () {
-          NotiService test = new NotiService();
-          test.showInstantNotification(
-            id: 0,
-            title: 'Title!',
-            body: 'Body!',
-            );
-        },
-        child: const Text("Teachers"),
-        )
-        ]
-      ),
-      bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int index) {
-          setState(() {
-            _counter = index;
-          });
-          if (index == 0) {
-            print(value.TextSize);
-          } else if (index == 3) {
-            NotiService test = NotiService();
-            test.showInstantNotification(
-              id: 0,
-              title: 'Cool people commit',
-              body: 'Did you push today?',
-              );
-          } else if (index == 5) {
-            showSearch(
-              context: context, 
-              delegate: CustomSearchDelegate(),);
-          }
-          print(index);
-        },
-        indicatorColor: Colors.amber,
-        selectedIndex: _counter,
-        destinations: const <Widget>[
-          NavigationDestination(
-            selectedIcon: Icon(Icons.home),
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.newspaper_rounded)),
-            label: 'News',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.star)),
-            label: 'Features',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
-            label: 'Opinion',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.bookmark)),
-            label: 'Bookmark',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.search)),
-            label: 'Search',
-          ),
-        ],
-      ),
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor : value.ThemeLabel!.headerColor,
-        // Here we take the value from the HomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: const Text(GrantMagApp.appTitle),
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
+    return Consumer<SettingsModel>(
+      builder: (context, value, child) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: value.ThemeLabel!.headerColor,
+          title: const Text(GrantMagApp.appTitle),
+          leading: Builder(
+            builder: (context) => IconButton(
               icon: const Icon(Icons.bento),
               onPressed: () => Scaffold.of(context).openDrawer(),
-            );
-          },
+            ),
+          ),
         ),
-      ),
-
-      drawer: Drawer(
-        backgroundColor: value.ThemeLabel!.shelfColor,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey),
-              child: Text('Customization'),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              leading: Icon(Icons.settings_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsPage()),
+        drawer: Drawer(
+          backgroundColor: value.ThemeLabel!.shelfColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.grey),
+                child: Text('Customization'),
               ),
-            ),
-            ListTile(
-              title: const Text('Profile'),
-              leading: Icon(Icons.person_outline_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ProfilePage()),
+              ListTile(
+                title: const Text('Settings'),
+                leading: Icon(Icons.settings_outlined),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                ),
               ),
-            ),
-            ListTile(
-              title: const Text('Games'),
-              leading: Icon(Icons.videogame_asset),
-              onTap: () {},
-            ),
-            ListTile(
-              title: const Text('Feedback'),
-              leading: Icon(Icons.chat_rounded),
-              onTap: () {},
-            ),
-            ListTile(
-              title: const Text('About'),
-              leading: Icon(Icons.person_pin_rounded),
-              onTap: () {},
-            ),
-            ListTile(
-              title: const Text('Credits'),
-              leading: Icon(Icons.source_rounded),
-              onTap: () {},
-            ),
+              ListTile(
+                title: const Text('Profile'),
+                leading: Icon(Icons.person_outline_outlined),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProfilePage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Games'),
+                leading: Icon(Icons.videogame_asset),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Feedback'),
+                leading: Icon(Icons.chat_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('About'),
+                leading: Icon(Icons.person_pin_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Credits'),
+                leading: Icon(Icons.source_rounded),
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+        body: getBody(),
+        bottomNavigationBar: NavigationBar(
+          onDestinationSelected: (index) => setState(() => _counter = index),
+          selectedIndex: _counter,
+          indicatorColor: Colors.amber,
+          destinations: const [
+            NavigationDestination(
+                selectedIcon: Icon(Icons.home),
+                icon: Icon(Icons.home_outlined),
+                label: 'Home'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.newspaper_rounded)),
+                label: 'News'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.star)), label: 'Features'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+                label: 'Opinion'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.bookmark)), label: 'Bookmark'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.search)), label: 'Search'),
           ],
         ),
-      ),
       ),
     );
   }

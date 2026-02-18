@@ -45,19 +45,20 @@ class NotiService {
   }
 
   //NOTIFICATIONS DETAIL SETUP
-  // NotificationDetails notificationDetails() {
+  NotificationDetails notificationDetails() {
     
-  //   print("Beginning of NotificationDetails");
-  //   return const NotificationDetails(
-  //     android: AndroidNotificationDetails(
-  //       'default_channel_id',
-  //       'General Notifications',
-  //       importance: Importance.max,
-  //       priority: Priority.high,
-  //     ),
-  //     iOS: IOSNotificationDetails(),
-  //   );
-  // }
+    print("Beginning of NotificationDetails");
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'default_channel_id',
+        'General Notifications',
+        'General Notification state',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
+      iOS: IOSNotificationDetails(),
+    );
+  }
 
   //SHOW NOTIFICATIONS
   // Future<void> showNotification({
@@ -74,7 +75,7 @@ class NotiService {
   //     );
 
     // Instant notifications
-  Future<void> showInstantNotification({
+  Future<void> showNotification({
     required int id,
     required String title,
     required String body,
