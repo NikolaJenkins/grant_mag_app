@@ -52,11 +52,11 @@ class NotiService {
       android: AndroidNotificationDetails(
         'default_channel_id',
         'General Notifications',
-        'General Notification state',
+        channelDescription: 'General Notification state',
         importance: Importance.max,
         priority: Priority.high,
       ),
-      iOS: IOSNotificationDetails(),
+      iOS: DarwinNotificationDetails(),
     );
   }
 
@@ -76,24 +76,25 @@ class NotiService {
 
     // Instant notifications
   Future<void> showNotification({
-    required int id,
-    required String title,
-    required String body,
+    required int notifId,
+    required String notifTitle,
+    required String notifBody,
   }) async {
     print("just before notificationsPlugin.show");
     await notificationsPlugin.show(
-      id,
-      title,
-      body,
+      id: notifId,
+      title: notifTitle,
+      body: notifTitle,
+      const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(android: AndroidNotificationDetails(channelId, channelName), channelName)
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'instant_notification_channel_id',
           'Instant Notifications',
-          'Instant notification channel',
+          channelDescription: 'Instant notification channel',
           importance: Importance.max,
           priority: Priority.high,
         ),
-        iOS: IOSNotificationDetails())
+        iOS: DarwinNotificationDetails())
     );
     print("just after notificationsPlugin.show");
   }
