@@ -40,7 +40,9 @@ class NotiService {
 
     //initialize the plugin
     // FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
-    await notificationsPlugin.initialize(initializationSettings);
+    await notificationsPlugin.initialize(
+      settings: initializationSettings
+    );
     print("End of initNotification");
   }
 
@@ -81,21 +83,17 @@ class NotiService {
     required String notifBody,
   }) async {
     print("just before notificationsPlugin.show");
-    await notificationsPlugin.show(
-      id: notifId,
-      title: notifTitle,
-      body: notifTitle,
-      const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(android: AndroidNotificationDetails(channelId, channelName), channelName)
-      const NotificationDetails(
+    NotificationDetails(
         android: AndroidNotificationDetails(
-          'instant_notification_channel_id',
-          'Instant Notifications',
-          channelDescription: 'Instant notification channel',
+          '0',
+          notifTitle,
+          channelDescription: 'your_channel_description',
           importance: Importance.max,
           priority: Priority.high,
+          ticker: 'ticker',
         ),
-        iOS: DarwinNotificationDetails())
-    );
+        iOS: DarwinNotificationDetails()
+      );
     print("just after notificationsPlugin.show");
   }
 }

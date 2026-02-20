@@ -161,9 +161,9 @@ class _HomePageState extends State<HomePage> {
               ElevatedButton(
                 onPressed: () {
                   NotiService().showNotification(
-                    id: 0,
-                    title: 'Title!',
-                    body: 'Body!',
+                    notifId: 0,
+                    notifTitle: 'Title!',
+                    notifBody: 'Body!',
                   );
                 },
                 child: const Text("Teachers"),
