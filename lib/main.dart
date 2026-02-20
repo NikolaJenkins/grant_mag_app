@@ -32,6 +32,7 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
 
   @override
   Widget build(BuildContext context) {
+    // creates listeners to pass information between pages
     return Consumer<SettingsModel>(
       builder: (context, settingsModel, child) {
         return MaterialApp(
@@ -66,6 +67,7 @@ class HomePage extends StatefulWidget { //home page constructor
 
 class _HomePageState extends State<HomePage> {
   int _counter = 0;
+  // to distinguish between students/parents
   int whoAreYou = 0;
   List<String> notificationSelections = [];
   
