@@ -1,83 +1,62 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
-import 'package:grant_mag_app/theme_model.dart';
+import 'package:grant_mag_app/settings_model.dart';
 import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+//import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
+import 'rss.dart';
 
-
-void main() {
+void main() { 
   WidgetsFlutterBinding.ensureInitialized();
   //initialize notifications
-  NotiService().initNotif();
+  NotiService().initNotification();
   
   runApp(
-    // const GrantMagApp()
-    // ChangeNotifierProvider(
-    //   create: (context) => ThemeModel(),
-    //   child: const GrantMagApp(),
-    // ),
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeModel()),
+        ChangeNotifierProvider(create: (_) => SettingsModel()),
         ChangeNotifierProvider(create: (_) => ProfileModel()),
       ],
       child: GrantMagApp(),
-      )
+    ),
   );
 }
-class GrantMagApp extends StatelessWidget {
+
+class GrantMagApp extends StatelessWidget { //base widget constructor
   const GrantMagApp({super.key});
   static const appTitle = 'Home Page';
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
-        primarySwatch: Colors.amber
-      ),
-      home: HomePage(title: appTitle),
-      routes: {
-        '/homepage': (context) => const HomePage(title: appTitle),
-        '/examplearticlepage': (context) => ExampleArticlePage(),
-      },
-      title: appTitle,
+    return Consumer<SettingsModel>(
+      builder: (context, settingsModel, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
+            primarySwatch: Colors.amber,
+            textTheme: Theme.of(context).textTheme.apply(
+              fontSizeFactor: settingsModel.TextSize / 100
+          )
+        ),
+        home: HomePage(title: appTitle),
+        routes: {
+          '/homepage': (context) => const HomePage(title: appTitle),
+          '/examplearticlepage': (context) => ExampleArticlePage(),
+        },
+        title: appTitle,
+        );  
+      }
     );
   }
 }
 
-class Multiselect extends StatefulWidget {
-  //final List<String> items;
-  //const Multiselect({super.key});
-
-  @override
-  State<Multiselect> createState() => _MultiselectState();
-}
-
-class _MultiselectState extends State<Multiselect> {
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
-class HomePage extends StatefulWidget {
+class HomePage extends StatefulWidget { //home page constructor
   const HomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -97,7 +76,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     
     NotiService service = NotiService();
-    service.initNotif();
+    service.initNotification();
     super.initState();
   }
   void makeStudent() {
@@ -110,11 +89,11 @@ class _HomePageState extends State<HomePage> {
 
   Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
 
-  void updateSelected(Set<String> newSelection) {
+  Set<String> updateSelected(Set<String> newSelection) {
     setState(() {
       _selected = newSelection;
-      print(_selected);
     });
+    return _selected;
   }
   
   void showMultiSelect() async {
@@ -138,26 +117,83 @@ class _HomePageState extends State<HomePage> {
   }
 
   final List<int> colorCodes = <int>[600, 500, 100, 50];
-  final List<String> items = [
-      'Breaking News',
-      'Culture',
-      'Opinion'
-      'Profiles',
-      'Other/Updates'
+  final List<Item> items = [
+      Item(title: 'Breaking News', isChecked: false),
+      Item(title: 'Culture', isChecked: false),
+      Item(title: 'Opinion', isChecked: false),
+      Item(title: 'Profiles', isChecked: false),
+      Item(title: 'Other/Updates', isChecked: false)
     ];
+
+  // void onChanged(List<ChecklistLine> lines) {
+  //   print(lines.toString());
+  // }
+
+  bool _isChecked = false;
+
+  Widget getBody() {
+    switch (_counter) {
+      case 0:
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              ElevatedButton(
+                child: Text('Open Dialogsssssss'),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('I am a...'),
+                      actions: [
+                        TextButton(
+                            child: Text('Student.'),
+                            style: TextButton.styleFrom(foregroundColor: Colors.black),
+                            onPressed: () => Navigator.pop(context)),
+                        TextButton(
+                            child: Text('Parent'),
+                            style: TextButton.styleFrom(foregroundColor: Colors.black),
+                            onPressed: () => Navigator.pop(context))
+                      ],
+                    ),
+                  );
+                },
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  NotiService().showNotification(
+                    notifId: 0,
+                    notifTitle: 'Title!',
+                    notifBody: 'Body!',
+                  );
+                },
+                child: const Text("Teachers"),
+              ),
+            ],
+          ),
+        );
+      case 1:
+        return const GrantMagFeed(); 
+      default:
+        return Center(child: Text('Content coming soon'));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeModel>(builder: (context, value, child) => Scaffold(
-      body: Column(
+    return Consumer<SettingsModel>(
+      builder: (context, value, child) => Scaffold(
+        body: Column(
         children: [
           ElevatedButton(
-          child: Text('Open Dialogss'),
+          child: Text('Open Dialogsss'),
           onPressed: () {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
                 title: Text('I am a...', textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
-                content: Column(
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
                   children: [
                     Text(''),
                     TextButton(
@@ -166,38 +202,80 @@ class _HomePageState extends State<HomePage> {
                         Navigator.pop(context); 
                         makeStudent();
                         showDialog(
-                          context: context,
-                          builder: (context) =>
-                        AlertDialog(
-                          title: Text("What are your notification preferences?", textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
-                          content: Column(
-                            children: [
-                              Text(''),
-                              SegmentedButton(
-                                multiSelectionEnabled: true,
-                                onSelectionChanged: updateSelected,
-                                selected: _selected,
-                                showSelectedIcon: false,
-                                style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
-                                segments:
-                                  <ButtonSegment<String>>[
-                                    ButtonSegment<String>(
-                                      value: 'News',
-                                      label: Text('News')
-                                    ),
-                                    ButtonSegment<String>(
-                                      value: 'Opinion',
-                                      label: Text('Opinion')
-                                    ),
-                                    ButtonSegment<String>(
-                                      value: 'Other',
-                                      label: Text('Other')
-                                    ),
-                                  ]
-                              )
-                            ]
-                          )
-                        )
+                            context: context,
+                            builder: (context) {
+                              return StatefulBuilder(
+                                builder: (context, setState) {
+                                  return AlertDialog(
+                                    title: Text('Select your preferences'),
+                                    content: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 300.0,
+                                          width: double.maxFinite,
+                                          child: ListView.builder(
+                                          itemCount: items.length,
+                                          itemBuilder: (context, index) {
+                                            final item = items[index];
+                                            return CheckboxListTile(
+                                              title: Text(item.title),
+                                              value: item.isChecked,
+                                              onChanged: (bool? newValue) {
+                                                setState(() {
+                                                  item.isChecked = newValue!;
+                                                });
+                                              },
+                                              activeColor: Colors.blue,
+                                              checkColor: Colors.blueGrey,
+                                              controlAffinity: ListTileControlAffinity.leading,
+                                              );
+                                            }
+                                            ),
+                                          ),
+                                        TextButton(
+                                          onPressed: () {Navigator.pop(context);}, 
+                                          child: Text("Confirm")
+                                          )
+                                      ],
+                                    )
+                                    );
+
+                                    // Column(
+                                    //   children: [
+                                        // Text(''),
+                                        // SegmentedButton(
+                                        //   multiSelectionEnabled: true,
+                                        //   selected: _selected,
+                                        //   onSelectionChanged: (Set<String> newSelection) {
+                                        //     setState(() {
+                                        //         _selected = newSelection.isNotEmpty ? newSelection :  _selected;
+                                        //     });
+                                        //   },
+                                        //   showSelectedIcon: false,
+                                        //   style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
+                                        //   segments:
+                                        //     <ButtonSegment<String>>[
+                                        //       ButtonSegment<String>(
+                                        //         value: 'News',
+                                        //         label: Text('News')
+                                        //       ),
+                                        //       ButtonSegment<String>(
+                                        //         value: 'Opinion',
+                                        //         label: Text('Opinion')
+                                        //       ),
+                                        //       ButtonSegment<String>(
+                                        //         value: 'Other',
+                                        //         label: Text('Other')
+                                        //       ),
+                                        //     ]
+                                        // )
+                                    //   ]
+                                    // )
+                                  
+                                  
+                                }
+                              );
+                            },
                         );
                         },
                       child: Column(
@@ -223,147 +301,224 @@ class _HomePageState extends State<HomePage> {
                       
                       ),
                     ),
-                  ]
-                )
+                  ],
+                  ),
+                ),
               ),
             );
-          }
-        ),
-        ElevatedButton(
-        onPressed: () {
-          NotiService test = new NotiService();
-          test.showNotification(
-            title: 'Title!',
-            body: 'Body!',
-            );
-        },
-        child: const Text("Teachers"),
-        )
-        ]
-      ),
-      bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int index) {
-          setState(() {
-            _counter = index;
-          });
-        },
-        indicatorColor: Colors.amber,
-        selectedIndex: _counter,
-        destinations: const <Widget>[
-          NavigationDestination(
-            selectedIcon: Icon(Icons.home),
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.newspaper_rounded)),
-            label: 'News',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.star)),
-            label: 'Features',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
-            label: 'Opinion',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.bookmark)),
-            label: 'Bookmark',
-          ),
-          NavigationDestination(
-            icon: Badge(child: Icon(Icons.search)),
-            label: 'Search',
+          },
           ),
         ],
       ),
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor : value.ThemeLabel!.headerColor,
-        // Here we take the value from the HomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: const Text(GrantMagApp.appTitle),
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
+        appBar: AppBar(
+          backgroundColor: value.ThemeLabel!.headerColor,
+          title: const Text(GrantMagApp.appTitle),
+          leading: Builder(
+            builder: (context) => IconButton(
               icon: const Icon(Icons.bento),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
         ),
-      ),
-      
-        // drawer on side
-      drawer: Drawer(
-        backgroundColor: value.ThemeLabel!.shelfColor,
-        child: ListView( // lets user scroll through options if they need more vertical space
-          // remove padding from ListView
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey/*value.ThemeLabel.headerColor*/),
-              child: Text('Customization'),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.push(
+        drawer: Drawer(
+          backgroundColor: value.ThemeLabel!.shelfColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.grey),
+                child: Text('Customization'),
+              ),
+              ListTile(
+                title: const Text('Settings'),
+                leading: Icon(Icons.settings_outlined),
+                onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SettingsPage())
-              );
-              },
-              leading: Icon(Icons.settings_outlined),
-            ),
-            ListTile(
-              title: const Text('Games'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.videogame_asset)
-            ),
-            ListTile(
-              title: const Text('Profile'),
-              onTap: () {
-                Navigator.push(
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Profile'),
+                leading: Icon(Icons.person_outline_outlined),
+                onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage())
-                );
-              },
-              leading: Icon(Icons.person_outline_outlined)
-            ),
-            ListTile(
-              title: const Text('Feedback'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.chat_rounded)
-            ),
-            ListTile(
-              title: const Text('About'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.person_pin_rounded)
-            ),
-            ListTile(
-              title: const Text('Credits'),
-              onTap: () {
-                // update state of the app
-              },
-              leading: Icon(Icons.source_rounded)
-            ),
+                  MaterialPageRoute(builder: (_) => ProfilePage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Games'),
+                leading: Icon(Icons.videogame_asset),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Feedback'),
+                leading: Icon(Icons.chat_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('About'),
+                leading: Icon(Icons.person_pin_rounded),
+                onTap: () {},
+              ),
+              ListTile(
+                title: const Text('Credits'),
+                leading: Icon(Icons.source_rounded),
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: NavigationBar(
+          onDestinationSelected: (index) => setState(() => _counter = index),
+          selectedIndex: _counter,
+          indicatorColor: Colors.amber,
+          destinations: const [
+            NavigationDestination(
+                selectedIcon: Icon(Icons.home),
+                icon: Icon(Icons.home_outlined),
+                label: 'Home'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.newspaper_rounded)),
+                label: 'News'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.star)), label: 'Features'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+                label: 'Opinion'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.bookmark)), label: 'Bookmark'),
+            NavigationDestination(
+                icon: Badge(child: Icon(Icons.search)), label: 'Search'),
           ],
         ),
       ),
-
-      // scroll through articles
-      
-      
-    ),
     );
   }
+}
+
+class CustomSearchDelegate extends SearchDelegate {
+
+  List<String> titles = [
+    'machine learning',
+    'Ray Tate',
+    'One of the boys',
+    'A new perspective',
+    'Budget "whats"',
+  ];
+
+  List<String> authors = [
+    'Eliot Logan',
+    'Logan Hendrickson',
+    'Margot Kalmanson',
+    'Amelia Shaw',
+    'Zoe Shaw',
+  ];
+
+  List<String> decks = [
+    'Three days after the Bondi Beach shooting, Grant High School\’s Jewish Student Alliance put up two posters at the school honoring the victims.',
+    'As artificial intelligence sweeps the nation, Portland Public Schools is exploring its use in education.',
+    'This year, Grantasia featured a production in collaboration with a nonprofit organization called Sing Me a Story. The performance celebrates joy, creativity and inclusion through student choreography and original music.',
+    'Grant High School math teacher Ray Tate’s worsening kidney disease has kept him from the classroom. Now, he is requesting a kidney donation from a living donor.',
+    'Grant Magazine is now taking applications for the 2024 – 2025 school year. Complete the application, found at this link, and email a copy with editing access for anyone with the link to grantmagazine1@gmail.com. Applications are due by February 13, 2024. No late applications will be accepted.',
+  ];
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        onPressed: () {
+          query = '';
+        },
+        icon: const Icon(Icons.clear),)
+    ];
+  }
+  
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed:  () {
+        close(context, null);
+      },
+    );
+  }
+  
+  @override
+  Widget buildResults(BuildContext context) {
+    List<String> matchQuery = [];
+
+    // check titles
+    for (var fruit in titles) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check authors
+    for (var fruit in authors) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check decks
+    for (var fruit in decks) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+    
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
+    );
+  }
+  
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    List<String> matchQuery = [];
+
+    // check titles
+    for (var fruit in titles) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check authors
+    for (var fruit in authors) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check decks
+    for (var fruit in decks) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+    
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
+    );
+  }
+}
+
+class Item {
+  String title;
+  bool isChecked;
+
+  Item({required this.title, required this.isChecked});
 }
