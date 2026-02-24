@@ -36,8 +36,8 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
-            primarySwatch: Colors.amber,
+            scaffoldBackgroundColor: const Color.fromARGB(255, 42, 100, 127), // use listener to get provider info
+            primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
           )
@@ -98,8 +98,9 @@ class _HomePageState extends State<HomePage> {
               ElevatedButton(
                 onPressed: () {
                   NotiService().showNotification(
-                    title: 'Title!',
-                    body: 'Body!',
+                    notifId: 0,
+                    notifTitle: 'Title!',
+                    notifBody: 'Body!',
                   );
                 },
                 child: const Text("Teachers"),
@@ -116,7 +117,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeModel>(
+    return Consumer<SettingsModel>(
       builder: (context, value, child) => Scaffold(
         appBar: AppBar(
           backgroundColor: value.ThemeLabel!.headerColor,
