@@ -92,8 +92,7 @@ class NotiService {
           priority: Priority.high,
           ticker: 'ticker',
         ),
-        iOS: DarwinNotificationDetails()
-      );
+        iOS: DarwinNotificationDetails());
     print("just after notificationsPlugin.show");
   }
 }

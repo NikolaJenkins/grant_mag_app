@@ -43,6 +43,7 @@ dependencies:
   animated_custom_dropdown: ^3.1.1
   flutter_local_notifications: ^20.1.0
   webfeed_plus: ^1.1.2
+  flutter_checklist: ^1.4.1
 
 
 
