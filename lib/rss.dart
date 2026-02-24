@@ -142,18 +142,22 @@ class _ArticlePageState extends State<ArticlePage> {
                 fit: BoxFit.cover,
               ),
             
-            Padding( //article body render
-              padding: const EdgeInsets.all(12.0),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
               child: Html(
                 data: html,
                 style: {
                   "figure": Style(
                     width: Width(screenWidth),
+                    fontSize: FontSize(11),
+                    height: Height.auto(),
+                    display: Display.block,
                     textAlign: TextAlign.center,
-                  ),
-                },
+                    padding: HtmlPaddings.only(right: 16.0)
+                  )
+                }
               ),
-            ),
+            )
           ],
         ),
       ),
