@@ -11,7 +11,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  double _textSize = 100;
+  double _textSize = 150;
   bool year2023 = true;
 
   @override 
@@ -56,8 +56,8 @@ class SettingsPageState extends State<SettingsPage> {
                     divisions: 15,
                     label: _textSize.round().toString(),
                     onChanged: (double newValue) {
-                      // final textSizeChooser = context.read<SettingsModel>();
-                      // textSizeChooser.changeTextSize(newValue);
+                      final textSizeChooser = context.read<SettingsModel>();
+                      textSizeChooser.changeTextSize(newValue);
                       setState(() {
                         _textSize = newValue;
                       });
