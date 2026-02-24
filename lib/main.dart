@@ -6,7 +6,7 @@ import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:flutter_checklist/checklist.dart';
+////// import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
@@ -38,8 +38,8 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: Colors.amber, // use listener to get provider info
-            primarySwatch: Colors.amber,
+            scaffoldBackgroundColor: const Color.fromARGB(255, 42, 100, 127), // use listener to get provider info
+            primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
           )
@@ -163,9 +163,9 @@ class _HomePageState extends State<HomePage> {
               ElevatedButton(
                 onPressed: () {
                   NotiService().showNotification(
-                    id: 0,
-                    title: 'Title!',
-                    body: 'Body!',
+                    notifId: 0,
+                    notifTitle: 'Title!',
+                    notifBody: 'Body!',
                   );
                 },
                 child: const Text("Teachers"),
@@ -181,221 +181,118 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<SettingsModel>(
-      builder: (context, value, child) => Scaffold(
-        body: Column(
-        children: [
-          ElevatedButton(
-          child: Text('Open Dialogsss'),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text('I am a...', textAlign: TextAlign.center, style: TextStyle(fontSize: 50)),
-                content: SizedBox(
-                  width: double.maxFinite,
-                  child: Column(
-                  children: [
-                    Text(''),
-                    TextButton(
-                      style: ButtonStyle(alignment: Alignment.topLeft),
-                      onPressed: () {
-                        Navigator.pop(context); 
-                        makeStudent();
-                        showDialog(
-                            context: context,
-                            builder: (context) {
-                              return StatefulBuilder(
-                                builder: (context, setState) {
-                                  return AlertDialog(
-                                    title: Text('Select your preferences'),
-                                    content: Column(
-                                      children: [
-                                        SizedBox(
-                                          height: 300.0,
-                                          width: double.maxFinite,
-                                          child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity: ListTileControlAffinity.leading,
-                                              );
-                                            }
-                                            ),
-                                          ),
-                                        TextButton(
-                                          onPressed: () {Navigator.pop(context);}, 
-                                          child: Text("Confirm")
-                                          )
-                                      ],
-                                    )
-                                    );
-
-                                    // Column(
-                                    //   children: [
-                                        // Text(''),
-                                        // SegmentedButton(
-                                        //   multiSelectionEnabled: true,
-                                        //   selected: _selected,
-                                        //   onSelectionChanged: (Set<String> newSelection) {
-                                        //     setState(() {
-                                        //         _selected = newSelection.isNotEmpty ? newSelection :  _selected;
-                                        //     });
-                                        //   },
-                                        //   showSelectedIcon: false,
-                                        //   style: ButtonStyle(fixedSize: MaterialStateProperty.all(Size.fromWidth(500))),
-                                        //   segments:
-                                        //     <ButtonSegment<String>>[
-                                        //       ButtonSegment<String>(
-                                        //         value: 'News',
-                                        //         label: Text('News')
-                                        //       ),
-                                        //       ButtonSegment<String>(
-                                        //         value: 'Opinion',
-                                        //         label: Text('Opinion')
-                                        //       ),
-                                        //       ButtonSegment<String>(
-                                        //         value: 'Other',
-                                        //         label: Text('Other')
-                                        //       ),
-                                        //     ]
-                                        // )
-                                    //   ]
-                                    // )
-                                  
-                                  
-                                }
-                              );
-                            },
-                        );
-                        },
-                      child: Column(
-                        children: [
-                        Text('Studentss', style: TextStyle(fontSize: 20)),
-                        const Align(alignment: Alignment.bottomLeft,),
-                        ],
-                      
-                      ),
-                    ),
-                    Text(''),
-                    Text(''),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        makeParent();
-                      },
-                      child: Column(
-                        children: [
-                        Text('Parent', style: TextStyle(fontSize: 20)),
-                        const Align(alignment: Alignment.bottomLeft,),
-                        ],
-                      
-                      ),
-                    ),
-                  ],
-                  ),
-                ),
-              ),
-            );
-          },
+Widget build(BuildContext context) {
+  return Consumer<SettingsModel>(
+    builder: (context, value, child) => Scaffold(
+      appBar: AppBar(
+        backgroundColor: value.ThemeLabel!.headerColor,
+        title: const Text(GrantMagApp.appTitle),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.bento),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-        ],
+        ),
       ),
-        appBar: AppBar(
-          backgroundColor: value.ThemeLabel!.headerColor,
-          title: const Text(GrantMagApp.appTitle),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.bento),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+      drawer: Drawer(
+        backgroundColor: value.ThemeLabel!.shelfColor,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.grey),
+              child: Text('Customization'),
             ),
-          ),
-        ),
-        drawer: Drawer(
-          backgroundColor: value.ThemeLabel!.shelfColor,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Colors.grey),
-                child: Text('Customization'),
+            ListTile(
+              title: const Text('Settings'),
+              leading: const Icon(Icons.settings_outlined),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsPage()),
               ),
-              ListTile(
-                title: const Text('Settings'),
-                leading: Icon(Icons.settings_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SettingsPage()),
-                ),
+            ),
+            ListTile(
+              title: const Text('Profile'),
+              leading: const Icon(Icons.person_outline_outlined),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ProfilePage()),
               ),
-              ListTile(
-                title: const Text('Profile'),
-                leading: Icon(Icons.person_outline_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProfilePage()),
-                ),
-              ),
-              ListTile(
-                title: const Text('Games'),
-                leading: Icon(Icons.videogame_asset),
-                onTap: () {},
-              ),
-              ListTile(
-                title: const Text('Feedback'),
-                leading: Icon(Icons.chat_rounded),
-                onTap: () {},
-              ),
-              ListTile(
-                title: const Text('About'),
-                leading: Icon(Icons.person_pin_rounded),
-                onTap: () {},
-              ),
-              ListTile(
-                title: const Text('Credits'),
-                leading: Icon(Icons.source_rounded),
-                onTap: () {},
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: NavigationBar(
-          onDestinationSelected: (index) => setState(() => _counter = index),
-          selectedIndex: _counter,
-          indicatorColor: Colors.amber,
-          destinations: const [
-            NavigationDestination(
-                selectedIcon: Icon(Icons.home),
-                icon: Icon(Icons.home_outlined),
-                label: 'Home'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.newspaper_rounded)),
-                label: 'News'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.star)), label: 'Features'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
-                label: 'Opinion'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.bookmark)), label: 'Bookmark'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.search)), label: 'Search'),
+            ),
           ],
         ),
       ),
-    );
-  }
+
+      body: Column(
+        children: [
+          if (_counter == 0)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                child: const Text('Open Dialog'),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('I am a...'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            makeStudent();
+                          },
+                          child: const Text('Student'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            makeParent();
+                          },
+                          child: const Text('Parent'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          Expanded(
+            child: getBody(),
+          ),
+        ],
+      ),
+
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (index) =>
+            setState(() => _counter = index),
+        selectedIndex: _counter,
+        indicatorColor: Colors.amber,
+        destinations: const [
+          NavigationDestination(
+              selectedIcon: Icon(Icons.home),
+              icon: Icon(Icons.home_outlined),
+              label: 'Home'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.newspaper_rounded)),
+              label: 'News'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.star)),
+              label: 'Features'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+              label: 'Opinion'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.bookmark)),
+              label: 'Bookmark'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.search)),
+              label: 'Search'),
+        ],
+      ),
+    ),
+  );
+}
 }
 
 class CustomSearchDelegate extends SearchDelegate {
