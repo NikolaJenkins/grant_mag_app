@@ -6,6 +6,7 @@ import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+//import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
@@ -65,9 +66,67 @@ class HomePage extends StatefulWidget { //home page constructor
 
 class _HomePageState extends State<HomePage> {
   int _counter = 0;
+  int whoAreYou = 0;
+  List<String> notificationSelections = [];
+  
+  final FlutterLocalNotificationsPlugin notificationsPlugin = 
+  FlutterLocalNotificationsPlugin();
 
-  final FlutterLocalNotificationsPlugin notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  @override
+  void initState() {
+    
+    NotiService service = NotiService();
+    service.initNotification();
+    super.initState();
+  }
+  void makeStudent() {
+    whoAreYou = 1;
+  }
+  
+  void makeParent() {
+    whoAreYou = 2;
+  }
+
+  Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
+
+  Set<String> updateSelected(Set<String> newSelection) {
+    setState(() {
+      _selected = newSelection;
+    });
+    return _selected;
+  }
+  
+  void showMultiSelect() async {
+    List<String>? results = await showDialog(
+      context: context, 
+      builder: (BuildContext context) {
+        return Text("");
+      }
+    );
+    results = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Text("MultiSelect(items: items,);");
+      }
+    );
+
+    if (results != null) {
+      notificationSelections = results;
+      //NAO DO NOTIFICATIONS THING HERE
+    }
+  }
+
+  final List<int> colorCodes = <int>[600, 500, 100, 50];
+  final List<Item> items = [
+      Item(title: 'Breaking News', isChecked: false),
+      Item(title: 'Culture', isChecked: false),
+      Item(title: 'Opinion', isChecked: false),
+      Item(title: 'Profiles', isChecked: false),
+      Item(title: 'Other/Updates', isChecked: false)
+    ];
+
+  bool _isChecked = false;
+
   Widget getBody() {
     switch (_counter) {
       case 0:
@@ -116,94 +175,118 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<SettingsModel>(
-      builder: (context, value, child) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: value.ThemeLabel!.headerColor,
-          title: const Text(GrantMagApp.appTitle),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.bento),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+Widget build(BuildContext context) {
+  return Consumer<SettingsModel>(
+    builder: (context, value, child) => Scaffold(
+      appBar: AppBar(
+        backgroundColor: value.ThemeLabel!.headerColor,
+        title: const Text(GrantMagApp.appTitle),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.bento),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
+      drawer: Drawer(
+        backgroundColor: value.ThemeLabel!.shelfColor,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.grey),
+              child: Text('Customization'),
             ),
-          ),
-        ),
-        drawer: Drawer(
-          backgroundColor: value.ThemeLabel!.shelfColor,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Colors.grey),
-                child: Text('Customization'),
+            ListTile(
+              title: const Text('Settings'),
+              leading: const Icon(Icons.settings_outlined),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsPage()),
               ),
-              ListTile(
-                title: const Text('Settings'),
-                leading: Icon(Icons.settings_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SettingsPage()),
-                ),
+            ),
+            ListTile(
+              title: const Text('Profile'),
+              leading: const Icon(Icons.person_outline_outlined),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ProfilePage()),
               ),
-              ListTile(
-                title: const Text('Profile'),
-                leading: Icon(Icons.person_outline_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProfilePage()),
-                ),
-              ),
-              ListTile(
-                title: const Text('Games'),
-                leading: Icon(Icons.videogame_asset),
-                onTap: () {},
-              ),
-              ListTile(
-                title: const Text('Feedback'),
-                leading: Icon(Icons.chat_rounded),
-                onTap: () {},
-              ),
-              ListTile(
-                title: const Text('About'),
-                leading: Icon(Icons.person_pin_rounded),
-                onTap: () {},
-              ),
-              ListTile(
-                title: const Text('Credits'),
-                leading: Icon(Icons.source_rounded),
-                onTap: () {},
-              ),
-            ],
-          ),
-        ),
-        body: getBody(),
-        bottomNavigationBar: NavigationBar(
-          onDestinationSelected: (index) => setState(() => _counter = index),
-          selectedIndex: _counter,
-          indicatorColor: Colors.amber,
-          destinations: const [
-            NavigationDestination(
-                selectedIcon: Icon(Icons.home),
-                icon: Icon(Icons.home_outlined),
-                label: 'Home'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.newspaper_rounded)),
-                label: 'News'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.star)), label: 'Features'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
-                label: 'Opinion'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.bookmark)), label: 'Bookmark'),
-            NavigationDestination(
-                icon: Badge(child: Icon(Icons.search)), label: 'Search'),
+            ),
           ],
         ),
       ),
-    );
-  }
+
+      body: Column(
+        children: [
+          if (_counter == 0)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                child: const Text('Open Dialog'),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('I am a...'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            makeStudent();
+                          },
+                          child: const Text('Student'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            makeParent();
+                          },
+                          child: const Text('Parent'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          Expanded(
+            child: getBody(),
+          ),
+        ],
+      ),
+
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (index) =>
+            setState(() => _counter = index),
+        selectedIndex: _counter,
+        indicatorColor: Colors.amber,
+        destinations: const [
+          NavigationDestination(
+              selectedIcon: Icon(Icons.home),
+              icon: Icon(Icons.home_outlined),
+              label: 'Home'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.newspaper_rounded)),
+              label: 'News'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.star)),
+              label: 'Features'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+              label: 'Opinion'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.bookmark)),
+              label: 'Bookmark'),
+          NavigationDestination(
+              icon: Badge(child: Icon(Icons.search)),
+              label: 'Search'),
+        ],
+      ),
+    ),
+  );
+}
 }
 
 class CustomSearchDelegate extends SearchDelegate {
@@ -324,4 +407,11 @@ class CustomSearchDelegate extends SearchDelegate {
       },
     );
   }
+}
+
+class Item {
+  String title;
+  bool isChecked;
+
+  Item({required this.title, required this.isChecked});
 }
