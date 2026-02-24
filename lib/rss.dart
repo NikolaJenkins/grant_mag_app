@@ -108,24 +108,21 @@ class _ArticlePageState extends State<ArticlePage> {
       setState(() => loadingImage = false);
     }
   }
+    //article list builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
-      html = html.replaceAll(RegExp(r'style="width:\s*\d+px"'), '');
-      html = html.replaceAll(RegExp(r'width="\d+"'), '');
-      html = html.replaceAll(RegExp(r'height="\d+"'), '');
-      html = html.replaceAll(RegExp(r'srcset="[^"]+"'), '');
-      html = html.replaceAll(RegExp(r'sizes="[^"]*"'), '');
       debugPrint('HTML: ');
       debugPrint(html);
+
       return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 100, // max height
+        toolbarHeight: 100, //max height
         title: AutoSizeText(
           widget.article.title ?? 'Article',
           maxLines: 3,                      
-          minFontSize: 12,                  
+          minFontSize: 18,                  
           overflow: TextOverflow.ellipsis,  
         ),
       ),
@@ -149,12 +146,17 @@ class _ArticlePageState extends State<ArticlePage> {
                 style: {
                   "figure": Style(
                     width: Width(screenWidth),
-                    fontSize: FontSize(11),
+                    fontSize: FontSize(11), //captions
                     height: Height.auto(),
                     display: Display.block,
                     textAlign: TextAlign.center,
+                    margin: Margins.symmetric(vertical: 16),
                     padding: HtmlPaddings.only(right: 16.0)
-                  )
+                  ),
+
+                  "p": Style(
+                    fontSize: FontSize(14.0)
+                  ),
                 }
               ),
             )
