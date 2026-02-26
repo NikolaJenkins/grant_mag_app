@@ -6,7 +6,7 @@ import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-////// import 'package:flutter_checklist/checklist.dart';
+// import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
@@ -164,8 +164,8 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   NotiService().showNotification(
                     notifId: 0,
-                    notifTitle: 'Title!',
-                    notifBody: 'Body!',
+                    notifTitle: 'Did you commit today?',
+                    notifBody: 'Mr. Mandell won\'t be happy',
                   );
                 },
                 child: const Text("Teachers"),
