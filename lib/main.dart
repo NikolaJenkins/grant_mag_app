@@ -6,7 +6,7 @@ import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-//import 'package:flutter_checklist/checklist.dart';
+////import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
@@ -124,6 +124,10 @@ class _HomePageState extends State<HomePage> {
       Item(title: 'Profiles', isChecked: false),
       Item(title: 'Other/Updates', isChecked: false)
     ];
+
+  // void onChanged(List<ChecklistLine> lines) {
+  //   print(lines.toString());
+  // }
 
   bool _isChecked = false;
 
