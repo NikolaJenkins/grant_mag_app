@@ -237,7 +237,13 @@ Widget build(BuildContext context) {
                         TextButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            makeStudent();
+                            showDialog(
+                              context: context
+                              builder: (context, setState) {
+                                return AlertDialog(
+                                  title: const Text("Select your preferences")
+                                )
+                            
                           },
                           child: const Text('Student'),
                         ),
