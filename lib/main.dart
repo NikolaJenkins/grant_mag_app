@@ -227,7 +227,7 @@ Widget build(BuildContext context) {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                child: const Text('Open Dialog'),
+                child: const Text('Open Dialogaaaaaaaa'),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -235,17 +235,47 @@ Widget build(BuildContext context) {
                       title: const Text('I am a...'),
                       actions: [
                         TextButton(
+                          child: const Text('Student'),
                           onPressed: () {
                             Navigator.pop(context);
                             showDialog(
-                              context: context
-                              builder: (context, setState) {
-                                return AlertDialog(
-                                  title: const Text("Select your preferences")
-                                )
-                            
-                          },
-                          child: const Text('Student'),
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Select your preferences"),
+                                content: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 300.0,
+                                          width: double.maxFinite,
+                                          child: ListView.builder(
+                                          itemCount: items.length,
+                                          itemBuilder: (context, index) {
+                                            final item = items[index];
+                                            return CheckboxListTile(
+                                              title: Text(item.title),
+                                              value: item.isChecked,
+                                              onChanged: (bool? newValue) {
+                                                setState(() {
+                                                  item.isChecked = newValue!;
+                                                });
+                                              },
+                                              activeColor: Colors.blue,
+                                              checkColor: Colors.blueGrey,
+                                              controlAffinity: ListTileControlAffinity.leading,
+                                              );
+                                            }
+                                            ),
+                                          ),
+                                        TextButton(
+                                          onPressed: () {Navigator.pop(context);}, 
+                                          child: Text("Confirm")
+                                          )
+                                      ],
+                                    )
+                              ),
+                            );
+                          }
+                          
                         ),
                         TextButton(
                           onPressed: () {
