@@ -43,6 +43,8 @@ class NotiService {
     await notificationsPlugin.initialize(
       settings: initializationSettings
     );
+
+    notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
     print("End of initNotification");
   }
 
@@ -62,20 +64,6 @@ class NotiService {
     );
   }
 
-  //SHOW NOTIFICATIONS
-  // Future<void> showNotification({
-  //   int id = 0,
-  //   String? title,
-  //   String? body,
-  //   }) async {
-  //     print("Just before returning notificationPlugin.show");
-  //     return notificationsPlugin.show(
-  //       id, 
-  //       title, 
-  //       body, 
-  //       const NotificationDetails(),
-  //     );
-
     // Instant notifications
   Future<void> showNotification({
     required int notifId,
@@ -83,17 +71,47 @@ class NotiService {
     required String notifBody,
   }) async {
     print("just before notificationsPlugin.show");
-    NotificationDetails(
-        android: AndroidNotificationDetails(
-          '0',
-          notifTitle,
-          channelDescription: 'your_channel_description',
-          importance: Importance.max,
-          priority: Priority.high,
-          ticker: 'ticker',
-        ),
-        iOS: DarwinNotificationDetails()
-      );
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        '0',
+        'Notification Title',
+        channelDescription: 'You were notified!',
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'ticker',
+      ),
+      iOS: DarwinNotificationDetails()
+    );
+    await notificationsPlugin.show(
+      id: 0,
+      title: 'plain title',
+      body: 'plain body',
+      notificationDetails: notificationDetails,
+      payload: 'item x',
+    );
     print("just after notificationsPlugin.show");
   }
+
+  // Future<void> showNotification() async {
+  //   const AndroidNotificationDetails androidNotificationDetails =
+  //       AndroidNotificationDetails(
+  //         'your channel id',
+  //         'your channel name',
+  //         channelDescription: 'your channel description',
+  //         importance: Importance.max,
+  //         priority: Priority.high,
+  //         ticker: 'ticker',
+  //       );
+  //   const NotificationDetails notificationDetails = NotificationDetails(
+  //     android: androidNotificationDetails,
+  //   );
+  //   print("just before notificationsPlugin.show()");
+  //   await notificationsPlugin.show(
+  //     id: 0,
+  //     title: 'plain title',
+  //     body: 'plain body',
+  //     notificationDetails: notificationDetails,
+  //     payload: 'item x',
+  //   );
+  // }
 }
