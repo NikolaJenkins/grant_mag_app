@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
 import 'package:grant_mag_app/settings_model.dart';
@@ -263,11 +266,16 @@ Widget build(BuildContext context) {
         ],
       ),
 
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: NavigationBar( //nav bar for menu icons
         onDestinationSelected: (index) =>
             setState(() => _counter = index),
         selectedIndex: _counter,
         indicatorColor: Colors.amber,
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(
+            fontSize: 11.0,
+          )
+        ),
         destinations: const [
           NavigationDestination(
               selectedIcon: Icon(Icons.home),

@@ -43,7 +43,10 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
     return ListView.builder( 
       itemCount: _feed?.items?.length ?? 0, 
       itemBuilder: (context, index) { final item = _feed!.items![index]; 
-      return ListTile( title: Text(item.title ?? ''),  subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? '',), onTap: () { 
+      return ListTile( 
+        title: Text(item.title ?? ''),  
+        subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? '',), 
+        onTap: () { 
         Navigator.push( context, MaterialPageRoute( builder: (_) => ArticlePage(article: item), ), 
           ); 
         },
@@ -82,7 +85,11 @@ class _ArticlePageState extends State<ArticlePage> {
     final url = widget.article.link; 
     if (url == null) return;
     try {
-      final response = await http.get(Uri.parse(url)); //url parse
+      final encodedUrl = Uri.encodeComponent(url);
+      final response = await http.get(Uri.parse(
+        'https://grantmag-backend-production.up.railway.app/article?url=$encodedUrl'
+      ));//url parse
+
       if (response.statusCode != 200) return;
       final html = response.body;
 
@@ -138,12 +145,29 @@ class _ArticlePageState extends State<ArticlePage> {
                 width: screenWidth,
                 fit: BoxFit.cover,
               ),
-            
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Html(
                 data: html,
-                style: {
+                extensions: [
+                  TagExtension(
+                    tagsToExtend: {"img"}, //handles img rendering in a seperate builder
+                    builder: (context) {
+                      final src = context.attributes['src'] ?? '';
+                      if (src.isEmpty) return const SizedBox.shrink();
+                      return Padding( //padding details for imgs
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Image.network(
+                          src,
+                          width: screenWidth,
+                          fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                        ),
+                      );
+                    },
+                  ),
+                ],
+
+                style: { //html style rendering for figs (captions) and text
                   "figure": Style(
                     width: Width(screenWidth),
                     fontSize: FontSize(11), //captions
@@ -151,7 +175,7 @@ class _ArticlePageState extends State<ArticlePage> {
                     display: Display.block,
                     textAlign: TextAlign.center,
                     margin: Margins.symmetric(vertical: 16),
-                    padding: HtmlPaddings.only(right: 16.0)
+                    padding: HtmlPaddings.only(right: 16.0),
                   ),
 
                   "p": Style(
