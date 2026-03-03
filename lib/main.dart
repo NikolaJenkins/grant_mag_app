@@ -125,10 +125,6 @@ class _HomePageState extends State<HomePage> {
       Item(title: 'Other/Updates', isChecked: false)
     ];
 
-  // void onChanged(List<ChecklistLine> lines) {
-  //   print(lines.toString());
-  // }
-
   bool _isChecked = false;
 
   Widget getBody() {
@@ -244,7 +240,7 @@ Widget build(BuildContext context) {
                                 title: const Text("Select your preferences"),
                                 content: Column(
                                       children: [
-                                        SizedBox(
+                                        SizedBox( //Show checklist dialog when student is clicked
                                           height: 300.0,
                                           width: double.maxFinite,
                                           child: ListView.builder(
@@ -281,6 +277,42 @@ Widget build(BuildContext context) {
                           onPressed: () {
                             Navigator.pop(context);
                             makeParent();
+                             showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Select your preferences"),
+                                content: Column(
+                                      children: [
+                                        SizedBox( //Show checklist dialog when parent is clicked
+                                          height: 300.0,
+                                          width: double.maxFinite,
+                                          child: ListView.builder(
+                                          itemCount: items.length,
+                                          itemBuilder: (context, index) {
+                                            final item = items[index];
+                                            return CheckboxListTile(
+                                              title: Text(item.title),
+                                              value: item.isChecked,
+                                              onChanged: (bool? newValue) {
+                                                setState(() {
+                                                  item.isChecked = newValue!;
+                                                });
+                                              },
+                                              activeColor: Colors.blue,
+                                              checkColor: Colors.blueGrey,
+                                              controlAffinity: ListTileControlAffinity.leading,
+                                              );
+                                            }
+                                            ),
+                                          ),
+                                        TextButton(
+                                          onPressed: () {Navigator.pop(context);}, 
+                                          child: Text("Confirm")
+                                          )
+                                      ],
+                                    )
+                              ),
+                            );
                           },
                           child: const Text('Parent'),
                         ),
