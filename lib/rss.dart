@@ -50,6 +50,12 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
         Navigator.push( context, MaterialPageRoute( builder: (_) => ArticlePage(article: item), ), 
           ); 
         },
+        trailing: Image.network(
+          _ArticlePageState.featuredImage!,
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
+        // trailing: Text(item.author ?? ''),
       ); 
     }, 
   );
@@ -72,7 +78,7 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 }
 
 class _ArticlePageState extends State<ArticlePage> {
-  String? featuredImage;
+  static String? featuredImage;
   bool loadingImage = true;
 
   @override
