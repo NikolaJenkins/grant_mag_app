@@ -74,6 +74,7 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 class _ArticlePageState extends State<ArticlePage> {
   String? featuredImage;
   bool loadingImage = true;
+  String? url;
 
   @override
   void initState() {
@@ -81,11 +82,31 @@ class _ArticlePageState extends State<ArticlePage> {
     _loadFeaturedImage(); // async fetch starts here
   }
 
+  void _showLargeImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.all(2),
+          title: Container(
+            decoration: BoxDecoration(),
+            width: MediaQuery.of(context).size.width,
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.fitWidth
+              ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _loadFeaturedImage() async { //fetches html and loads image
-    final url = widget.article.link; 
+    url = widget.article.link;
     if (url == null) return;
     try {
-      final encodedUrl = Uri.encodeComponent(url);
+      final encodedUrl = Uri.encodeComponent(url!);
       final response = await http.get(Uri.parse(
         'https://grantmag-backend-production.up.railway.app/article?url=$encodedUrl'
       ));//url parse
@@ -140,10 +161,16 @@ class _ArticlePageState extends State<ArticlePage> {
           children: [
             if (loadingImage) const LinearProgressIndicator(),
             if (!loadingImage && featuredImage != null)
-              Image.network(
-                featuredImage!,
-                width: screenWidth,
-                fit: BoxFit.cover,
+              GestureDetector(
+                onTap: () => _showLargeImage(context, url!),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    featuredImage!,
+                    width: screenWidth,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             SizedBox(
               width: MediaQuery.of(context).size.width,
