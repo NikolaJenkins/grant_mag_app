@@ -14,7 +14,7 @@ class GrantMagFeed extends StatefulWidget {
 }
 
 class _GrantMagFeedState extends State<GrantMagFeed> {
-  static const String FEED_URL = 'https://grantmag-backend-production.up.railway.app/feed'; 
+  static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
   RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
   
   
@@ -89,11 +89,12 @@ class _ArticlePageState extends State<ArticlePage> {
 
   Future<void> _loadFeaturedImage() async { //fetches html and loads image
     final url = widget.article.link; 
+    debugPrint("widget URL:");
+    debugPrint(url);
     if (url == null) return;
     try {
       final encodedUrl = Uri.encodeComponent(url);
-      final response = await http.get(Uri.parse(
-        'https://grantmag-backend-production.up.railway.app/article?url=$encodedUrl'
+      final response = await http.get(Uri.parse(url //featured image fetch RECONVERT WHEN SERVER UP
       ));//url parse
 
       if (response.statusCode != 200) return;
