@@ -11,6 +11,7 @@ import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
@@ -181,6 +182,8 @@ class _HomePageState extends State<HomePage> {
         );
       case 1:
         return const GrantMagFeed(); 
+      case 4:
+        return const GrantMagBookmarks();
       default:
         return Center(child: Text('Content coming soon'));
     }
@@ -191,7 +194,7 @@ Widget build(BuildContext context) {
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(
       appBar: AppBar(
-        backgroundColor: value.ThemeLabel!.headerColor,
+        backgroundColor: value.ThemeLabel!.headerColor, 
         title: const Text(GrantMagApp.appTitle),
         leading: Builder(
           builder: (context) => IconButton(
@@ -367,7 +370,7 @@ Widget build(BuildContext context) {
               label: 'Opinion'),
           NavigationDestination(
               icon: Badge(child: Icon(Icons.bookmark)),
-              label: 'Bookmark'),
+              label: 'Bookmarks'),
           NavigationDestination(
               icon: Badge(child: Icon(Icons.search)),
               label: 'Search'),
@@ -503,4 +506,42 @@ class Item {
   bool isChecked;
 
   Item({required this.title, required this.isChecked});
+}
+
+class GrantMagBookmarks extends StatefulWidget {
+    const GrantMagBookmarks({super.key});
+    @override State<GrantMagBookmarks> createState() => GrantMagBookmarksState(); 
+}
+
+class GrantMagBookmarksState extends State<GrantMagBookmarks> {
+  List<String> bookmarks = [];
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> loadBookmarks() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      bookmarks = prefs.getStringList('bookmarks') ?? [];
+    });
+  }
+
+  @override
+   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Bookmarked Articles")),
+      body: bookmarks.isEmpty
+          ? const Center(child: Text("No bookmarks yet"))
+          : ListView.builder(
+              itemCount: bookmarks.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(bookmarks[index]),
+                );
+              },
+            ),
+    );
+  }
 }

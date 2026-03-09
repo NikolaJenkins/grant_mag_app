@@ -5,15 +5,16 @@ import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class GrantMagFeed extends StatefulWidget {
   const GrantMagFeed({super.key});
   
-  @override State<GrantMagFeed> createState() => _GrantMagFeedState(); 
+  @override State<GrantMagFeed> createState() => GrantMagFeedState(); 
 }
 
-class _GrantMagFeedState extends State<GrantMagFeed> { //article list state class
+class GrantMagFeedState extends State<GrantMagFeed> { //article list state class
   static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
   RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
   
@@ -40,8 +41,25 @@ class _GrantMagFeedState extends State<GrantMagFeed> { //article list state clas
 
   bool isFeedEmpty() => _feed == null || _feed!.items == null; 
 
+  Future<void> addBookmark(String link) async { //bookmark func
+    final prefs = await SharedPreferences.getInstance();
+    List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
+    if (!bookmarks.contains(link)) {
+      bookmarks.add(link); //adds article links to bookmark list
+      await prefs.setStringList('bookmarks', bookmarks);
+    }
+ }
+
+ Future<void> removeBookmark(String link) async { //remove bookmark
+  final prefs = await SharedPreferences.getInstance();
+
+  List<String> bookmarks = prefs.getStringList('bookmarks') ?? []; //list for bookmarks
+  bookmarks.remove(link);
+  await prefs.setStringList('bookmarks', bookmarks);
+}
+
   Widget list() { //list builder
-    const excludedCategories = {'PDF Issues'};
+    const excludedCategories = {'PDF Issues', 'Flipbooks'};
 
     final filteredItems = _feed?.items?.where((item) {
       final categories = item.categories?.map((c) => c.value).toSet() ?? {};
@@ -55,6 +73,12 @@ class _GrantMagFeedState extends State<GrantMagFeed> { //article list state clas
       return ListTile(
         title: Text(item.title ?? ''),
         subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''), //creates list categories tiles
+        trailing: IconButton(
+          icon: Icon(Icons.bookmark_add),
+            onPressed: () {
+            addBookmark(item.link!);
+          },
+        ),
         onTap: () {
           Navigator.push(
             context,
