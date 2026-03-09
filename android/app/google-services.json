@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1029474117284",
+    "project_id": "grant-magazine-app",
+    "storage_bucket": "grant-magazine-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1029474117284:android:8fc2fb95a2e9c669632831",
+        "android_client_info": {
+          "package_name": "com.example.grant_mag_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCF4ww6nW0ZyIimeSPKbCEvtCtybeTLzmE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

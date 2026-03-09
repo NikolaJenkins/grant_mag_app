@@ -14,7 +14,7 @@ class GrantMagFeed extends StatefulWidget {
 }
 
 class _GrantMagFeedState extends State<GrantMagFeed> {
-  static const String FEED_URL = 'https://grantmag-backend-production.up.railway.app/feed'; 
+  static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
   RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
   
   
