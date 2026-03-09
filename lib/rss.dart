@@ -108,7 +108,7 @@ class _ArticlePageState extends State<ArticlePage> {
     try {
       final encodedUrl = Uri.encodeComponent(url!);
       final response = await http.get(Uri.parse(
-        'https://grantmag-backend-production.up.railway.app/article?url=$encodedUrl'
+        url!
       ));//url parse
 
       if (response.statusCode != 200) return;
@@ -161,14 +161,16 @@ class _ArticlePageState extends State<ArticlePage> {
           children: [
             if (loadingImage) const LinearProgressIndicator(),
             if (!loadingImage && featuredImage != null)
-              GestureDetector(
-                onTap: () => _showLargeImage(context, url!),
+              GestureDetector( //makes featured images clickable using a GestureDetector
+                onTap: () => _showLargeImage(context, featuredImage!),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
                     featuredImage!,
                     width: screenWidth,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fitWidth,
+                    loadingBuilder: (context, child, loadingProgress) =>
+                      (loadingProgress == null) ? child : CircularProgressIndicator(),
                   ),
                 ),
               ),
