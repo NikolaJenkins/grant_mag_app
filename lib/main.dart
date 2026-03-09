@@ -1,5 +1,7 @@
 import 'dart:math';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:grant_mag_app/articles.dart';
@@ -13,9 +15,14 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
 
-void main() { 
+void main() async{ 
   WidgetsFlutterBinding.ensureInitialized();
-  //initialize notifications
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  debugPrint("Firebase initialized successfully");
+ // final fcmToken = await FirebaseMessaging.instance.getToken(); //this is the push notifs token setup
+
   NotiService().initNotification();
   
   runApp(
