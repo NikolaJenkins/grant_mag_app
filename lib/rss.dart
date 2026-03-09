@@ -51,9 +51,9 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
           ); 
         },
         trailing: Image.network(
-          _ArticlePageState.featuredImage!,
-          width: double.infinity,
-          fit: BoxFit.cover,
+          item.link ?? '',
+          loadingBuilder: (context, child, loadingProgress) =>
+            (loadingProgress == null) ? child : CircularProgressIndicator(),
         ),
         // trailing: Text(item.author ?? ''),
       ); 
