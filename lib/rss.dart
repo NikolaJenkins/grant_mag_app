@@ -13,7 +13,7 @@ class GrantMagFeed extends StatefulWidget {
   @override State<GrantMagFeed> createState() => _GrantMagFeedState(); 
 }
 
-class _GrantMagFeedState extends State<GrantMagFeed> {
+class _GrantMagFeedState extends State<GrantMagFeed> { //article list state class
   static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
   RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
   
@@ -23,35 +23,46 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
     load(); 
   } 
   
-  Future<void> load() async {
+  Future<void> load() async { //load feed func
     final result = await loadFeed(); 
     if (!mounted) return; 
     setState(() => _feed = result); 
   } 
   
-  Future<RssFeed> loadFeed() async { 
+  Future<RssFeed> loadFeed() async {  
     try { 
       final response = await http.get(Uri.parse(FEED_URL));
       print(response.body);
-      return RssFeed.parse(response.body); 
+      return RssFeed.parse(response.body);  //returns feed response from parse
     } 
     catch (_) { return RssFeed(items: []); } 
   }
 
   bool isFeedEmpty() => _feed == null || _feed!.items == null; 
-  Widget list() { 
-    return ListView.builder( 
-      itemCount: _feed?.items?.length ?? 0, 
-      itemBuilder: (context, index) { final item = _feed!.items![index]; 
-      return ListTile( 
-        title: Text(item.title ?? ''),  
-        subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? '',), 
-        onTap: () { 
-        Navigator.push( context, MaterialPageRoute( builder: (_) => ArticlePage(article: item), ), 
-          ); 
+
+  Widget list() { //list builder
+    const excludedCategories = {'PDF Issues'};
+
+    final filteredItems = _feed?.items?.where((item) {
+      final categories = item.categories?.map((c) => c.value).toSet() ?? {};
+      return categories.intersection(excludedCategories).isEmpty; //keeps each item if no overlap w/ excluded
+    }).toList() ?? [];
+
+    return ListView.builder(
+    itemCount: filteredItems.length,
+    itemBuilder: (context, index) {
+      final item = filteredItems[index]; //new list
+      return ListTile(
+        title: Text(item.title ?? ''),
+        subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''), //creates list categories tiles
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ArticlePage(article: item)), //navigator route push
+          );
         },
-      ); 
-    }, 
+      );
+    },
   );
 } 
 
@@ -116,7 +127,7 @@ class _ArticlePageState extends State<ArticlePage> {
       setState(() => loadingImage = false);
     }
   }
-    //article list builder
+    //article builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
@@ -131,7 +142,7 @@ class _ArticlePageState extends State<ArticlePage> {
           widget.article.title ?? 'Article',
           maxLines: 3,                      
           minFontSize: 18,                  
-          overflow: TextOverflow.ellipsis,  
+          overflow: TextOverflow.ellipsis,   //title bounds and wrapping
         ),
       ),
 
@@ -139,7 +150,7 @@ class _ArticlePageState extends State<ArticlePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (loadingImage) const LinearProgressIndicator(),
+            if (loadingImage) const LinearProgressIndicator(), //loading bar 
             if (!loadingImage && featuredImage != null)
               Image.network(
                 featuredImage!,
