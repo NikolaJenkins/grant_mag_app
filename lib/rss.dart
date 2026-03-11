@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:http/http.dart' as http;
+import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -16,7 +17,7 @@ class GrantMagFeed extends StatefulWidget {
 class _GrantMagFeedState extends State<GrantMagFeed> {
   static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
   RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
-  
+  String? featuredImage;
   
   @override void initState() {
     super.initState(); _refreshKey = GlobalKey<RefreshIndicatorState>(); 
@@ -50,16 +51,19 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
         Navigator.push( context, MaterialPageRoute( builder: (_) => ArticlePage(article: item), ), 
           ); 
         },
-        trailing: Image.network(
-          item.link ?? '',
-          loadingBuilder: (context, child, loadingProgress) =>
-            (loadingProgress == null) ? child : CircularProgressIndicator(),
-        ),
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Image.network(
+              item.getFeaturedImage() ?? '',
+            ),
+          ],
+        )
         // trailing: Text(item.author ?? ''),
       ); 
     }, 
   );
-} 
+  }
 
 @override Widget build(BuildContext context) { 
   if (isFeedEmpty()) { 
@@ -195,6 +199,22 @@ class _ArticlePageState extends State<ArticlePage> {
         ),
       ),
     );
+  }
+}
+
+extension ImageParsing on RssItem {
+  Future<String> getFeaturedImage() async {
+    final url = this.link;
+    if (url == null) {
+      return '';
+    }
+    final response = await http.get(Uri.parse(url ?? ''));
+    final html = response.body;
+    final ogMatch = RegExp( //og syntax for fallback
+      r'<meta property="og:image" content="([^"]+)"',
+      caseSensitive: false,
+    ).firstMatch(html);
+    return ogMatch!.group(1); //error catch
   }
 }
 
