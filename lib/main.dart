@@ -14,8 +14,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
-import 'rss.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
+import 'package:http/http.dart' as http;
+import 'package:webfeed_plus/webfeed_plus.dart';
+import 'rss.dart';
 
 
 void main() async{ 
@@ -508,42 +510,4 @@ class Item {
   bool isChecked;
 
   Item({required this.title, required this.isChecked});
-}
-
-class GrantMagBookmarks extends StatefulWidget {
-    const GrantMagBookmarks({super.key});
-    @override State<GrantMagBookmarks> createState() => GrantMagBookmarksState(); 
-}
-
-class GrantMagBookmarksState extends State<GrantMagBookmarks> {
-  List<String> bookmarks = [];
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  Future<void> loadBookmarks() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      bookmarks = prefs.getStringList('bookmarks') ?? [];
-    });
-  }
-
-  @override
-   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Bookmarked Articles")),
-      body: bookmarks.isEmpty
-          ? const Center(child: Text("No bookmarks yet"))
-          : ListView.builder(
-              itemCount: bookmarks.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(bookmarks[index]),
-                );
-              },
-            ),
-    );
-  }
 }

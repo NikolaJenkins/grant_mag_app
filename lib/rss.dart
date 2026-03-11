@@ -41,14 +41,16 @@ class GrantMagFeedState extends State<GrantMagFeed> { //article list state class
 
   bool isFeedEmpty() => _feed == null || _feed!.items == null; 
 
-  Future<void> addBookmark(String link) async { //bookmark func
-    final prefs = await SharedPreferences.getInstance();
-    List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
-    if (!bookmarks.contains(link)) {
-      bookmarks.add(link); //adds article links to bookmark list
-      await prefs.setStringList('bookmarks', bookmarks);
-    }
- }
+Future<void> addBookmark(String? link, String? title) async {
+  if (link == null) return;
+  final prefs = await SharedPreferences.getInstance();
+  List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
+  if (!bookmarks.contains(link)) {
+    bookmarks.add(link);
+    await prefs.setStringList('bookmarks', bookmarks);
+    await prefs.setString('bookmark_title_$link', title ?? link);
+  }
+}
 
  Future<void> removeBookmark(String link) async { //remove bookmark
   final prefs = await SharedPreferences.getInstance();
@@ -58,7 +60,7 @@ class GrantMagFeedState extends State<GrantMagFeed> { //article list state class
   await prefs.setStringList('bookmarks', bookmarks);
 }
 
-  Widget list() { //list builder
+  Widget list() { //article list builder
     const excludedCategories = {'PDF Issues', 'Flipbooks'};
 
     final filteredItems = _feed?.items?.where((item) {
@@ -75,9 +77,7 @@ class GrantMagFeedState extends State<GrantMagFeed> { //article list state class
         subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''), //creates list categories tiles
         trailing: IconButton(
           icon: Icon(Icons.bookmark_add),
-            onPressed: () {
-            addBookmark(item.link!);
-          },
+          onPressed: () => addBookmark(item.link, item.title), // add item.title as a bookmark using map
         ),
         onTap: () {
           Navigator.push(
@@ -263,6 +263,54 @@ class GrantMagRSSPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Grant Magazine')),
       body: const GrantMagFeed(),
+    );
+  }
+}
+
+class GrantMagBookmarks extends StatefulWidget {
+  final RssFeed feed;
+  const GrantMagBookmarks({required this.feed, super.key});
+  @override State<GrantMagBookmarks> createState() => GrantMagBookmarksState();
+}
+
+class GrantMagBookmarksState extends State<GrantMagBookmarks> {
+  List<String> bookmarks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadBookmarks();
+  }
+
+  Future<void> loadBookmarks() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      bookmarks = prefs.getStringList('bookmarks') ?? [];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bookmarkedItems = widget.feed.items
+        ?.where((item) => bookmarks.contains(item.link))
+        .toList() ?? [];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text("Bookmarked Articles")),
+      body: bookmarkedItems.isEmpty
+          ? const Center(child: Text("No bookmarks yet"))
+          : ListView.builder(
+              itemCount: bookmarkedItems.length,
+              itemBuilder: (context, index) {
+                final item = bookmarkedItems[index];
+                return ListTile(
+                  title: Text(item.title ?? ''),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => ArticlePage(article: item),
+                  )),
+                );
+              },
+            ),
     );
   }
 }
