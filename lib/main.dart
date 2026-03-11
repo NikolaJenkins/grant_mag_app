@@ -87,11 +87,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    
     NotiService service = NotiService();
     service.initNotification();
     super.initState();
   }
+
+
   void makeStudent() {
     whoAreYou = 1;
   }
@@ -129,6 +130,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  final bool isAuthenticated = false;
   final List<int> colorCodes = <int>[600, 500, 100, 50];
   final List<Item> items = [
       Item(title: 'Breaking News', isChecked: false),
@@ -187,7 +189,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  @override
+@override
 Widget build(BuildContext context) {
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(

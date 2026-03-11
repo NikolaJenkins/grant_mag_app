@@ -75,6 +75,7 @@ class _ArticlePageState extends State<ArticlePage> {
   String? featuredImage;
   bool loadingImage = true;
   String? url;
+  String? imageUrl;
 
   @override
   void initState() {
@@ -102,7 +103,7 @@ class _ArticlePageState extends State<ArticlePage> {
     );
   }
 
-  Future<void> _loadFeaturedImage() async { //fetches html and loads image
+  Future<void> _loadFeaturedImage() async { //fetches html and loads featured image
     url = widget.article.link;
     if (url == null) return;
     try {
@@ -136,6 +137,8 @@ class _ArticlePageState extends State<ArticlePage> {
       setState(() => loadingImage = false);
     }
   }
+  
+  
     //article list builder
    @override
    Widget build(BuildContext context){
@@ -186,10 +189,17 @@ class _ArticlePageState extends State<ArticlePage> {
                       if (src.isEmpty) return const SizedBox.shrink();
                       return Padding( //padding details for imgs
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Image.network(
-                          src,
-                          width: screenWidth,
-                          fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                        child:
+                        GestureDetector(
+                          onTap: () => _showLargeImage(this.context, featuredImage!),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              src,
+                              width: screenWidth,
+                              fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                            ),
+                          ),
                         ),
                       );
                     },
