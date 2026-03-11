@@ -15,6 +15,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'rss.dart';
+import 'package:shared_preferences_android/shared_preferences_android.dart';
+
 
 void main() async{ 
   WidgetsFlutterBinding.ensureInitialized();
@@ -238,7 +240,7 @@ Widget build(BuildContext context) {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                child: const Text('Open Dialogaaaaaaaa'),
+                child: const Text('SOpen Dialogaaaaaaaa'),
                 onPressed: () {
                   showDialog(
                     context: context,
