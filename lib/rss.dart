@@ -43,19 +43,23 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
   Widget list() { 
     return ListView.builder( 
       itemCount: _feed?.items?.length ?? 0, 
-      itemBuilder: (context, index) { final item = _feed!.items![index]; 
+      itemBuilder: (context, index) { 
+        final item = _feed!.items![index]; 
       return ListTile( 
         title: Text(item.title ?? ''),  
         subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? '',), 
         onTap: () { 
-        Navigator.push( context, MaterialPageRoute( builder: (_) => ArticlePage(article: item), ), 
+            Navigator.push( context, MaterialPageRoute( builder: (_) => ArticlePage(article: item), ), 
           ); 
         },
         trailing: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Image.network(
-              item.getFeaturedImage() ?? '',
+              item.getFeaturedImage(),
+              loadingBuilder: (context, child, loadingProgress) => {
+                (loadingProgress == null) ? child : CircularProgressIndicator(),
+              },
             ),
           ],
         )
@@ -205,16 +209,41 @@ class _ArticlePageState extends State<ArticlePage> {
 extension ImageParsing on RssItem {
   Future<String> getFeaturedImage() async {
     final url = this.link;
+    String featuredImage = '';
     if (url == null) {
       return '';
     }
-    final response = await http.get(Uri.parse(url ?? ''));
-    final html = response.body;
-    final ogMatch = RegExp( //og syntax for fallback
-      r'<meta property="og:image" content="([^"]+)"',
-      caseSensitive: false,
-    ).firstMatch(html);
-    return ogMatch!.group(1); //error catch
+    try {
+      final response = await http.get(Uri.parse(url //featured image fetch RECONVERT WHEN SERVER UP
+      ));//url parse
+
+      if (response.statusCode != 200) return '';
+      final html = response.body;
+
+      final ogMatch = RegExp( //og syntax for fallback
+        r'<meta property="og:image" content="([^"]+)"',
+        caseSensitive: false,
+      ).firstMatch(html);
+
+      if (ogMatch != null) {
+        featuredImage = ogMatch.group(1) ?? '';
+      } else {
+        final photoMatch = RegExp( //wordpress specific featured image grabber
+          r'<div class="photowrap">[\s\S]*?<img[^>]+src="([^"]+)"',
+          caseSensitive: false,
+        ).firstMatch(html);
+        featuredImage = photoMatch?.group(1) ?? ''; //sets featured image to variable
+      }
+    } catch (e) {
+      debugPrint('Image scrape failed: $e'); //error catch
+    }
+    // final response = await http.get(Uri.parse(url));
+    // final html = response.body;
+    // final ogMatch = RegExp( //og syntax for fallback
+    //   r'<meta property="og:image" content="([^"]+)"',
+    //   caseSensitive: false,
+    // ).firstMatch(html);
+    return featuredImage; //error catch
   }
 }
 
