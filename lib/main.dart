@@ -4,7 +4,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
 import 'package:grant_mag_app/settings_model.dart';
 import 'package:grant_mag_app/settings.dart';
@@ -58,7 +57,6 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         home: HomePage(title: appTitle),
         routes: {
           '/homepage': (context) => const HomePage(title: appTitle),
-          '/examplearticlepage': (context) => ExampleArticlePage(),
         },
         title: appTitle,
         );  

@@ -49,12 +49,11 @@ class SettingsPageState extends State<SettingsPage> {
                 child: ListTile(
                   title: Text('Text Size'),
                   subtitle: Slider(
-                    year2023: year2023,
                     value: _textSize,
-                    max: 200,
-                    min: 50,
-                    divisions: 15,
-                    label: _textSize.round().toString(),
+                    max: 190,
+                    min: 130,
+                    divisions: 5,
+                    label: (((((_textSize.floor() % 100) / 10).floor()) - 1.25).floor()).toString(),
                     onChanged: (double newValue) {
                       final textSizeChooser = context.read<SettingsModel>();
                       textSizeChooser.changeTextSize(newValue);
