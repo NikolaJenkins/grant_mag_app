@@ -9,93 +9,70 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 
 class GrantMagFeed extends StatefulWidget {
-  const GrantMagFeed({super.key});
+  final RssFeed feed;
+
+  const GrantMagFeed({required this.feed, super.key});
   
-  @override State<GrantMagFeed> createState() => GrantMagFeedState(); 
+  @override 
+  State<GrantMagFeed> createState() => GrantMagFeedState(); 
 }
 
-class GrantMagFeedState extends State<GrantMagFeed> { //article list state class
-  static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
-  RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
-  
-  
-  @override void initState() {
-    super.initState(); _refreshKey = GlobalKey<RefreshIndicatorState>(); 
-    load(); 
-  } 
-  
-  Future<void> load() async { //load feed func
-    final result = await loadFeed(); 
-    if (!mounted) return; 
-    setState(() => _feed = result); 
-  } 
-  
-  Future<RssFeed> loadFeed() async {  
-    try { 
-      final response = await http.get(Uri.parse(FEED_URL));
-      print(response.body);
-      return RssFeed.parse(response.body);  //returns feed response from parse
-    } 
-    catch (_) { return RssFeed(items: []); } 
+class GrantMagFeedState extends State<GrantMagFeed> {
+  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+
+  Future<void> addBookmark(String? link, String? title) async {
+    if (link == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
+    if (!bookmarks.contains(link)) {
+      bookmarks.add(link);
+      await prefs.setStringList('bookmarks', bookmarks);
+      await prefs.setString('bookmark_title_$link', title ?? link);
+    }
   }
 
-  bool isFeedEmpty() => _feed == null || _feed!.items == null; 
-
-Future<void> addBookmark(String? link, String? title) async {
-  if (link == null) return;
-  final prefs = await SharedPreferences.getInstance();
-  List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
-  if (!bookmarks.contains(link)) {
-    bookmarks.add(link);
-    await prefs.setStringList('bookmarks', bookmarks);
-    await prefs.setString('bookmark_title_$link', title ?? link);
-  }
-}
-
- Future<void> removeBookmark(String link) async { //remove bookmark
-  final prefs = await SharedPreferences.getInstance();
-
-  List<String> bookmarks = prefs.getStringList('bookmarks') ?? []; //list for bookmarks
-  bookmarks.remove(link);
-  await prefs.setStringList('bookmarks', bookmarks);
-}
-
-  Widget list() { //article list builder
+  Widget list() {
     const excludedCategories = {'PDF Issues', 'Flipbooks'};
 
-    final filteredItems = _feed?.items?.where((item) {
-      final categories = item.categories?.map((c) => c.value).toSet() ?? {};
-      return categories.intersection(excludedCategories).isEmpty; //keeps each item if no overlap w/ excluded
-    }).toList() ?? [];
+    final filteredItems = widget.feed.items
+        ?.where((item) {
+          final categories = item.categories?.map((c) => c.value).toSet() ?? {};
+          return categories.intersection(excludedCategories).isEmpty;
+        })
+        .toList() ?? [];
 
     return ListView.builder(
-    itemCount: filteredItems.length,
-    itemBuilder: (context, index) {
-      final item = filteredItems[index]; //new list
-      return ListTile(
-        title: Text(item.title ?? ''),
-        subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''), //creates list categories tiles
-        trailing: IconButton(
-          icon: Icon(Icons.bookmark_add),
-          onPressed: () => addBookmark(item.link, item.title), // add item.title as a bookmark using map
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ArticlePage(article: item)), //navigator route push
-          );
-        },
-      );
-    },
-  );
-} 
+      itemCount: filteredItems.length,
+      itemBuilder: (context, index) {
+        final item = filteredItems[index];
+        return ListTile(
+          title: Text(item.title ?? ''),
+          subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+          trailing: IconButton(
+            icon: const Icon(Icons.bookmark_add),
+            onPressed: () => addBookmark(item.link, item.title),
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ArticlePage(article: item),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-@override Widget build(BuildContext context) { 
-  if (isFeedEmpty()) { 
-    return const Center(child: CircularProgressIndicator()); 
-    } 
-  return RefreshIndicator( key: _refreshKey, onRefresh: load, child: list(), ); 
-  } 
+  @override 
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      key: _refreshKey,
+      onRefresh: () async {}, // no-op for now
+      child: list(),
+    );
+  }
 }
 
 class ArticlePage extends StatefulWidget { //declares article page widget
@@ -255,22 +232,13 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 }
 
-class GrantMagRSSPage extends StatelessWidget {
-  const GrantMagRSSPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Grant Magazine')),
-      body: const GrantMagFeed(),
-    );
-  }
-}
-
 class GrantMagBookmarks extends StatefulWidget {
   final RssFeed feed;
+
   const GrantMagBookmarks({required this.feed, super.key});
-  @override State<GrantMagBookmarks> createState() => GrantMagBookmarksState();
+
+  @override 
+  State<GrantMagBookmarks> createState() => GrantMagBookmarksState();
 }
 
 class GrantMagBookmarksState extends State<GrantMagBookmarks> {
@@ -305,9 +273,12 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
                 final item = bookmarkedItems[index];
                 return ListTile(
                   title: Text(item.title ?? ''),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => ArticlePage(article: item),
-                  )),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ArticlePage(article: item),
+                    ),
+                  ),
                 );
               },
             ),

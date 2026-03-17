@@ -78,6 +78,8 @@ class HomePage extends StatefulWidget { //home page constructor
 
   @override
   State<HomePage> createState() => _HomePageState();
+
+  
 }
 
 class _HomePageState extends State<HomePage> {
@@ -85,6 +87,8 @@ class _HomePageState extends State<HomePage> {
   // to distinguish between students/parents
   int whoAreYou = 0;
   List<String> notificationSelections = [];
+
+  RssFeed? _feed;
   
   final FlutterLocalNotificationsPlugin notificationsPlugin = 
   FlutterLocalNotificationsPlugin();
@@ -95,6 +99,7 @@ class _HomePageState extends State<HomePage> {
     NotiService service = NotiService();
     service.initNotification();
     super.initState();
+    loadFeed();
   }
   void makeStudent() {
     whoAreYou = 1;
@@ -102,6 +107,23 @@ class _HomePageState extends State<HomePage> {
   
   void makeParent() {
     whoAreYou = 2;
+  }
+
+  static const String FEED_URL = 'https://grantmagazine.com/feed/';
+
+  Future<RssFeed> load() async {
+    try { 
+      final response = await http.get(Uri.parse(FEED_URL));
+      return RssFeed.parse(response.body);
+    } catch (_) { 
+      return RssFeed(items: []); 
+    } 
+  }
+
+  Future<void> loadFeed() async {
+    final result = await load();
+    if (!mounted) return;
+    setState(() => _feed = result);
   }
 
   Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
@@ -185,13 +207,20 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case 1:
-        return const GrantMagFeed(); 
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return GrantMagFeed(feed: _feed!);
+
       case 4:
-        return const GrantMagBookmarks();
-      default:
-        return Center(child: Text('Content coming soon'));
-    }
-  }
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return GrantMagBookmarks(feed: _feed!);
+            default:
+              return Center(child: Text('Content coming soon'));
+          }
+        }
 
   @override
 Widget build(BuildContext context) {
