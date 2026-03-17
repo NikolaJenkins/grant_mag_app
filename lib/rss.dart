@@ -6,14 +6,19 @@ import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class GrantMagFeed extends StatefulWidget {
-  const GrantMagFeed({super.key});
+  final RssFeed feed;
+
+  const GrantMagFeed({required this.feed, super.key});
   
-  @override State<GrantMagFeed> createState() => _GrantMagFeedState(); 
+  @override 
+  State<GrantMagFeed> createState() => GrantMagFeedState(); 
 }
 
+<<<<<<< HEAD
 class _GrantMagFeedState extends State<GrantMagFeed> {
   static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
   RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
@@ -68,13 +73,64 @@ class _GrantMagFeedState extends State<GrantMagFeed> {
     }, 
   );
   }
+=======
+class GrantMagFeedState extends State<GrantMagFeed> {
+  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
 
-@override Widget build(BuildContext context) { 
-  if (isFeedEmpty()) { 
-    return const Center(child: CircularProgressIndicator()); 
-    } 
-  return RefreshIndicator( key: _refreshKey, onRefresh: load, child: list(), ); 
-  } 
+  Future<void> addBookmark(String? link, String? title) async {
+    if (link == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
+    if (!bookmarks.contains(link)) {
+      bookmarks.add(link);
+      await prefs.setStringList('bookmarks', bookmarks);
+      await prefs.setString('bookmark_title_$link', title ?? link);
+    }
+  }
+
+  Widget list() {
+    const excludedCategories = {'PDF Issues', 'Flipbooks'};
+>>>>>>> origin/main
+
+    final filteredItems = widget.feed.items
+        ?.where((item) {
+          final categories = item.categories?.map((c) => c.value).toSet() ?? {};
+          return categories.intersection(excludedCategories).isEmpty;
+        })
+        .toList() ?? [];
+
+    return ListView.builder(
+      itemCount: filteredItems.length,
+      itemBuilder: (context, index) {
+        final item = filteredItems[index];
+        return ListTile(
+          title: Text(item.title ?? ''),
+          subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+          trailing: IconButton(
+            icon: const Icon(Icons.bookmark_add),
+            onPressed: () => addBookmark(item.link, item.title),
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ArticlePage(article: item),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override 
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      key: _refreshKey,
+      onRefresh: () async {}, // no-op for now
+      child: list(),
+    );
+  }
 }
 
 class ArticlePage extends StatefulWidget { //declares article page widget
@@ -88,6 +144,7 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 class _ArticlePageState extends State<ArticlePage> {
   static String? featuredImage;
   bool loadingImage = true;
+  String? url;
 
   @override
   void initState() {
@@ -95,14 +152,33 @@ class _ArticlePageState extends State<ArticlePage> {
     _loadFeaturedImage(); // async fetch starts here
   }
 
+  void _showLargeImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.all(2),
+          title: Container(
+            decoration: BoxDecoration(),
+            width: MediaQuery.of(context).size.width,
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.fitWidth
+              ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _loadFeaturedImage() async { //fetches html and loads image
-    final url = widget.article.link; 
-    debugPrint("widget URL:");
-    debugPrint(url);
+    url = widget.article.link;
     if (url == null) return;
     try {
-      final encodedUrl = Uri.encodeComponent(url);
-      final response = await http.get(Uri.parse(url //featured image fetch RECONVERT WHEN SERVER UP
+      final encodedUrl = Uri.encodeComponent(url!);
+      final response = await http.get(Uri.parse(
+        url!
       ));//url parse
 
       if (response.statusCode != 200) return;
@@ -130,7 +206,7 @@ class _ArticlePageState extends State<ArticlePage> {
       setState(() => loadingImage = false);
     }
   }
-    //article list builder
+    //article builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
@@ -145,7 +221,7 @@ class _ArticlePageState extends State<ArticlePage> {
           widget.article.title ?? 'Article',
           maxLines: 3,                      
           minFontSize: 18,                  
-          overflow: TextOverflow.ellipsis,  
+          overflow: TextOverflow.ellipsis,   //title bounds and wrapping
         ),
       ),
 
@@ -153,12 +229,20 @@ class _ArticlePageState extends State<ArticlePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (loadingImage) const LinearProgressIndicator(),
+            if (loadingImage) const LinearProgressIndicator(), //loading bar 
             if (!loadingImage && featuredImage != null)
-              Image.network(
-                featuredImage!,
-                width: screenWidth,
-                fit: BoxFit.cover,
+              GestureDetector( //makes featured images clickable using a GestureDetector
+                onTap: () => _showLargeImage(context, featuredImage!),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    featuredImage!,
+                    width: screenWidth,
+                    fit: BoxFit.fitWidth,
+                    loadingBuilder: (context, child, loadingProgress) =>
+                      (loadingProgress == null) ? child : CircularProgressIndicator(),
+                  ),
+                ),
               ),
             SizedBox(
               width: MediaQuery.of(context).size.width,
@@ -206,6 +290,7 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 }
 
+<<<<<<< HEAD
 extension ImageParsing on RssItem {
   Future<String> getFeaturedImage() async {
     final url = this.link;
@@ -249,12 +334,58 @@ extension ImageParsing on RssItem {
 
 class GrantMagRSSPage extends StatelessWidget {
   const GrantMagRSSPage({super.key});
+=======
+class GrantMagBookmarks extends StatefulWidget {
+  final RssFeed feed;
+
+  const GrantMagBookmarks({required this.feed, super.key});
+
+  @override 
+  State<GrantMagBookmarks> createState() => GrantMagBookmarksState();
+}
+
+class GrantMagBookmarksState extends State<GrantMagBookmarks> {
+  List<String> bookmarks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadBookmarks();
+  }
+
+  Future<void> loadBookmarks() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      bookmarks = prefs.getStringList('bookmarks') ?? [];
+    });
+  }
+>>>>>>> origin/main
 
   @override
   Widget build(BuildContext context) {
+    final bookmarkedItems = widget.feed.items
+        ?.where((item) => bookmarks.contains(item.link))
+        .toList() ?? [];
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Grant Magazine')),
-      body: const GrantMagFeed(),
+      appBar: AppBar(title: const Text("Bookmarked Articles")),
+      body: bookmarkedItems.isEmpty
+          ? const Center(child: Text("No bookmarks yet"))
+          : ListView.builder(
+              itemCount: bookmarkedItems.length,
+              itemBuilder: (context, index) {
+                final item = bookmarkedItems[index];
+                return ListTile(
+                  title: Text(item.title ?? ''),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ArticlePage(article: item),
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }
