@@ -18,64 +18,15 @@ class GrantMagFeed extends StatefulWidget {
   State<GrantMagFeed> createState() => GrantMagFeedState(); 
 }
 
-<<<<<<< HEAD
-class _GrantMagFeedState extends State<GrantMagFeed> {
-  static const String FEED_URL = 'https://grantmagazine.com/feed/'; 
-  RssFeed? _feed; GlobalKey<RefreshIndicatorState>? _refreshKey; 
-  String? featuredImage;
-  
-  @override void initState() {
-    super.initState(); _refreshKey = GlobalKey<RefreshIndicatorState>(); 
-    load(); 
-  } 
-  
-  Future<void> load() async {
-    final result = await loadFeed(); 
-    if (!mounted) return; 
-    setState(() => _feed = result); 
-  } 
-  
-  Future<RssFeed> loadFeed() async { 
-    try { 
-      final response = await http.get(Uri.parse(FEED_URL));
-      print(response.body);
-      return RssFeed.parse(response.body); 
-    } 
-    catch (_) { return RssFeed(items: []); } 
-  }
-
-  bool isFeedEmpty() => _feed == null || _feed!.items == null; 
-  Widget list() { 
-    return ListView.builder( 
-      itemCount: _feed?.items?.length ?? 0, 
-      itemBuilder: (context, index) { 
-        final item = _feed!.items![index]; 
-      return ListTile( 
-        title: Text(item.title ?? ''),  
-        subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? '',), 
-        onTap: () { 
-            Navigator.push( context, MaterialPageRoute( builder: (_) => ArticlePage(article: item), ), 
-          ); 
-        },
-        trailing: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Image.network(
-              item.getFeaturedImage(),
-              loadingBuilder: (context, child, loadingProgress) => {
-                (loadingProgress == null) ? child : CircularProgressIndicator(),
-              },
-            ),
-          ],
-        )
-        // trailing: Text(item.author ?? ''),
-      ); 
-    }, 
-  );
-  }
-=======
 class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+  String featuredImage = '';
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _ArticlePageState()._loadFeaturedImage();
+  // }
 
   Future<void> addBookmark(String? link, String? title) async {
     if (link == null) return;
@@ -90,7 +41,6 @@ class GrantMagFeedState extends State<GrantMagFeed> {
 
   Widget list() {
     const excludedCategories = {'PDF Issues', 'Flipbooks'};
->>>>>>> origin/main
 
     final filteredItems = widget.feed.items
         ?.where((item) {
@@ -105,7 +55,15 @@ class GrantMagFeedState extends State<GrantMagFeed> {
         final item = filteredItems[index];
         return ListTile(
           title: Text(item.title ?? ''),
-          subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+              Image.network(
+                featuredImage,
+                fit: BoxFit.contain
+              )
+            ]),
           trailing: IconButton(
             icon: const Icon(Icons.bookmark_add),
             onPressed: () => addBookmark(item.link, item.title),
@@ -131,6 +89,40 @@ class GrantMagFeedState extends State<GrantMagFeed> {
       child: list(),
     );
   }
+
+  Future<void> _loadFeaturedImage(RssItem item) async { //fetches html and loads image
+    final url = item.link;
+    if (url == null) return;
+    try {
+      final response = await http.get(Uri.parse(
+        url!
+      ));//url parse
+
+      if (response.statusCode != 200) return;
+      final html = response.body;
+
+      final ogMatch = RegExp( //og syntax for fallback
+        r'<meta property="og:image" content="([^"]+)"',
+        caseSensitive: false,
+      ).firstMatch(html);
+
+      if (ogMatch != null) {
+        featuredImage = ogMatch.group(1) ?? '';
+      } else {
+        final photoMatch = RegExp( //wordpress specific featured image grabber
+          r'<div class="photowrap">[\s\S]*?<img[^>]+src="([^"]+)"',
+          caseSensitive: false,
+        ).firstMatch(html);
+        featuredImage = photoMatch?.group(1) ?? ''; //sets featured image to variable
+      }
+    } catch (e) {
+      debugPrint('Image scrape failed: $e'); //error catch
+    }
+
+    // if (mounted) { //fallback for disposed widget
+    //   setState(() => loadingImage = false);
+    // }
+  }
 }
 
 class ArticlePage extends StatefulWidget { //declares article page widget
@@ -142,7 +134,7 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 }
 
 class _ArticlePageState extends State<ArticlePage> {
-  static String? featuredImage;
+  String? featuredImage;
   bool loadingImage = true;
   String? url;
 
@@ -176,7 +168,6 @@ class _ArticlePageState extends State<ArticlePage> {
     url = widget.article.link;
     if (url == null) return;
     try {
-      final encodedUrl = Uri.encodeComponent(url!);
       final response = await http.get(Uri.parse(
         url!
       ));//url parse
@@ -290,10 +281,9 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 }
 
-<<<<<<< HEAD
 extension ImageParsing on RssItem {
   Future<String> getFeaturedImage() async {
-    final url = this.link;
+    final url = link;
     String featuredImage = '';
     if (url == null) {
       return '';
@@ -332,9 +322,6 @@ extension ImageParsing on RssItem {
   }
 }
 
-class GrantMagRSSPage extends StatelessWidget {
-  const GrantMagRSSPage({super.key});
-=======
 class GrantMagBookmarks extends StatefulWidget {
   final RssFeed feed;
 
@@ -359,7 +346,6 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
       bookmarks = prefs.getStringList('bookmarks') ?? [];
     });
   }
->>>>>>> origin/main
 
   @override
   Widget build(BuildContext context) {
