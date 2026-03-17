@@ -19,7 +19,7 @@ import 'package:webfeed_plus/webfeed_plus.dart';
 import 'rss.dart';
 
 
-void main() async{ 
+void main() async{ //initialize
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
