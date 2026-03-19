@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:http/http.dart' as http;
+import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -19,6 +20,13 @@ class GrantMagFeed extends StatefulWidget {
 
 class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
+  final Map<String, Future<String>> imageCache = {};
+  String featuredImage = '';
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<void> addBookmark(String? link, String? title) async {
     if (link == null) return;
@@ -47,7 +55,27 @@ class GrantMagFeedState extends State<GrantMagFeed> {
         final item = filteredItems[index];
         return ListTile(
           title: Text(item.title ?? ''),
-          subtitle: Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+              FutureBuilder<String>(
+                future: imageCache.putIfAbsent(
+                item.link ?? '',
+                () => item.getFeaturedImage(),
+              ),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return Image.network(
+                    snapshot.data!,
+                    fit: BoxFit.contain,
+                  );
+                },
+              )
+            ]),
           trailing: IconButton(
             icon: const Icon(Icons.bookmark_add),
             onPressed: () => addBookmark(item.link, item.title),
@@ -69,9 +97,44 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       key: _refreshKey,
-      onRefresh: () async {}, // no-op for now
+      onRefresh: () async {
+        imageCache.clear();
+        setState(() {});
+      }, // no-op for now
       child: list(),
     );
+  }
+
+  Future<void> _loadFeaturedImage(RssItem item) async { //fetches html and loads image
+    final url = item.link;
+    if (url == null) return;
+    try {
+      final response = await http.get(Uri.parse(url));//url parse
+
+      if (response.statusCode != 200) return;
+      final html = response.body;
+
+      final ogMatch = RegExp( //og syntax for fallback
+        r'<meta property="og:image" content="([^"]+)"',
+        caseSensitive: false,
+      ).firstMatch(html);
+
+      if (ogMatch != null) {
+        featuredImage = ogMatch.group(1) ?? '';
+      } else {
+        final photoMatch = RegExp( //wordpress specific featured image grabber
+          r'<div class="photowrap">[\s\S]*?<img[^>]+src="([^"]+)"',
+          caseSensitive: false,
+        ).firstMatch(html);
+        featuredImage = photoMatch?.group(1) ?? ''; //sets featured image to variable
+      }
+    } catch (e) {
+      debugPrint('Image scrape failed: $e'); //error catch
+    }
+
+    // if (mounted) { //fallback for disposed widget
+    //   setState(() => loadingImage = false);
+    // }
   }
 }
 
@@ -227,6 +290,47 @@ class _ArticlePageState extends State<ArticlePage> {
         ),
       ),
     );
+  }
+}
+
+extension ImageParsing on RssItem {
+  Future<String> getFeaturedImage() async {
+    final url = link;
+    String featuredImage = '';
+    if (url == null) {
+      return '';
+    }
+    try {
+      final response = await http.get(Uri.parse(url //featured image fetch RECONVERT WHEN SERVER UP
+      ));//url parse
+
+      if (response.statusCode != 200) return '';
+      final html = response.body;
+
+      final ogMatch = RegExp( //og syntax for fallback
+        r'<meta property="og:image" content="([^"]+)"',
+        caseSensitive: false,
+      ).firstMatch(html);
+
+      if (ogMatch != null) {
+        featuredImage = ogMatch.group(1) ?? '';
+      } else {
+        final photoMatch = RegExp( //wordpress specific featured image grabber
+          r'<div class="photowrap">[\s\S]*?<img[^>]+src="([^"]+)"',
+          caseSensitive: false,
+        ).firstMatch(html);
+        featuredImage = photoMatch?.group(1) ?? ''; //sets featured image to variable
+      }
+    } catch (e) {
+      debugPrint('Image scrape failed: $e'); //error catch
+    }
+    // final response = await http.get(Uri.parse(url));
+    // final html = response.body;
+    // final ogMatch = RegExp( //og syntax for fallback
+    //   r'<meta property="og:image" content="([^"]+)"',
+    //   caseSensitive: false,
+    // ).firstMatch(html);
+    return featuredImage; //error catch
   }
 }
 
