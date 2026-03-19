@@ -20,13 +20,12 @@ class GrantMagFeed extends StatefulWidget {
 
 class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
-  String featuredImage = '';
+  String featuredImage = 'https://picsum.photos/200/300';
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _ArticlePageState()._loadFeaturedImage();
-  // }
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<void> addBookmark(String? link, String? title) async {
     if (link == null) return;
@@ -49,10 +48,13 @@ class GrantMagFeedState extends State<GrantMagFeed> {
         })
         .toList() ?? [];
 
+    int itemIndex = 1;
+    _loadFeaturedImage(filteredItems[itemIndex]);
+
     return ListView.builder(
       itemCount: filteredItems.length,
       itemBuilder: (context, index) {
-        final item = filteredItems[index];
+        final item = filteredItems[itemIndex];
         return ListTile(
           title: Text(item.title ?? ''),
           subtitle: Column(
@@ -94,9 +96,7 @@ class GrantMagFeedState extends State<GrantMagFeed> {
     final url = item.link;
     if (url == null) return;
     try {
-      final response = await http.get(Uri.parse(
-        url!
-      ));//url parse
+      final response = await http.get(Uri.parse(url));//url parse
 
       if (response.statusCode != 200) return;
       final html = response.body;
