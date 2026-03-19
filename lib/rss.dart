@@ -2,6 +2,7 @@
 
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/domain/media/group.dart';
+import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -20,7 +21,7 @@ class GrantMagFeed extends StatefulWidget {
 
 class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
-  String featuredImage = 'https://picsum.photos/200/300';
+  final Map<String, Future<String>> imageCache = {};
 
   @override
   void initState() {
@@ -48,22 +49,31 @@ class GrantMagFeedState extends State<GrantMagFeed> {
         })
         .toList() ?? [];
 
-    int itemIndex = 1;
-    _loadFeaturedImage(filteredItems[itemIndex]);
-
     return ListView.builder(
       itemCount: filteredItems.length,
       itemBuilder: (context, index) {
-        final item = filteredItems[itemIndex];
+        final item = filteredItems[index];
         return ListTile(
           title: Text(item.title ?? ''),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
-              Image.network(
-                featuredImage,
-                fit: BoxFit.contain
+              Text(item.author ?? ''),
+              FutureBuilder<String>(
+                future: imageCache.putIfAbsent(
+                  item.link ?? '',
+                  () => item.getFeaturedImage(),
+                ),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Image.network(
+                    snapshot.data!,
+                    fit: BoxFit.contain,
+                  );
+                },
               )
             ]),
           trailing: IconButton(
@@ -87,41 +97,12 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       key: _refreshKey,
-      onRefresh: () async {}, // no-op for now
+      onRefresh: () async {
+        imageCache.clear();
+        setState(() {});
+      }, // no-op for now
       child: list(),
     );
-  }
-
-  Future<void> _loadFeaturedImage(RssItem item) async { //fetches html and loads image
-    final url = item.link;
-    if (url == null) return;
-    try {
-      final response = await http.get(Uri.parse(url));//url parse
-
-      if (response.statusCode != 200) return;
-      final html = response.body;
-
-      final ogMatch = RegExp( //og syntax for fallback
-        r'<meta property="og:image" content="([^"]+)"',
-        caseSensitive: false,
-      ).firstMatch(html);
-
-      if (ogMatch != null) {
-        featuredImage = ogMatch.group(1) ?? '';
-      } else {
-        final photoMatch = RegExp( //wordpress specific featured image grabber
-          r'<div class="photowrap">[\s\S]*?<img[^>]+src="([^"]+)"',
-          caseSensitive: false,
-        ).firstMatch(html);
-        featuredImage = photoMatch?.group(1) ?? ''; //sets featured image to variable
-      }
-    } catch (e) {
-      debugPrint('Image scrape failed: $e'); //error catch
-    }
-
-    // if (mounted) { //fallback for disposed widget
-    //   setState(() => loadingImage = false);
-    // }
   }
 }
 
@@ -168,9 +149,8 @@ class _ArticlePageState extends State<ArticlePage> {
     url = widget.article.link;
     if (url == null) return;
     try {
-      final response = await http.get(Uri.parse(
-        url!
-      ));//url parse
+      final encodedUrl = Uri.encodeComponent(url!);
+      final response = await http.get(Uri.parse(url!));//url parse
 
       if (response.statusCode != 200) return;
       final html = response.body;

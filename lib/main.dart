@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -20,7 +19,7 @@ import 'package:webfeed_plus/webfeed_plus.dart';
 import 'rss.dart';
 
 
-void main() async{ 
+void main() async{ //initialize
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -53,7 +52,7 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 42, 100, 127), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
@@ -219,8 +218,12 @@ class _HomePageState extends State<HomePage> {
         return GrantMagBookmarks(feed: _feed!);
             default:
               return Center(child: Text('Content coming soon'));
-          }
-        }
+
+      // todo: add search list
+      // case 5:
+    }
+  }
+
 
   @override
 Widget build(BuildContext context) {
