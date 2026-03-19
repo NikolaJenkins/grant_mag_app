@@ -119,9 +119,7 @@ class _ArticlePageState extends State<ArticlePage> {
     if (url == null) return;
     try {
       final encodedUrl = Uri.encodeComponent(url!);
-      final response = await http.get(Uri.parse(
-        url!
-      ));//url parse
+      final response = await http.get(Uri.parse(url!));//url parse
 
       if (response.statusCode != 200) return;
       final html = response.body;
