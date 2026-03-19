@@ -9,7 +9,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
-class GrantMagFeed extends StatefulWidget {
+class GrantMagFeed extends StatefulWidget { //primary builder
   final RssFeed feed;
 
   const GrantMagFeed({required this.feed, super.key});
@@ -36,7 +36,7 @@ class GrantMagFeedState extends State<GrantMagFeed> {
       bookmarks.add(link);
       await prefs.setStringList('bookmarks', bookmarks);
       await prefs.setString('bookmark_title_$link', title ?? link);
-    }
+    } 
   }
 
   Widget list() {
