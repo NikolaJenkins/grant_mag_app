@@ -22,22 +22,51 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   final Map<String, Future<String>> imageCache = {};
   String featuredImage = '';
+  List<String> bookmarks = []; //disc version
 
   @override
   void initState() {
     super.initState();
+    loadBookmarks();
   }
 
-  Future<void> addBookmark(String? link, String? title) async {
-    if (link == null) return;
-    final prefs = await SharedPreferences.getInstance();
-    List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
-    if (!bookmarks.contains(link)) {
-      bookmarks.add(link);
-      await prefs.setStringList('bookmarks', bookmarks);
-      await prefs.setString('bookmark_title_$link', title ?? link);
-    } 
+    Future<void> loadBookmarks() async {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> storedBookmarks = prefs.getStringList('bookmarks') ?? []; //sharedPref mirror
+    setState(() {bookmarks = storedBookmarks;});
   }
+
+
+ Future<void> addBookmark(String? link, String? title) async {
+  if (link == null) return;
+
+  final prefs = await SharedPreferences.getInstance();
+  List<String> storedBookmarks = prefs.getStringList('bookmarks') ?? [];
+  List<String> bookmarkDates = prefs.getStringList('bookmark_dates') ?? [];
+
+  setState(() {
+    if (storedBookmarks.contains(link)) {
+      //remove bookmark
+      final index = storedBookmarks.indexOf(link);
+      storedBookmarks.removeAt(index);
+      if (index < bookmarkDates.length) {
+        bookmarkDates.removeAt(index);
+      }
+      this.bookmarks.remove(link); // update in-memory list
+      prefs.remove('bookmark_title_$link'); // remove saved title
+    } else {
+      //add bookmark
+      storedBookmarks.add(link);
+      bookmarkDates.add(DateTime.now().millisecondsSinceEpoch.toString());
+      this.bookmarks.add(link); // update in-memory list
+      prefs.setString('bookmark_title_$link', title ?? link);
+    }
+  });
+
+  //save changes to SharedPreferences
+  await prefs.setStringList('bookmarks', storedBookmarks);
+  await prefs.setStringList('bookmark_dates', bookmarkDates);
+}
 
   Widget list() {
     const excludedCategories = {'PDF Issues', 'Flipbooks'};
@@ -53,6 +82,7 @@ class GrantMagFeedState extends State<GrantMagFeed> {
       itemCount: filteredItems.length,
       itemBuilder: (context, index) {
         final item = filteredItems[index];
+        
         return ListTile(
           title: Text(item.title ?? ''),
           subtitle: Column(
@@ -77,7 +107,10 @@ class GrantMagFeedState extends State<GrantMagFeed> {
               )
             ]),
           trailing: IconButton(
-            icon: const Icon(Icons.bookmark_add),
+            icon: Icon(
+              bookmarks.contains(item.link) ? Icons.bookmark : Icons.bookmark_add,
+              color: bookmarks.contains(item.link) ? Colors.blue : null,
+            ),
             onPressed: () => addBookmark(item.link, item.title),
           ),
           onTap: () {
@@ -345,6 +378,8 @@ class GrantMagBookmarks extends StatefulWidget {
 
 class GrantMagBookmarksState extends State<GrantMagBookmarks> {
   List<String> bookmarks = [];
+  Map<String, int> bookmarkDates = {};
+  String bookmarkSort = "Publish Date";
 
   @override
   void initState() {
@@ -353,20 +388,75 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
   }
 
   Future<void> loadBookmarks() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance(); //across multiple instances bookmark list 
+
+    final links = prefs.getStringList('bookmarks') ?? [];
+    final dates = prefs.getStringList('bookmark_dates') ?? [];
+
+    Map<String, int> tempMap = {};
+
+    for (int i = 0; i < links.length; i++) {
+      tempMap[links[i]] = int.tryParse(dates[i]) ?? 0;
+    }
+
     setState(() {
-      bookmarks = prefs.getStringList('bookmarks') ?? [];
+      bookmarks = links;
+      bookmarkDates = tempMap;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final bookmarkedItems = widget.feed.items
-        ?.where((item) => bookmarks.contains(item.link))
+    var bookmarkedItems = widget.feed.items
+        ?.where((item) => bookmarks.contains(item.link)) //sends sorted items to list
         .toList() ?? [];
+      
+    if (bookmarkSort == 'Publish Date') {
+      bookmarkedItems.sort((a, b) => 
+          (b.pubDate ?? DateTime(0)).compareTo(a.pubDate ?? DateTime(0)));
+
+    } 
+    
+    else if (bookmarkSort == 'Bookmark Date') {
+      bookmarkedItems.sort((a, b) {
+        final aDate = bookmarkDates[a.link] ?? 0;
+        final bDate = bookmarkDates[b.link] ?? 0;
+        return bDate.compareTo(aDate); // newest first
+      });
+
+    } 
+    
+    else if (bookmarkSort == 'Article Name') {
+      bookmarkedItems.sort((a, b) =>
+          (a.title ?? '').compareTo(b.title ?? ''));
+    }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Bookmarked Articles")),
+      appBar: AppBar(
+        centerTitle: false,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, 
+          children: [
+            const Text("Bookmarked Articles"),
+            Text(bookmarkSort, style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+        actions: [
+          PopupMenuButton<String>( //sorting button dropdown
+            onSelected: (value) {
+              setState(() {
+                bookmarkSort = value;
+              });
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'Publish Date', child: Text('Publish Date')),
+              const PopupMenuItem(value: 'Bookmark Date', child: Text('Bookmark Date')),
+              const PopupMenuItem(value: 'Article Name', child: Text('Article Name')),
+            ],
+          ),
+        ]
+      ),
+      
       body: bookmarkedItems.isEmpty
           ? const Center(child: Text("No bookmarks yet"))
           : ListView.builder(
@@ -375,6 +465,14 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
                 final item = bookmarkedItems[index];
                 return ListTile(
                   title: Text(item.title ?? ''),
+                  subtitle: Text(
+                    () {
+                      final time = bookmarkDates[item.link ?? ''];
+                      if (time == null || time == 0) return '';
+                      final date = DateTime.fromMillisecondsSinceEpoch(time);
+                      return "Saved ${date.month}/${date.day}/${date.year}";
+                    }(),
+                  ),
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
