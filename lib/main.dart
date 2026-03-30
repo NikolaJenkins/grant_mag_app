@@ -211,13 +211,23 @@ class _HomePageState extends State<HomePage> {
         }
         return GrantMagFeed(feed: _feed!);
 
+      case 2:
+        return Center(child: Text('Content coming soon'));
+
+      case 3:
+        return Center(child: Text('Content coming soon'));
+        
       case 4:
         if (_feed == null) {
           return const Center(child: CircularProgressIndicator());
         }
         return GrantMagBookmarks(feed: _feed!);
-            default:
-              return Center(child: Text('Content coming soon'));
+
+      default:
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return GrantMagSearch(feed: _feed!,);
 
       // todo: add search list
       // case 5:

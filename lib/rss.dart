@@ -355,3 +355,64 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
     );
   }
 }
+
+class GrantMagSearch extends StatefulWidget {
+  final RssFeed feed;
+
+  const GrantMagSearch({required this.feed, super.key});
+
+  @override
+  State<GrantMagSearch> createState() => GrantMagSearchState();
+}
+
+class GrantMagSearchState extends State<GrantMagSearch> {
+
+String? _searchingWithQuery;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+          appBar: AppBar(title: const Text("Article Search")),
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SearchAnchor(
+              builder: (BuildContext context, SearchController controller) {
+                return SearchBar(
+                  controller: controller,
+                  padding: const WidgetStatePropertyAll<EdgeInsets>(
+                    EdgeInsets.symmetric(horizontal: 16.0),
+                  ),
+                  onTap: () {
+                    controller.openView();
+                  },
+                  onSubmitted: (_) {
+                    controller.openView();
+                  },
+                  leading: const Icon(Icons.search),
+                  hintText: 'Search',
+                );
+              },
+              suggestionsBuilder: (BuildContext context, SearchController controller) {
+                // _searchingWithQuery = controller.text;
+                // final options = widget.feed.items?.where(
+                //   (item) =>
+                // )
+                return List<ListTile>.generate(5, (int index) {
+                  final String item = 'item $index';
+                  return ListTile(
+                    title: Text(item),
+                    onTap: () {
+                      setState(() {
+                        controller.closeView(item);
+                      });
+                    },
+                  );
+                });
+              },
+            )
+          )
+        )
+    );
+  }
+}
