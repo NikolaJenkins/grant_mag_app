@@ -143,6 +143,7 @@ class _ArticlePageState extends State<ArticlePage> {
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
+    bool _isInteracting = false;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
       debugPrint('HTML: ');
       debugPrint(html);
@@ -159,6 +160,10 @@ class _ArticlePageState extends State<ArticlePage> {
       ),
 
        body: SingleChildScrollView(
+        physics: _isInteracting
+        ? const NeverScrollableScrollPhysics()
+        : const AlwaysScrollableScrollPhysics()
+        ,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -191,15 +196,30 @@ class _ArticlePageState extends State<ArticlePage> {
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child:
                         GestureDetector(
-                          onTap: () => _showLargeImage(this.context, featuredImage!),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              src,
-                              width: screenWidth,
-                              fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                          onScaleStart: (_) {},
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () => _showLargeImage(this.context, src),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                scaleEnabled: true,
+                                //clipBehavior: Clip.none,
+                                minScale: 1,
+                                maxScale: 4.0,
+                                onInteractionStart: (_) {
+                                  setState(() => _isInteracting = true);
+                                },
+                                onInteractionEnd: (_) {
+                                  setState(() => _isInteracting = false);
+                                },
+                                child: Image.network(
+                                  src,
+                                  width: screenWidth,
+                                  fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                              ),
                             ),
-                          ),
+                          )
                         ),
                       );
                     },

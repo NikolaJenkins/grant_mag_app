@@ -52,8 +52,8 @@ class SettingsPageState extends State<SettingsPage> {
                     value: _textSize,
                     max: 190,
                     min: 130,
-                    divisions: 5,
-                    label: (((((_textSize.floor() % 100) / 10).floor()) - 1.25).floor()).toString(),
+                    divisions: 6,
+                    label: ((_textSize.toInt() - 120) ~/ 10).toString(), //Makes text slider 
                     onChanged: (double newValue) {
                       final textSizeChooser = context.read<SettingsModel>();
                       textSizeChooser.changeTextSize(newValue);
