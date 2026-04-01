@@ -3,7 +3,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:grant_mag_app/articles.dart';
 import 'package:grant_mag_app/profile_model.dart';
 import 'package:grant_mag_app/settings_model.dart';
 import 'package:grant_mag_app/settings.dart';
@@ -61,7 +60,6 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         home: HomePage(title: appTitle),
         routes: {
           '/homepage': (context) => const HomePage(title: appTitle),
-          '/examplearticlepage': (context) => ExampleArticlePage(),
         },
         title: appTitle,
         );  
@@ -94,12 +92,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    
     NotiService service = NotiService();
     service.initNotification();
     super.initState();
     loadFeed();
   }
+
+
   void makeStudent() {
     whoAreYou = 1;
   }
@@ -154,6 +153,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  final bool isAuthenticated = false;
   final List<int> colorCodes = <int>[600, 500, 100, 50];
   final List<Item> items = [
       Item(title: 'Breaking News', isChecked: false),
@@ -221,7 +221,7 @@ class _HomePageState extends State<HomePage> {
           }
         }
 
-  @override
+@override
 Widget build(BuildContext context) {
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(
@@ -270,7 +270,7 @@ Widget build(BuildContext context) {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                child: const Text('SOpen Dialogaaaaaaaa'),
+                child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
                 onPressed: () {
                   showDialog(
                     context: context,

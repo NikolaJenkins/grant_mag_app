@@ -183,6 +183,7 @@ class _ArticlePageState extends State<ArticlePage> {
   String? featuredImage;
   bool loadingImage = true;
   String? url;
+  String? imageUrl;
 
   @override
   void initState() {
@@ -210,7 +211,7 @@ class _ArticlePageState extends State<ArticlePage> {
     );
   }
 
-  Future<void> _loadFeaturedImage() async { //fetches html and loads image
+  Future<void> _loadFeaturedImage() async { //fetches html and loads featured image
     url = widget.article.link;
     if (url == null) return;
     try {
@@ -242,10 +243,13 @@ class _ArticlePageState extends State<ArticlePage> {
       setState(() => loadingImage = false);
     }
   }
-    //article builder
+  
+  
+    //article list builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
+    bool _isInteracting = false;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
       debugPrint('HTML: ');
       debugPrint(html);
@@ -262,6 +266,10 @@ class _ArticlePageState extends State<ArticlePage> {
       ),
 
        body: SingleChildScrollView(
+        physics: _isInteracting
+        ? const NeverScrollableScrollPhysics()
+        : const AlwaysScrollableScrollPhysics()
+        ,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -292,10 +300,32 @@ class _ArticlePageState extends State<ArticlePage> {
                       if (src.isEmpty) return const SizedBox.shrink();
                       return Padding( //padding details for imgs
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Image.network(
-                          src,
-                          width: screenWidth,
-                          fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                        child:
+                        GestureDetector(
+                          onScaleStart: (_) {},
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () => _showLargeImage(this.context, src),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                scaleEnabled: true,
+                                //clipBehavior: Clip.none,
+                                minScale: 1,
+                                maxScale: 4.0,
+                                onInteractionStart: (_) {
+                                  setState(() => _isInteracting = true);
+                                },
+                                onInteractionEnd: (_) {
+                                  setState(() => _isInteracting = false);
+                                },
+                                child: Image.network(
+                                  src,
+                                  width: screenWidth,
+                                  fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                              ),
+                            ),
+                          )
                         ),
                       );
                     },
