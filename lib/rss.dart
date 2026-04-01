@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:collection';
+
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
@@ -367,7 +369,8 @@ class GrantMagSearch extends StatefulWidget {
 
 class GrantMagSearchState extends State<GrantMagSearch> {
 
-String? _searchingWithQuery;
+  String? _searchingWithQuery;
+  String? selectedFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -391,6 +394,18 @@ String? _searchingWithQuery;
                   },
                   leading: const Icon(Icons.search),
                   hintText: 'Search',
+                  trailing: <Widget>[DropdownMenu<String>(
+                    initialSelection: "Title",
+                    controller: TextEditingController(),
+                    requestFocusOnTap: true,
+                    label: const Text('Filter'),
+                    onSelected: (String filter) {
+                      setState(() {
+                        selectedFilter = filter;
+                      });
+                    },
+                    dropdownMenuEntries: ListView(source)
+                  ),]
                 );
               },
               suggestionsBuilder: (BuildContext context, SearchController controller) {
