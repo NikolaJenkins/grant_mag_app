@@ -493,7 +493,43 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
               itemCount: bookmarkedItems.length,
               itemBuilder: (context, index) {
                 final item = bookmarkedItems[index];
-                return ListTile(
+                return Dismissible(
+                  key: Key(item.link ?? index.toString()),
+                  direction: DismissDirection.endToStart, // swipe left
+                  background: Container(
+                    color: Colors.red[300],
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                  onDismissed: (direction) async {
+                    final prefs = await SharedPreferences.getInstance();
+
+                    final links = prefs.getStringList('bookmarks') ?? [];
+                    final dates = prefs.getStringList('bookmark_dates') ?? [];
+
+                    final link = item.link;
+                    if (link == null) return;
+
+                    final index = links.indexOf(link);
+                    if (index != -1) {
+                      links.removeAt(index);
+                      if (index < dates.length) {
+                        dates.removeAt(index);
+                      }
+
+                      await prefs.setStringList('bookmarks', links);
+                      await prefs.setStringList('bookmark_dates', dates);
+                      prefs.remove('bookmark_title_$link');
+                    }
+
+                    setState(() {
+                      bookmarks.remove(link);
+                      bookmarkDates.remove(link);
+                    });
+                  },
+                  child:
+                ListTile(
                   title: Text(item.title ?? ''),
                   subtitle: Text(
                     () {
@@ -509,6 +545,7 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
                       builder: (_) => ArticlePage(article: item),
                     ),
                   ),
+                ),
                 );
               },
             ),
