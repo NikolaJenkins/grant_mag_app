@@ -371,6 +371,13 @@ class GrantMagSearchState extends State<GrantMagSearch> {
 
   String? _searchingWithQuery;
   String? selectedFilter;
+  final List<String> filterOptions = ['Title', 'Author', 'Keywords', 'Genre'];
+  late final List<DropdownMenuEntry<String>> menuEntries = filterOptions.map(
+    (String filter) => DropdownMenuEntry<String>(
+      value: filter,
+      label: filter,
+    )
+  ).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -399,12 +406,12 @@ class GrantMagSearchState extends State<GrantMagSearch> {
                     controller: TextEditingController(),
                     requestFocusOnTap: true,
                     label: const Text('Filter'),
-                    onSelected: (String filter) {
+                    onSelected: (String? filter) {
                       setState(() {
                         selectedFilter = filter;
                       });
                     },
-                    dropdownMenuEntries: ListView(source)
+                    dropdownMenuEntries: menuEntries,
                   ),]
                 );
               },
@@ -431,3 +438,5 @@ class GrantMagSearchState extends State<GrantMagSearch> {
     );
   }
 }
+
+typedef FilterEntry = DropdownMenuEntry<String>;
