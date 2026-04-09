@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -10,12 +9,16 @@ import 'package:grant_mag_app/settings.dart';
 import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
-import 'rss.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
+import 'package:http/http.dart' as http;
+import 'package:webfeed_plus/webfeed_plus.dart';
+import 'rss.dart';
 
 
-void main() async{ 
+void main() async{ //initialize
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -48,7 +51,7 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 42, 100, 127), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
@@ -72,6 +75,8 @@ class HomePage extends StatefulWidget { //home page constructor
 
   @override
   State<HomePage> createState() => _HomePageState();
+
+  
 }
 
 class _HomePageState extends State<HomePage> {
@@ -79,6 +84,8 @@ class _HomePageState extends State<HomePage> {
   // to distinguish between students/parents
   int whoAreYou = 0;
   List<String> notificationSelections = [];
+
+  RssFeed? _feed;
   
   final FlutterLocalNotificationsPlugin notificationsPlugin = 
   FlutterLocalNotificationsPlugin();
@@ -88,6 +95,7 @@ class _HomePageState extends State<HomePage> {
     NotiService service = NotiService();
     service.initNotification();
     super.initState();
+    loadFeed();
   }
 
 
@@ -97,6 +105,23 @@ class _HomePageState extends State<HomePage> {
   
   void makeParent() {
     whoAreYou = 2;
+  }
+
+  static const String FEED_URL = 'https://grantmagazine.com/feed/';
+
+  Future<RssFeed> load() async {
+    try { 
+      final response = await http.get(Uri.parse(FEED_URL));
+      return RssFeed.parse(response.body);
+    } catch (_) { 
+      return RssFeed(items: []); 
+    } 
+  }
+
+  Future<void> loadFeed() async {
+    final result = await load();
+    if (!mounted) return;
+    setState(() => _feed = result);
   }
 
   Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
@@ -181,18 +206,27 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       case 1:
-        return const GrantMagFeed(); 
-      default:
-        return Center(child: Text('Content coming soon'));
-    }
-  }
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return GrantMagFeed(feed: _feed!);
+
+      case 4:
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return GrantMagBookmarks(feed: _feed!);
+            default:
+              return Center(child: Text('Content coming soon'));
+          }
+        }
 
 @override
 Widget build(BuildContext context) {
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(
       appBar: AppBar(
-        backgroundColor: value.ThemeLabel!.headerColor,
+        backgroundColor: value.ThemeLabel!.headerColor, 
         title: const Text(GrantMagApp.appTitle),
         leading: Builder(
           builder: (context) => IconButton(
@@ -368,7 +402,7 @@ Widget build(BuildContext context) {
               label: 'Opinion'),
           NavigationDestination(
               icon: Badge(child: Icon(Icons.bookmark)),
-              label: 'Bookmark'),
+              label: 'Bookmarks'),
           NavigationDestination(
               icon: Badge(child: Icon(Icons.search)),
               label: 'Search'),
