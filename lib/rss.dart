@@ -369,8 +369,9 @@ class GrantMagSearch extends StatefulWidget {
 
 class GrantMagSearchState extends State<GrantMagSearch> {
 
+  FocusNode _searchFocusNode = FocusNode();
   String? _searchingWithQuery;
-  String? selectedFilter;
+  String? selectedFilter = 'Title';
   final List<String> filterOptions = ['Title', 'Author', 'Keywords', 'Genre'];
   late final List<DropdownMenuEntry<String>> menuEntries = filterOptions.map(
     (String filter) => DropdownMenuEntry<String>(
@@ -378,10 +379,12 @@ class GrantMagSearchState extends State<GrantMagSearch> {
       label: filter,
     )
   ).toList();
+  final TextEditingController filterController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
           appBar: AppBar(title: const Text("Article Search")),
           body: Padding(
@@ -393,19 +396,25 @@ class GrantMagSearchState extends State<GrantMagSearch> {
                   padding: const WidgetStatePropertyAll<EdgeInsets>(
                     EdgeInsets.symmetric(horizontal: 16.0),
                   ),
+                  focusNode: _searchFocusNode,
                   onTap: () {
                     controller.openView();
                   },
-                  onSubmitted: (_) {
+                  onChanged: (_) {
                     controller.openView();
                   },
                   leading: const Icon(Icons.search),
                   hintText: 'Search',
                   trailing: <Widget>[DropdownMenu<String>(
                     initialSelection: "Title",
-                    controller: TextEditingController(),
-                    requestFocusOnTap: true,
+                    controller: filterController,
+                    requestFocusOnTap: false,
+                    enableSearch: false,
                     label: const Text('Filter'),
+                    inputDecorationTheme: const InputDecorationTheme(
+                      filled: false,
+                      border: InputBorder.none,
+                    ),
                     onSelected: (String? filter) {
                       setState(() {
                         selectedFilter = filter;
@@ -420,22 +429,39 @@ class GrantMagSearchState extends State<GrantMagSearch> {
                 // final options = widget.feed.items?.where(
                 //   (item) =>
                 // )
-                return List<ListTile>.generate(5, (int index) {
-                  final String item = 'item $index';
-                  return ListTile(
-                    title: Text(item),
-                    onTap: () {
-                      setState(() {
-                        controller.closeView(item);
-                      });
-                    },
-                  );
-                });
+                var searchResults = switch (selectedFilter) {
+                  'Title' =>
+                    widget.feed.items
+                    ?.where((item) =>
+                      item.title!.toLowerCase().contains(controller.text.toLowerCase())
+                    ),
+                  'Author' =>
+                    widget.feed.items
+                    ?.where((item) =>
+                      item.author!.toLowerCase().contains(controller.text.toLowerCase())
+                    ),
+                  'Keywords' =>
+                    widget.feed.items
+                    ?.where((item) =>
+                      item.comments!.toLowerCase().contains(controller.text.toLowerCase())
+                    ),
+                  // _ =>
+                  //   widget.feed.items
+                  //   ?.where((item) =>
+                  //     item.categories.f!.toLowerCase().contains(controller.text.toLowerCase())
+                  //   ),
+                };
               },
             )
           )
         )
     );
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 }
 
