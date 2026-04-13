@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:http/http.dart' as http;
+import 'package:photo_view/photo_view.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
@@ -180,6 +181,7 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 }
 
 class _ArticlePageState extends State<ArticlePage> {
+  bool _isInteracting = false;
   String? featuredImage;
   bool loadingImage = true;
   String? url;
@@ -194,17 +196,13 @@ class _ArticlePageState extends State<ArticlePage> {
   void _showLargeImage(BuildContext context, String imageUrl) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.all(2),
-          title: Container(
-            decoration: BoxDecoration(),
-            width: MediaQuery.of(context).size.width,
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.fitWidth
-              ),
+      builder: (_) {
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: PhotoView(
+            imageProvider: NetworkImage(imageUrl),
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered * 2,
           ),
         );
       },
@@ -248,7 +246,6 @@ class _ArticlePageState extends State<ArticlePage> {
     //article list builder
    @override
    Widget build(BuildContext context){
-    bool _isInteracting = false;
     final screenWidth = MediaQuery.of(context).size.width;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
       debugPrint('HTML: ');
@@ -274,7 +271,7 @@ class _ArticlePageState extends State<ArticlePage> {
           children: [
             if (loadingImage) const LinearProgressIndicator(), //loading bar 
             if (!loadingImage && featuredImage != null)
-              GestureDetector( //makes featured images clickable using a GestureDetector
+              GestureDetector( //makes images clickable using a GestureDetector
                 onTap: () => _showLargeImage(context, featuredImage!),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -300,33 +297,22 @@ class _ArticlePageState extends State<ArticlePage> {
                       return Padding( //padding details for imgs
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child:
-                        GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onTap: () => _showLargeImage(this.context, src),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: InteractiveViewer(
-                                panEnabled: true,
-                                scaleEnabled: true,
-                                //clipBehavior: Clip.none,
-                                minScale: 1,
-                                maxScale: 4.0,
-                                onInteractionStart: (_) {
-                                  setState(() => _isInteracting = true);
-                                },
-                                onInteractionEnd: (_) {
-                                  setState(() => _isInteracting = false);
-                                },
-                                boundaryMargin: EdgeInsets.all(double.infinity),
-                                child: Image.network(
-                                  src,
-                                  width: screenWidth,
-                                  fit: BoxFit.fitWidth,
-                                   //uses flutter boxfit for proper aspect ratio rendering
-                              ),
-                            ),
-                          )
-                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: PhotoView.customChild(
+                            onTapUp: (context, details, controllerValue) {
+                              _showLargeImage(this.context, src);
+                            },
+                            minScale: PhotoViewComputedScale.contained,
+                            maxScale: PhotoViewComputedScale.covered * 3,
+                            child: Image.network(
+                              src,
+                              width: screenWidth,
+                              fit: BoxFit.fitWidth,
+                               //uses flutter boxfit for proper aspect ratio rendering
+                                                          ),
+                          ),
+                                                  ),
                       );
                     },
                   ),

@@ -47,6 +47,7 @@ dependencies:
   firebase_messaging: ^16.1.2
   shared_preferences: ^2.5.4
   shared_preferences_android: ^2.4.21
+  photo_view: ^0.15.0
 
 
 
