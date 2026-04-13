@@ -8,6 +8,30 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class CustomScrollPhysics extends BouncingScrollPhysics {
+  const CustomScrollPhysics({super.parent});
+
+  @override
+    CustomScrollPhysics applyTo(ScrollPhysics ? ancestor) {
+      return CustomScrollPhysics(parent: buildParent(ancestor));
+    }
+  
+  @override
+  double get maxFlingVelocity => 4000.0;
+
+  @override
+  SpringDescription get spring => const SpringDescription(
+      mass: 1.0,
+      stiffness: 70.0, // end bounce simulation: lower = slower bounce
+      damping: 50.0,    // higher = less oscillation
+    );
+
+  @override
+    double applyBoundaryConditions(ScrollMetrics position, double value) {
+      final overscroll = super.applyBoundaryConditions(position, value);
+      return overscroll * 0.5; // caps how far it can stretch
+    }
+}
 
 class GrantMagFeed extends StatefulWidget { //primary builder
   final RssFeed feed;
@@ -22,7 +46,9 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   final Map<String, Future<String>> imageCache = {};
   String featuredImage = '';
-  List<String> bookmarks = []; //disc version
+  List<String> bookmarks = []; 
+  int currentPage = 0;
+  final int pageSize = 25;
 
   @override
   void initState() {
@@ -68,20 +94,24 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   await prefs.setStringList('bookmark_dates', bookmarkDates);
 }
 
-  Widget list() {
-    const excludedCategories = {'PDF Issues', 'Flipbooks'};
-
-    final filteredItems = widget.feed.items
-        ?.where((item) {
+Widget list() { //article list builder
+  const excludedCategories = {'PDF Issues', 'Flipbooks'};
+  final filteredItems = widget.feed.items?.where((item) {
           final categories = item.categories?.map((c) => c.value).toSet() ?? {};
           return categories.intersection(excludedCategories).isEmpty;
-        })
-        .toList() ?? [];
+        }).toList() ?? [];
+  final start = currentPage * pageSize;
+  final end = (start + pageSize > filteredItems.length)
+    ? filteredItems.length
+    : start + pageSize;
 
-    return ListView.builder(
-      itemCount: filteredItems.length,
+  final currentItems = filteredItems.sublist(start, end);
+  return Column(children: [
+    Expanded(child: ListView.builder(
+      physics: const CustomScrollPhysics(),
+      itemCount: currentItems.length,
       itemBuilder: (context, index) {
-        final item = filteredItems[index];
+        final item = currentItems[index];
         
         return ListTile(
           title: Text(item.title ?? ''),
@@ -123,8 +153,31 @@ class GrantMagFeedState extends State<GrantMagFeed> {
           },
         );
       },
-    );
-  }
+    )
+  ),
+
+  Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: currentPage > 0
+              ? () => setState(() => currentPage--)
+              : null,
+        ),
+        Text('Page ${currentPage + 1}'),
+        IconButton(
+          icon: Icon(Icons.arrow_forward),
+          onPressed: end < filteredItems.length
+              ? () => setState(() => currentPage++)
+              : null,
+          ),
+        ],
+      ),
+    ],
+  );
+}
+  
 
   @override 
   Widget build(BuildContext context) {
@@ -245,7 +298,6 @@ class _ArticlePageState extends State<ArticlePage> {
   }
   
   
-    //article list builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
