@@ -372,7 +372,7 @@ class GrantMagSearchState extends State<GrantMagSearch> {
   FocusNode _searchFocusNode = FocusNode();
   String? _searchingWithQuery;
   String? selectedFilter = 'Title';
-  final List<String> filterOptions = ['Title', 'Author', 'Keywords', 'Genre'];
+  final List<String> filterOptions = ['Title', 'Author', 'Genre'];
   late final List<DropdownMenuEntry<String>> menuEntries = filterOptions.map(
     (String filter) => DropdownMenuEntry<String>(
       value: filter,
@@ -380,6 +380,7 @@ class GrantMagSearchState extends State<GrantMagSearch> {
     )
   ).toList();
   final TextEditingController filterController = TextEditingController();
+  final Map<String, Future<String>> imageCache = {};
 
   @override
   Widget build(BuildContext context) {
@@ -438,19 +439,54 @@ class GrantMagSearchState extends State<GrantMagSearch> {
                   'Author' =>
                     widget.feed.items
                     ?.where((item) =>
-                      item.author!.toLowerCase().contains(controller.text.toLowerCase())
+                      (item.author ?? '').toLowerCase().contains(controller.text.toLowerCase())
                     ),
-                  'Keywords' =>
+                  _ =>
                     widget.feed.items
                     ?.where((item) =>
-                      item.comments!.toLowerCase().contains(controller.text.toLowerCase())
+                      (item.categories?.map((c) => c.value).join(', ') ?? '').toLowerCase().contains(controller.text.toLowerCase())
                     ),
-                  // _ =>
-                  //   widget.feed.items
-                  //   ?.where((item) =>
-                  //     item.categories.f!.toLowerCase().contains(controller.text.toLowerCase())
-                  //   ),
-                };
+                }!.toList();
+                return [
+                  ListView.builder(
+                    itemCount: searchResults.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final item = searchResults[index];
+                      return ListTile(
+                        title: Text(item.title ?? ''),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+                            Text(item.author ?? ''),
+                            // FutureBuilder<String>(
+                            //   future: imageCache.putIfAbsent(
+                            //     item.link ?? '',
+                            //     () => item.getFeaturedImage(),
+                            //   ),
+                            //   builder: (context, snapshot) {
+                            //     if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            //       return const SizedBox.shrink();
+                            //     }
+                            //     return Image.network(
+                            //       snapshot.data!,
+                            //       fit: BoxFit.contain,
+                            //     );
+                            //   },
+                            // )
+                          ]),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ArticlePage(article: item),
+                          )
+                        )
+                      );
+                    }
+                  )
+                ];
               },
             )
           )
