@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:ui' as ui;
 
 
 class GrantMagFeed extends StatefulWidget { //primary builder
@@ -194,13 +195,20 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 
   void _showLargeImage(BuildContext context, String imageUrl) {
+    Image image = Image.network(imageUrl);
     showDialog(
       context: context,
       builder: (_) {
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: PhotoView(
+        return SizedBox(
+          width: image.width,
+          height: image.height,
+          child: PhotoView( // Image zooming
             imageProvider: NetworkImage(imageUrl),
+            backgroundDecoration: BoxDecoration(
+              color: Colors.transparent
+            ),
+            
+            loadingBuilder: (context, event) => Center(child: CircularProgressIndicator()),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
           ),
@@ -299,12 +307,8 @@ class _ArticlePageState extends State<ArticlePage> {
                         child:
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: PhotoView.customChild(
-                            onTapUp: (context, details, controllerValue) {
-                              _showLargeImage(this.context, src);
-                            },
-                            minScale: PhotoViewComputedScale.contained,
-                            maxScale: PhotoViewComputedScale.covered * 3,
+                          child: GestureDetector(
+                            onTap: () => _showLargeImage(this.context, src),
                             child: Image.network(
                               src,
                               width: screenWidth,
