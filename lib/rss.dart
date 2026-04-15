@@ -22,8 +22,8 @@ class CustomScrollPhysics extends BouncingScrollPhysics {
   @override
   SpringDescription get spring => const SpringDescription(
       mass: 1.0,
-      stiffness: 70.0, // end bounce simulation: lower = slower bounce
-      damping: 50.0,    // higher = less oscillation
+      stiffness: 60.0, // end bounce simulation: lower = slower bounce
+      damping: 25.0,    // higher = less oscillation
     );
 
   @override
