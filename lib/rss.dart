@@ -22,15 +22,10 @@ class CustomScrollPhysics extends BouncingScrollPhysics {
   @override
   SpringDescription get spring => const SpringDescription(
       mass: 1.0,
-      stiffness: 60.0, // end bounce simulation: lower = slower bounce
+      stiffness: 60.0, // lower = slower bounce
       damping: 25.0,    // higher = less oscillation
     );
 
-  @override
-    double applyBoundaryConditions(ScrollMetrics position, double value) {
-      final overscroll = super.applyBoundaryConditions(position, value);
-      return overscroll * 0.5; // caps how far it can stretch
-    }
 }
 
 class GrantMagFeed extends StatefulWidget { //primary builder
@@ -125,13 +120,22 @@ Widget list() { //article list builder
                 () => item.getFeaturedImage(),
               ),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return Image.network(
-                    snapshot.data!,
-                    fit: BoxFit.contain,
+                  return AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: snapshot.hasData && snapshot.data!.isNotEmpty
+                        ? Image.network(
+                            snapshot.data!,
+                            fit: BoxFit.cover,
+                            frameBuilder: (context, child, frame, wasSyncLoaded) {
+                              if (wasSyncLoaded) return child;
+                              return AnimatedOpacity(
+                                opacity: frame == null ? 0 : 1,
+                                duration: const Duration(milliseconds: 300),
+                                child: child,
+                              );
+                            },
+                          )
+                        : Container(color: Colors.grey[300]),
                   );
                 },
               )
