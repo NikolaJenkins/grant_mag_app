@@ -172,6 +172,14 @@ class _HomePageState extends State<HomePage> {
   Widget getBody() {
     switch (_counter) {
       case 0:
+      
+        // gets articles with carousel category
+        final carouselItems = _feed?.items
+                    ?.where((item) =>
+                      (item.categories?.map((c) => c.value).join(', ') ?? '').toLowerCase().contains('Carousel'.toLowerCase())
+                    )
+                .toList();
+
         return SingleChildScrollView(
           child: Column(
             children: [
@@ -206,6 +214,52 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: const Text("Teachers"),
               ),
+              CarouselSlider(
+                items: carouselItems?.map((item) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return ListTile(
+                        title: Text(item.title ?? ''),
+                        subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item.author ?? ''),
+                                FutureBuilder<String>(
+                                  future: imageCache.putIfAbsent(
+                                    item.link ?? '',
+                                    () => item.getFeaturedImage(),
+                                  ),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Image.network(
+                                      snapshot.data!,
+                                      fit: BoxFit.contain,
+                                    );
+                                  },
+                                )
+                              ]),
+                        onTap:() => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ArticlePage(article: item),
+                              )
+                            ),
+                      );
+                    }
+                  );
+                }).toList(),
+                carouselController: articleCarouselController,
+                options: CarouselOptions(
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 6),
+                  enlargeCenterPage: false,
+                  viewportFraction: 0.7,
+                  aspectRatio: 2.0,
+                  initialPage: 2,
+                )
+              )
             ],
           ),
         );
@@ -232,21 +286,12 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: CircularProgressIndicator());
         }
         return GrantMagSearch(feed: _feed!,);
-
-      // todo: add search list
-      // case 5:
     }
   }
 
 
   @override
 Widget build(BuildContext context) {
-
-  final carouselItems = _feed?.items
-                    ?.where((item) =>
-                      (item.categories?.map((c) => c.value).join(', ') ?? '').toLowerCase().contains('Carousel'.toLowerCase())
-                    )
-                .toList();
   
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(
@@ -398,53 +443,6 @@ Widget build(BuildContext context) {
           Expanded(
             child: getBody(),
           ),
-
-          CarouselSlider(
-            items: carouselItems?.map((item) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return ListTile(
-                    title: Text(item.title ?? ''),
-                    subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item.author ?? ''),
-                            FutureBuilder<String>(
-                              future: imageCache.putIfAbsent(
-                                item.link ?? '',
-                                () => item.getFeaturedImage(),
-                              ),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Image.network(
-                                  snapshot.data!,
-                                  fit: BoxFit.contain,
-                                );
-                              },
-                            )
-                          ]),
-                    onTap:() => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ArticlePage(article: item),
-                          )
-                        ),
-                  );
-                }
-              );
-            }).toList(),
-            carouselController: articleCarouselController,
-            options: CarouselOptions(
-              autoPlay: true,
-              autoPlayInterval: const Duration(seconds: 6),
-              enlargeCenterPage: false,
-              viewportFraction: 0.7,
-              aspectRatio: 2.0,
-              initialPage: 2,
-            )
-          )
         ],
       ),
 
