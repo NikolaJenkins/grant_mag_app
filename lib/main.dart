@@ -172,6 +172,10 @@ class _HomePageState extends State<HomePage> {
   Widget getBody() {
     switch (_counter) {
       case 0:
+
+        // gets latest article
+        final latestArticle = _feed?.items?[0];
+        final latestImage= latestArticle?.getFeaturedImage();
       
         // gets articles with carousel category
         final carouselItems = _feed?.items
@@ -183,6 +187,80 @@ class _HomePageState extends State<HomePage> {
         return SingleChildScrollView(
           child: Column(
             children: [
+              // ListTile(
+              //   title: Text(latestArticle?.title ?? ''),
+              //   subtitle: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //                 Text(latestArticle?.author ?? ''),
+              //                 FutureBuilder<String>(
+              //                   future: imageCache.putIfAbsent(
+              //                     '',
+              //                     () => latestImage ?? Future<String>(() => ''),
+              //                   ),
+              //                   builder: (context, snapshot) {
+              //                     return FadeInImage.assetNetwork(
+              //                         placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+              //                         placeholderCacheWidth: 1,
+              //                         placeholderCacheHeight: 1, 
+              //                         fadeInCurve: Curves.linear,
+              //                         image: snapshot.data ?? '',
+              //                       );
+              //                   },
+              //                 )
+              //               ]
+              //   )
+              // ),
+              CarouselSlider(
+                items: carouselItems?.map((item) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return ListTile(
+                        title: Text(item.title ?? ''),
+                        subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item.author ?? ''),
+                                FutureBuilder<String>(
+                                  future: imageCache.putIfAbsent(
+                                    item.link ?? '',
+                                    () => item.getFeaturedImage(),
+                                  ),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return FadeInImage.assetNetwork(
+                                        placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                        placeholderCacheWidth: 1,
+                                        placeholderCacheHeight: 1, 
+                                        fadeInCurve: Curves.linear,
+                                        image: snapshot.data!
+                                      );
+                                  },
+                                )
+                              ]),
+                        onTap:() => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ArticlePage(article: item),
+                              )
+                            ),
+                      );
+                    }
+                  );
+                }).toList(),
+                carouselController: articleCarouselController,
+                options: CarouselOptions(
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 6),
+                  enlargeCenterPage: false,
+                  viewportFraction: 1.0,
+                  height: 300.0,
+                  aspectRatio: 9.0 / 16.0,
+                  initialPage: 0,
+                )
+              ),
               ElevatedButton(
                 child: Text('Open Dialogsssssss'),
                 onPressed: () {
@@ -214,52 +292,6 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: const Text("Teachers"),
               ),
-              CarouselSlider(
-                items: carouselItems?.map((item) {
-                  return Builder(
-                    builder: (BuildContext context) {
-                      return ListTile(
-                        title: Text(item.title ?? ''),
-                        subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.author ?? ''),
-                                FutureBuilder<String>(
-                                  future: imageCache.putIfAbsent(
-                                    item.link ?? '',
-                                    () => item.getFeaturedImage(),
-                                  ),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    return Image.network(
-                                      snapshot.data!,
-                                      fit: BoxFit.contain,
-                                    );
-                                  },
-                                )
-                              ]),
-                        onTap:() => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ArticlePage(article: item),
-                              )
-                            ),
-                      );
-                    }
-                  );
-                }).toList(),
-                carouselController: articleCarouselController,
-                options: CarouselOptions(
-                  autoPlay: true,
-                  autoPlayInterval: const Duration(seconds: 6),
-                  enlargeCenterPage: false,
-                  viewportFraction: 0.7,
-                  aspectRatio: 2.0,
-                  initialPage: 2,
-                )
-              )
             ],
           ),
         );
