@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -15,7 +16,10 @@ import 'package:grant_mag_app/noti_service.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
+
 import 'rss.dart';
+import 'search.dart';
+import 'bookmarks.dart';
 
 
 void main() async{ //initialize
@@ -40,7 +44,7 @@ void main() async{ //initialize
 }
 
 class GrantMagApp extends StatelessWidget { //base widget constructor
-  const GrantMagApp({super.key});
+  GrantMagApp({super.key});
   static const appTitle = 'Home Page';
 
   @override
@@ -69,7 +73,7 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
 }
 
 class HomePage extends StatefulWidget { //home page constructor
-  const HomePage({super.key, required this.title});
+  const HomePage({required this.title, super.key});
 
   final String title;
 
@@ -89,6 +93,9 @@ class _HomePageState extends State<HomePage> {
   
   final FlutterLocalNotificationsPlugin notificationsPlugin = 
   FlutterLocalNotificationsPlugin();
+
+  final Map<String, Future<String>> imageCache = {};
+  CarouselSliderController articleCarouselController = CarouselSliderController();
 
   @override
   void initState() {
@@ -168,9 +175,95 @@ class _HomePageState extends State<HomePage> {
   Widget getBody() {
     switch (_counter) {
       case 0:
+
+        // gets latest article
+        final latestArticle = _feed?.items?[0];
+        final latestImage= latestArticle?.getFeaturedImage();
+      
+        // gets articles with carousel category
+        final carouselItems = _feed?.items
+                    ?.where((item) =>
+                      (item.categories?.map((c) => c.value).join(', ') ?? '').toLowerCase().contains('Carousel'.toLowerCase())
+                    )
+                .toList();
+
         return SingleChildScrollView(
           child: Column(
             children: [
+              // ListTile(
+              //   title: Text(latestArticle?.title ?? ''),
+              //   subtitle: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //                 Text(latestArticle?.author ?? ''),
+              //                 FutureBuilder<String>(
+              //                   future: imageCache.putIfAbsent(
+              //                     '',
+              //                     () => latestImage ?? Future<String>(() => ''),
+              //                   ),
+              //                   builder: (context, snapshot) {
+              //                     return FadeInImage.assetNetwork(
+              //                         placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+              //                         placeholderCacheWidth: 1,
+              //                         placeholderCacheHeight: 1, 
+              //                         fadeInCurve: Curves.linear,
+              //                         image: snapshot.data ?? '',
+              //                       );
+              //                   },
+              //                 )
+              //               ]
+              //   )
+              // ),
+              CarouselSlider(
+                items: carouselItems?.map((item) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return ListTile(
+                        title: Text(item.title ?? ''),
+                        subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item.author ?? ''),
+                                FutureBuilder<String>(
+                                  future: imageCache.putIfAbsent(
+                                    item.link ?? '',
+                                    () => item.getFeaturedImage(),
+                                  ),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return FadeInImage.assetNetwork(
+                                        placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                        placeholderCacheWidth: 1,
+                                        placeholderCacheHeight: 1, 
+                                        fadeInCurve: Curves.linear,
+                                        image: snapshot.data!
+                                      );
+                                  },
+                                )
+                              ]),
+                        onTap:() => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ArticlePage(article: item),
+                              )
+                            ),
+                      );
+                    }
+                  );
+                }).toList(),
+                carouselController: articleCarouselController,
+                options: CarouselOptions(
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 6),
+                  enlargeCenterPage: false,
+                  viewportFraction: 1.0,
+                  height: 300.0,
+                  aspectRatio: 9.0 / 16.0,
+                  initialPage: 0,
+                )
+              ),
               ElevatedButton(
                 child: Text('Open Dialogsssssss'),
                 onPressed: () {
@@ -211,18 +304,30 @@ class _HomePageState extends State<HomePage> {
         }
         return GrantMagFeed(feed: _feed!);
 
+      case 2:
+        return Center(child: Text('Content coming soon'));
+
+      case 3:
+        return Center(child: Text('Content coming soon'));
+        
       case 4:
         if (_feed == null) {
           return const Center(child: CircularProgressIndicator());
         }
         return GrantMagBookmarks(feed: _feed!);
-            default:
-              return Center(child: Text('Content coming soon'));
-          }
+
+      default:
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
         }
+        return GrantMagSearch(feed: _feed!,);
+    }
+  }
+
 
 @override
 Widget build(BuildContext context) {
+  
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(
       appBar: AppBar(
@@ -412,126 +517,6 @@ Widget build(BuildContext context) {
     ),
   );
 }
-}
-
-class CustomSearchDelegate extends SearchDelegate {
-
-  List<String> titles = [
-    'machine learning',
-    'Ray Tate',
-    'One of the boys',
-    'A new perspective',
-    'Budget "whats"',
-  ];
-
-  List<String> authors = [
-    'Eliot Logan',
-    'Logan Hendrickson',
-    'Margot Kalmanson',
-    'Amelia Shaw',
-    'Zoe Shaw',
-  ];
-
-  List<String> decks = [
-    'Three days after the Bondi Beach shooting, Grant High School\’s Jewish Student Alliance put up two posters at the school honoring the victims.',
-    'As artificial intelligence sweeps the nation, Portland Public Schools is exploring its use in education.',
-    'This year, Grantasia featured a production in collaboration with a nonprofit organization called Sing Me a Story. The performance celebrates joy, creativity and inclusion through student choreography and original music.',
-    'Grant High School math teacher Ray Tate’s worsening kidney disease has kept him from the classroom. Now, he is requesting a kidney donation from a living donor.',
-    'Grant Magazine is now taking applications for the 2024 – 2025 school year. Complete the application, found at this link, and email a copy with editing access for anyone with the link to grantmagazine1@gmail.com. Applications are due by February 13, 2024. No late applications will be accepted.',
-  ];
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        onPressed: () {
-          query = '';
-        },
-        icon: const Icon(Icons.clear),)
-    ];
-  }
-  
-  @override
-  Widget? buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed:  () {
-        close(context, null);
-      },
-    );
-  }
-  
-  @override
-  Widget buildResults(BuildContext context) {
-    List<String> matchQuery = [];
-
-    // check titles
-    for (var fruit in titles) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check authors
-    for (var fruit in authors) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check decks
-    for (var fruit in decks) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-    
-    return ListView.builder(
-      itemCount: matchQuery.length,
-      itemBuilder: (context, index) {
-        var result = matchQuery[index];
-        return ListTile(
-          title: Text(result),
-        );
-      },
-    );
-  }
-  
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    List<String> matchQuery = [];
-
-    // check titles
-    for (var fruit in titles) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check authors
-    for (var fruit in authors) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check decks
-    for (var fruit in decks) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-    
-    return ListView.builder(
-      itemCount: matchQuery.length,
-      itemBuilder: (context, index) {
-        var result = matchQuery[index];
-        return ListTile(
-          title: Text(result),
-        );
-      },
-    );
-  }
 }
 
 class Item {
