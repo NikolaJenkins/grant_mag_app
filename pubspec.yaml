@@ -45,6 +45,7 @@ dependencies:
   webfeed_plus: ^1.1.2
   firebase_core: ^4.5.0
   firebase_messaging: ^16.1.2
+  carousel_slider: ^5.1.2
   shared_preferences: ^2.5.4
 
 
