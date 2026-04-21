@@ -51,7 +51,7 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(255, 142, 141, 141), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
@@ -386,6 +386,7 @@ Widget build(BuildContext context) {
             fontSize: 11.0,
           )
         ),
+        backgroundColor: Color.fromARGB(255, 189, 189, 189),
         destinations: const [
           NavigationDestination(
               selectedIcon: Icon(Icons.home),
