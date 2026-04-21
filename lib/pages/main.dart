@@ -1,7 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'firebase_options.dart';
+import '../firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:grant_mag_app/profile_model.dart';
@@ -18,8 +18,10 @@ import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 
 import 'rss.dart';
-import 'search.dart';
+import 'featured.dart';
+import 'opinion.dart';
 import 'bookmarks.dart';
+import 'search.dart';
 
 
 void main() async{ //initialize
@@ -176,9 +178,8 @@ class _HomePageState extends State<HomePage> {
     switch (_counter) {
       case 0:
 
-        // gets latest article
-        final latestArticle = _feed?.items?[0];
-        final latestImage= latestArticle?.getFeaturedImage();
+        // gets latest four articles
+        final latestArticles = _feed?.items?.take(4).toList() ?? [];
       
         // gets articles with carousel category
         final carouselItems = _feed?.items
@@ -264,6 +265,56 @@ class _HomePageState extends State<HomePage> {
                   initialPage: 0,
                 )
               ),
+
+              GridView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: latestArticles.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 5.0,
+                  mainAxisSpacing: 5.0,
+                  childAspectRatio: 0.5,
+                ),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final item = latestArticles[index];
+
+                  return ListTile(
+                    title: Text(item.title ?? ''),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+                        Text(item.author ?? ''),
+                        FutureBuilder<String>(
+                          future: imageCache.putIfAbsent(
+                            item.link ?? '',
+                            () => item.getFeaturedImage(),
+                          ),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Image.network(
+                              snapshot.data!,
+                              fit: BoxFit.contain,
+                            );
+                          },
+                        ),
+                      ]),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ArticlePage(article: item),
+                        ),
+                      );
+                    },
+                  );
+                },            
+              ),
+
               ElevatedButton(
                 child: Text('Open Dialogsssssss'),
                 onPressed: () {
@@ -305,10 +356,16 @@ class _HomePageState extends State<HomePage> {
         return GrantMagFeed(feed: _feed!);
 
       case 2:
-        return Center(child: Text('Content coming soon'));
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return FeaturedArticles(feed: _feed!);
 
       case 3:
-        return Center(child: Text('Content coming soon'));
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return OpinionatedArticles(feed: _feed!);
         
       case 4:
         if (_feed == null) {
