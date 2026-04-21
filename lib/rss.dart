@@ -11,8 +11,32 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class CustomScrollPhysics extends BouncingScrollPhysics {
+  const CustomScrollPhysics({super.parent});
 
-class GrantMagFeed extends StatefulWidget {
+  @override
+    CustomScrollPhysics applyTo(ScrollPhysics ? ancestor) {
+      return CustomScrollPhysics(parent: buildParent(ancestor));
+    }
+  
+  @override
+  double get maxFlingVelocity => 4000.0;
+
+  @override
+  SpringDescription get spring => const SpringDescription(
+      mass: 1.0,
+      stiffness: 60.0, // end bounce simulation: lower = slower bounce
+      damping: 25.0,    // higher = less oscillation
+    );
+
+  @override
+    double applyBoundaryConditions(ScrollMetrics position, double value) {
+      final overscroll = super.applyBoundaryConditions(position, value);
+      return overscroll * 0.5; // caps how far it can stretch
+    }
+}
+
+class GrantMagFeed extends StatefulWidget { //primary builder
   final RssFeed feed;
 
   const GrantMagFeed({required this.feed, super.key});
@@ -24,37 +48,74 @@ class GrantMagFeed extends StatefulWidget {
 class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   final Map<String, Future<String>> imageCache = {};
+  String featuredImage = '';
+  List<String> bookmarks = []; 
+  int currentPage = 0;
+  final int pageSize = 25;
 
   @override
   void initState() {
     super.initState();
+    loadBookmarks();
   }
 
-  Future<void> addBookmark(String? link, String? title) async {
-    if (link == null) return;
-    final prefs = await SharedPreferences.getInstance();
-    List<String> bookmarks = prefs.getStringList('bookmarks') ?? [];
-    if (!bookmarks.contains(link)) {
-      bookmarks.add(link);
-      await prefs.setStringList('bookmarks', bookmarks);
-      await prefs.setString('bookmark_title_$link', title ?? link);
+    Future<void> loadBookmarks() async {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> storedBookmarks = prefs.getStringList('bookmarks') ?? []; //sharedPref mirror
+    setState(() {bookmarks = storedBookmarks;});
+  }
+
+
+ Future<void> addBookmark(String? link, String? title) async {
+  if (link == null) return;
+
+  final prefs = await SharedPreferences.getInstance();
+  List<String> storedBookmarks = prefs.getStringList('bookmarks') ?? [];
+  List<String> bookmarkDates = prefs.getStringList('bookmark_dates') ?? [];
+
+  setState(() {
+    if (storedBookmarks.contains(link)) {
+      //remove bookmark
+      final index = storedBookmarks.indexOf(link);
+      storedBookmarks.removeAt(index);
+      if (index < bookmarkDates.length) {
+        bookmarkDates.removeAt(index);
+      }
+      this.bookmarks.remove(link); // update in-memory list
+      prefs.remove('bookmark_title_$link'); // remove saved title
+    } else {
+      //add bookmark
+      storedBookmarks.add(link);
+      bookmarkDates.add(DateTime.now().millisecondsSinceEpoch.toString());
+      this.bookmarks.add(link); // update in-memory list
+      prefs.setString('bookmark_title_$link', title ?? link);
     }
-  }
+  });
 
-  Widget list() {
-    const excludedCategories = {'PDF Issues', 'Flipbooks'};
+  //save changes to SharedPreferences
+  await prefs.setStringList('bookmarks', storedBookmarks);
+  await prefs.setStringList('bookmark_dates', bookmarkDates);
+}
 
-    final filteredItems = widget.feed.items
-        ?.where((item) {
+Widget list() { //article list builder
+  const excludedCategories = {'PDF Issues', 'Flipbooks'};
+  final filteredItems = widget.feed.items?.where((item) {
           final categories = item.categories?.map((c) => c.value).toSet() ?? {};
           return categories.intersection(excludedCategories).isEmpty;
-        })
-        .toList() ?? [];
+        }).toList() ?? [];
+  final start = currentPage * pageSize;
+  final end = (start + pageSize > filteredItems.length)
+    ? filteredItems.length
+    : start + pageSize;
 
-    return ListView.builder(
-      itemCount: filteredItems.length,
+  final currentItems = filteredItems.sublist(start, end);
+  return Column(children: [
+    Expanded(child: ListView.builder(
+      physics: const CustomScrollPhysics(),
+      itemCount: currentItems.length,
       itemBuilder: (context, index) {
-        final item = filteredItems[index];
+        final item = currentItems[index];
+        
         return ListTile(
           title: Text(item.title ?? ''),
           subtitle: Column(
@@ -79,7 +140,10 @@ class GrantMagFeedState extends State<GrantMagFeed> {
               )
             ]),
           trailing: IconButton(
-            icon: const Icon(Icons.bookmark_add),
+            icon: Icon(
+              bookmarks.contains(item.link) ? Icons.bookmark : Icons.bookmark_add,
+              color: bookmarks.contains(item.link) ? Colors.blue : null,
+            ),
             onPressed: () => addBookmark(item.link, item.title),
           ),
           onTap: () {
@@ -92,8 +156,31 @@ class GrantMagFeedState extends State<GrantMagFeed> {
           },
         );
       },
-    );
-  }
+    )
+  ),
+
+  Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: currentPage > 0
+              ? () => setState(() => currentPage--)
+              : null,
+        ),
+        Text('Page ${currentPage + 1}'),
+        IconButton(
+          icon: Icon(Icons.arrow_forward),
+          onPressed: end < filteredItems.length
+              ? () => setState(() => currentPage++)
+              : null,
+          ),
+        ],
+      ),
+    ],
+  );
+}
+  
 
   @override 
   Widget build(BuildContext context) {
@@ -120,6 +207,7 @@ class _ArticlePageState extends State<ArticlePage> {
   String? featuredImage;
   bool loadingImage = true;
   String? url;
+  String? imageUrl;
 
   @override
   void initState() {
@@ -147,7 +235,7 @@ class _ArticlePageState extends State<ArticlePage> {
     );
   }
 
-  Future<void> _loadFeaturedImage() async { //fetches html and loads image
+  Future<void> _loadFeaturedImage() async { //fetches html and loads featured image
     url = widget.article.link;
     if (url == null) return;
     try {
@@ -179,10 +267,12 @@ class _ArticlePageState extends State<ArticlePage> {
       setState(() => loadingImage = false);
     }
   }
-    //article builder
+  
+  
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
+    bool _isInteracting = false;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
       debugPrint('HTML: ');
       debugPrint(html);
@@ -199,6 +289,10 @@ class _ArticlePageState extends State<ArticlePage> {
       ),
 
        body: SingleChildScrollView(
+        physics: _isInteracting
+        ? const NeverScrollableScrollPhysics()
+        : const AlwaysScrollableScrollPhysics()
+        ,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -229,10 +323,32 @@ class _ArticlePageState extends State<ArticlePage> {
                       if (src.isEmpty) return const SizedBox.shrink();
                       return Padding( //padding details for imgs
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Image.network(
-                          src,
-                          width: screenWidth,
-                          fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                        child:
+                        GestureDetector(
+                          onScaleStart: (_) {},
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () => _showLargeImage(this.context, src),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                scaleEnabled: true,
+                                //clipBehavior: Clip.none,
+                                minScale: 1,
+                                maxScale: 4.0,
+                                onInteractionStart: (_) {
+                                  setState(() => _isInteracting = true);
+                                },
+                                onInteractionEnd: (_) {
+                                  setState(() => _isInteracting = false);
+                                },
+                                child: Image.network(
+                                  src,
+                                  width: screenWidth,
+                                  fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
+                              ),
+                            ),
+                          )
                         ),
                       );
                     },
@@ -301,59 +417,5 @@ extension ImageParsing on RssItem {
     //   caseSensitive: false,
     // ).firstMatch(html);
     return featuredImage; //error catch
-  }
-}
-
-class GrantMagBookmarks extends StatefulWidget {
-  final RssFeed feed;
-
-  const GrantMagBookmarks({required this.feed, super.key});
-
-  @override 
-  State<GrantMagBookmarks> createState() => GrantMagBookmarksState();
-}
-
-class GrantMagBookmarksState extends State<GrantMagBookmarks> {
-  List<String> bookmarks = [];
-
-  @override
-  void initState() {
-    super.initState();
-    loadBookmarks();
-  }
-
-  Future<void> loadBookmarks() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      bookmarks = prefs.getStringList('bookmarks') ?? [];
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bookmarkedItems = widget.feed.items
-        ?.where((item) => bookmarks.contains(item.link))
-        .toList() ?? [];
-
-    return Scaffold(
-      appBar: AppBar(title: const Text("Bookmarked Articles")),
-      body: bookmarkedItems.isEmpty
-          ? const Center(child: Text("No bookmarks yet"))
-          : ListView.builder(
-              itemCount: bookmarkedItems.length,
-              itemBuilder: (context, index) {
-                final item = bookmarkedItems[index];
-                return ListTile(
-                  title: Text(item.title ?? ''),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ArticlePage(article: item),
-                    ),
-                  ),
-                );
-              },
-            ),
-    );
   }
 }
