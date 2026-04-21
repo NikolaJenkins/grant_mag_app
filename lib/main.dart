@@ -18,6 +18,7 @@ import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'rss.dart';
+import 'search.dart';
 
 
 void main() async{ //initialize
