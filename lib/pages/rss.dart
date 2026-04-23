@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CustomScrollPhysics extends BouncingScrollPhysics {
   const CustomScrollPhysics({super.parent});

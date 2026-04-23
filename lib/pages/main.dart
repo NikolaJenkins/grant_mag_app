@@ -11,6 +11,7 @@ import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 // import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
@@ -47,7 +48,7 @@ void main() async{ //initialize
 
 class GrantMagApp extends StatelessWidget { //base widget constructor
   GrantMagApp({super.key});
-  static const appTitle = 'Home Page';
+  static const appTitle = 'Grant Magazine';
 
   @override
   Widget build(BuildContext context) {
@@ -219,37 +220,54 @@ class _HomePageState extends State<HomePage> {
                 items: carouselItems?.map((item) {
                   return Builder(
                     builder: (BuildContext context) {
-                      return ListTile(
-                        title: Text(item.title ?? ''),
-                        subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.author ?? ''),
-                                FutureBuilder<String>(
-                                  future: imageCache.putIfAbsent(
-                                    item.link ?? '',
-                                    () => item.getFeaturedImage(),
-                                  ),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    return FadeInImage.assetNetwork(
-                                        placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-                                        placeholderCacheWidth: 1,
-                                        placeholderCacheHeight: 1, 
-                                        fadeInCurve: Curves.linear,
-                                        image: snapshot.data!
-                                      );
-                                  },
-                                )
-                              ]),
-                        onTap:() => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ArticlePage(article: item),
+                      return Stack(
+                        alignment: AlignmentDirectional.bottomCenter,
+                        children: <Widget>[
+                          GestureDetector(
+                            child: Container(
+                              child: FutureBuilder<String>(
+                                future: imageCache.putIfAbsent(
+                                  item.link ?? '',
+                                  () => item.getFeaturedImage(),
+                                ),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return FadeInImage.assetNetwork(
+                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                      placeholderCacheWidth: 1,
+                                      placeholderCacheHeight: 1, 
+                                      fadeInCurve: Curves.linear,
+                                      image: snapshot.data!
+                                    );
+                                },
                               )
                             ),
+                            onTap:() => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ArticlePage(article: item),
+                                          )
+                                        ),
+                          ),
+                          Container(
+                            color: Color.fromRGBO(128, 128, 128, 0.7),
+                            alignment: Alignment.center,
+                            constraints: BoxConstraints.tightForFinite(
+                              height: 75, 
+                            ),
+                            child: Text(
+                              item.title ?? '', 
+                              style: GoogleFonts.merriweather(
+                                textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                              )
+                            ),
+                          )
+                        ]
                       );
                     }
                   );
@@ -431,105 +449,105 @@ Widget build(BuildContext context) {
           if (_counter == 0)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('I am a...'),
-                      actions: [
-                        TextButton(
-                          child: const Text('Student'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Select your preferences"),
-                                content: Column(
-                                      children: [
-                                        SizedBox( //Show checklist dialog when student is clicked
-                                          height: 300.0,
-                                          width: double.maxFinite,
-                                          child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity: ListTileControlAffinity.leading,
-                                              );
-                                            }
-                                            ),
-                                          ),
-                                        TextButton(
-                                          onPressed: () {Navigator.pop(context);}, 
-                                          child: Text("Confirm")
-                                          )
-                                      ],
-                                    )
-                              ),
-                            );
-                          }
+              // child: ElevatedButton(
+              //   child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
+              //   onPressed: () {
+              //     showDialog(
+              //       context: context,
+              //       builder: (context) => AlertDialog(
+              //         title: const Text('I am a...'),
+              //         actions: [
+              //           TextButton(
+              //             child: const Text('Student'),
+              //             onPressed: () {
+              //               Navigator.pop(context);
+              //               showDialog(
+              //                 context: context,
+              //                 builder: (context) => AlertDialog(
+              //                   title: const Text("Select your preferences"),
+              //                   content: Column(
+              //                         children: [
+              //                           SizedBox( //Show checklist dialog when student is clicked
+              //                             height: 300.0,
+              //                             width: double.maxFinite,
+              //                             child: ListView.builder(
+              //                             itemCount: items.length,
+              //                             itemBuilder: (context, index) {
+              //                               final item = items[index];
+              //                               return CheckboxListTile(
+              //                                 title: Text(item.title),
+              //                                 value: item.isChecked,
+              //                                 onChanged: (bool? newValue) {
+              //                                   setState(() {
+              //                                     item.isChecked = newValue!;
+              //                                   });
+              //                                 },
+              //                                 activeColor: Colors.blue,
+              //                                 checkColor: Colors.blueGrey,
+              //                                 controlAffinity: ListTileControlAffinity.leading,
+              //                                 );
+              //                               }
+              //                               ),
+              //                             ),
+              //                           TextButton(
+              //                             onPressed: () {Navigator.pop(context);}, 
+              //                             child: Text("Confirm")
+              //                             )
+              //                         ],
+              //                       )
+              //                 ),
+              //               );
+              //             }
                           
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            makeParent();
-                             showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Select your preferences"),
-                                content: Column(
-                                      children: [
-                                        SizedBox( //Show checklist dialog when parent is clicked
-                                          height: 300.0,
-                                          width: double.maxFinite,
-                                          child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity: ListTileControlAffinity.leading,
-                                              );
-                                            }
-                                            ),
-                                          ),
-                                        TextButton(
-                                          onPressed: () {Navigator.pop(context);}, 
-                                          child: Text("Confirm")
-                                          )
-                                      ],
-                                    )
-                              ),
-                            );
-                          },
-                          child: const Text('Parent'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              //           ),
+              //           TextButton(
+              //             onPressed: () {
+              //               Navigator.pop(context);
+              //               makeParent();
+              //                showDialog(
+              //                 context: context,
+              //                 builder: (context) => AlertDialog(
+              //                   title: const Text("Select your preferences"),
+              //                   content: Column(
+              //                         children: [
+              //                           SizedBox( //Show checklist dialog when parent is clicked
+              //                             height: 300.0,
+              //                             width: double.maxFinite,
+              //                             child: ListView.builder(
+              //                             itemCount: items.length,
+              //                             itemBuilder: (context, index) {
+              //                               final item = items[index];
+              //                               return CheckboxListTile(
+              //                                 title: Text(item.title),
+              //                                 value: item.isChecked,
+              //                                 onChanged: (bool? newValue) {
+              //                                   setState(() {
+              //                                     item.isChecked = newValue!;
+              //                                   });
+              //                                 },
+              //                                 activeColor: Colors.blue,
+              //                                 checkColor: Colors.blueGrey,
+              //                                 controlAffinity: ListTileControlAffinity.leading,
+              //                                 );
+              //                               }
+              //                               ),
+              //                             ),
+              //                           TextButton(
+              //                             onPressed: () {Navigator.pop(context);}, 
+              //                             child: Text("Confirm")
+              //                             )
+              //                         ],
+              //                       )
+              //                 ),
+              //               );
+              //             },
+              //             child: const Text('Parent'),
+              //           ),
+              //         ],
+              //       ),
+              //     );
+              //   },
+              // ),
             ),
 
           Expanded(
