@@ -198,20 +198,24 @@ class _ArticlePageState extends State<ArticlePage> {
     Image image = Image.network(imageUrl);
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (_) {
-        return SizedBox(
-          width: image.width,
-          height: image.height,
-          child: PhotoView( // Image zooming
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            PhotoView( // Image zooming
             imageProvider: NetworkImage(imageUrl),
             backgroundDecoration: BoxDecoration(
-              color: Colors.transparent
+              color: Color.fromRGBO(0, 0, 0, 0.5)
             ),
             
-            loadingBuilder: (context, event) => Center(child: CircularProgressIndicator()),
+            loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
           ),
+          ]
         );
       },
     );
