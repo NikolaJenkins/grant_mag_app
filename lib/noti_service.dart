@@ -19,6 +19,13 @@ class NotiService {
   //INITIAlIZE
   Future<void> initNotification() async {
 
+    const AndroidNotificationChannel channel = AndroidNotificationChannel( //channel for android 8+
+      'default_channel',
+      'Default Notifications',
+      description: 'General notifications',
+      importance: Importance.high,
+    );
+
     print("Start of initNotification");
     print("Target platform: $defaultTargetPlatform");
     
