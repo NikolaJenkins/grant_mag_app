@@ -280,39 +280,93 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   final item = latestArticles[index];
 
-                  return ListTile(
-                    title: Text(item.title ?? ''),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
-                        Text(item.author ?? ''),
-                        FutureBuilder<String>(
-                          future: imageCache.putIfAbsent(
-                            item.link ?? '',
-                            () => item.getFeaturedImage(),
+                return Column(
+                  children: [
+                    Container(
+                            color: Color.fromRGBO(75, 75, 75, 0.7),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            constraints: BoxConstraints.tightForFinite(
+                              height: 75, 
+                            ),
+                            child: Text(
+                              item.title ?? '', 
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.merriweather(
+                                textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                              )
+                            ),
                           ),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return Image.network(
-                              snapshot.data!,
-                              fit: BoxFit.contain,
-                            );
-                          },
-                        ),
-                      ]),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ArticlePage(article: item),
-                        ),
-                      );
-                    },
-                  );
-                },            
+                    GestureDetector(
+                            child: Container(
+                              child: FutureBuilder<String>(
+                                future: imageCache.putIfAbsent(
+                                  item.link ?? '',
+                                  () => item.getFeaturedImage(),
+                                ),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return FadeInImage.assetNetwork(
+                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                      placeholderCacheWidth: 1,
+                                      placeholderCacheHeight: 1, 
+                                      fadeInCurve: Curves.linear,
+                                      image: snapshot.data!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    );
+                                },
+                              )
+                            ),
+                            onTap:() => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ArticlePage(article: item),
+                                          )
+                                        ),
+                          ),
+                  ]
+                );
+                //   return ListTile(
+                //     title: Text(item.title ?? ''),
+                //     subtitle: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+                //         Text(item.author ?? ''),
+                //         FutureBuilder<String>(
+                //           future: imageCache.putIfAbsent(
+                //             item.link ?? '',
+                //             () => item.getFeaturedImage(),
+                //           ),
+                //           builder: (context, snapshot) {
+                //             if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                //               return const SizedBox.shrink();
+                //             }
+                //             return Image.network(
+                //               snapshot.data!,
+                //               fit: BoxFit.contain,
+                //             );
+                //           },
+                //         ),
+                //       ]),
+                //     onTap: () {
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (_) => ArticlePage(article: item),
+                //         ),
+                //       );
+                //     },
+                //   );
+                // },            
+                }
               ),
 
               // ElevatedButton(
