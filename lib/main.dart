@@ -17,6 +17,8 @@ import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 
+
+
 import 'rss.dart';
 import 'search.dart';
 import 'bookmarks.dart';
@@ -27,14 +29,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async{ //initialize
+  debugPrint("app start");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await FirebaseMessaging.instance.requestPermission();
+  debugPrint("permission granted");
   String? token = await FirebaseMessaging.instance.getToken();
   debugPrint("FCM TOKEN: $token");
-  debugPrint("Firebase initialized successfully");
+  debugPrint("firebase initialized");
 
   NotiService().initNotification();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -331,10 +335,9 @@ class _HomePageState extends State<HomePage> {
         return GrantMagFeed(feed: _feed!);
 
       case 2:
-        return Center(child: Text('Content coming soon'));
-
+        return const Center(child: Text('data'));
       case 3:
-        return Center(child: Text('Content coming soon'));
+        return const Center(child: Text('Content coming soon'));
         
       case 4:
         if (_feed == null) {
