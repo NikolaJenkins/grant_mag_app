@@ -191,31 +191,8 @@ class _HomePageState extends State<HomePage> {
 
         return SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // ListTile(
-              //   title: Text(latestArticle?.title ?? ''),
-              //   subtitle: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //                 Text(latestArticle?.author ?? ''),
-              //                 FutureBuilder<String>(
-              //                   future: imageCache.putIfAbsent(
-              //                     '',
-              //                     () => latestImage ?? Future<String>(() => ''),
-              //                   ),
-              //                   builder: (context, snapshot) {
-              //                     return FadeInImage.assetNetwork(
-              //                         placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-              //                         placeholderCacheWidth: 1,
-              //                         placeholderCacheHeight: 1, 
-              //                         fadeInCurve: Curves.linear,
-              //                         image: snapshot.data ?? '',
-              //                       );
-              //                   },
-              //                 )
-              //               ]
-              //   )
-              // ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
                   return Builder(
@@ -239,7 +216,10 @@ class _HomePageState extends State<HomePage> {
                                       placeholderCacheWidth: 1,
                                       placeholderCacheHeight: 1, 
                                       fadeInCurve: Curves.linear,
-                                      image: snapshot.data!
+                                      image: snapshot.data!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
                                     );
                                 },
                               )
@@ -252,13 +232,15 @@ class _HomePageState extends State<HomePage> {
                                         ),
                           ),
                           Container(
-                            color: Color.fromRGBO(128, 128, 128, 0.7),
+                            color: Color.fromRGBO(75, 75, 75, 0.7),
                             alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
                             constraints: BoxConstraints.tightForFinite(
                               height: 75, 
                             ),
                             child: Text(
                               item.title ?? '', 
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.merriweather(
                                 textStyle: TextStyle(
                                             color: Colors.white,
@@ -333,37 +315,27 @@ class _HomePageState extends State<HomePage> {
                 },            
               ),
 
-              ElevatedButton(
-                child: Text('Open Dialogsssssss'),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('I am a...'),
-                      actions: [
-                        TextButton(
-                            child: Text('Student.'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.black),
-                            onPressed: () => Navigator.pop(context)),
-                        TextButton(
-                            child: Text('Parent'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.black),
-                            onPressed: () => Navigator.pop(context))
-                      ],
-                    ),
-                  );
-                },
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  NotiService().showNotification(
-                    notifId: 0,
-                    notifTitle: 'Did you commit today?',
-                    notifBody: 'Mr. Mandell won\'t be happy',
-                  );
-                },
-                child: const Text("Teachers"),
-              ),
+              // ElevatedButton(
+              //   child: Text('Open Dialogsssssss'),
+              //   onPressed: () {
+              //     showDialog(
+              //       context: context,
+              //       builder: (context) => AlertDialog(
+              //         title: Text('I am a...'),
+              //         actions: [
+              //           TextButton(
+              //               child: Text('Student.'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context)),
+              //           TextButton(
+              //               child: Text('Parent'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context))
+              //         ],
+              //       ),
+              //     );
+              //   },
+              // ),
             ],
           ),
         );
