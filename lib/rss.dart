@@ -205,16 +205,23 @@ class _ArticlePageState extends State<ArticlePage> {
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
             ),
-            PhotoView( // Image zooming
-            imageProvider: NetworkImage(imageUrl),
-            backgroundDecoration: BoxDecoration(
-              color: Color.fromRGBO(0, 0, 0, 0.5)
+            Dismissible(
+              key: UniqueKey(),
+              direction: DismissDirection.vertical,
+              onDismissed: (_) => Navigator.of(context).pop(),
+              child: ClipRRect(
+                child: PhotoView( // Image zooming
+                imageProvider: NetworkImage(imageUrl),
+                backgroundDecoration: BoxDecoration(
+                  color: Colors.transparent
+                ),
+                
+                loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 2,
+                          ),
+              ),
             ),
-            
-            loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
-            minScale: PhotoViewComputedScale.contained,
-            maxScale: PhotoViewComputedScale.covered * 2,
-          ),
           ]
         );
       },
