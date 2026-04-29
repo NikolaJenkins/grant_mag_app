@@ -197,11 +197,11 @@ class _HomePageState extends State<HomePage> {
                 items: carouselItems?.map((item) {
                   return Builder(
                     builder: (BuildContext context) {
-                      return Stack(
-                        alignment: AlignmentDirectional.bottomCenter,
-                        children: <Widget>[
-                          GestureDetector(
-                            child: Container(
+                      return GestureDetector(
+                        child: Stack(
+                          alignment: AlignmentDirectional.bottomCenter,
+                          children: <Widget>[
+                            Container(
                               child: FutureBuilder<String>(
                                 future: imageCache.putIfAbsent(
                                   item.link ?? '',
@@ -224,32 +224,32 @@ class _HomePageState extends State<HomePage> {
                                 },
                               )
                             ),
-                            onTap:() => Navigator.push(
+                            Container(
+                              color: Color.fromRGBO(50, 50, 50, 0.8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                              constraints: BoxConstraints.tightForFinite(
+                                height: 75, 
+                              ),
+                              child: Text(
+                                item.title ?? '', 
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.merriweather(
+                                  textStyle: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                )
+                              ),
+                            )
+                          ]
+                        ),
+                        onTap:() => Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (_) => ArticlePage(article: item),
                                           )
                                         ),
-                          ),
-                          Container(
-                            color: Color.fromRGBO(50, 50, 50, 0.8),
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            constraints: BoxConstraints.tightForFinite(
-                              height: 75, 
-                            ),
-                            child: Text(
-                              item.title ?? '', 
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.merriweather(
-                                textStyle: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                              )
-                            ),
-                          )
-                        ]
                       );
                     }
                   );
@@ -280,58 +280,58 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   final item = latestArticles[index];
 
-                return Column(
-                  children: [
-                    Container(
-                            color: Color.fromRGBO(25, 25, 25, 0.2),
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            constraints: BoxConstraints.tightForFinite(
-                              height: 75, 
+                return GestureDetector(
+                  child: Column(
+                    children: [
+                      Container(
+                              color: Color.fromRGBO(25, 25, 25, .9),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                              constraints: BoxConstraints.tightForFinite(
+                                height: 75, 
+                              ),
+                              child: Text(
+                                item.title ?? '', 
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.merriweather(
+                                  textStyle: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                )
+                              ),
                             ),
-                            child: Text(
-                              item.title ?? '', 
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.merriweather(
-                                textStyle: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                              )
-                            ),
+                      Container(
+                        child: FutureBuilder<String>(
+                          future: imageCache.putIfAbsent(
+                            item.link ?? '',
+                            () => item.getFeaturedImage(),
                           ),
-                    GestureDetector(
-                            child: Container(
-                              child: FutureBuilder<String>(
-                                future: imageCache.putIfAbsent(
-                                  item.link ?? '',
-                                  () => item.getFeaturedImage(),
-                                ),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return FadeInImage.assetNetwork(
-                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-                                      placeholderCacheWidth: 1,
-                                      placeholderCacheHeight: 1, 
-                                      fadeInCurve: Curves.linear,
-                                      image: snapshot.data!,
-                                      // fit: BoxFit.cover,
-                                      // width: double.infinity,
-                                      // height: double.infinity,
-                                    );
-                                },
-                              )
-                            ),
-                            onTap:() => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ArticlePage(article: item),
-                                          )
-                                        ),
-                          ),
-                  ]
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return FadeInImage.assetNetwork(
+                                placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                placeholderCacheWidth: 1,
+                                placeholderCacheHeight: 1, 
+                                fadeInCurve: Curves.linear,
+                                image: snapshot.data!,
+                                // fit: BoxFit.cover,
+                                // width: double.infinity,
+                                // height: double.infinity,
+                              );
+                          },
+                        )
+                      ),
+                    ]
+                  ),
+                  onTap:() => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ArticlePage(article: item),
+                    ),
+                  ),
                 );
                 //   return ListTile(
                 //     title: Text(item.title ?? ''),
