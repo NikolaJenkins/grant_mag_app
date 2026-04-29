@@ -17,17 +17,15 @@ import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'rss.dart';
 
-
-void main() async{ //initialize
+void main() async {
+  //initialize
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint("Firebase initialized successfully");
- // final fcmToken = await FirebaseMessaging.instance.getToken(); //this is the push notifs token setup
+  // final fcmToken = await FirebaseMessaging.instance.getToken(); //this is the push notifs token setup
 
   NotiService().initNotification();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -39,8 +37,10 @@ void main() async{ //initialize
   );
 }
 
-class GrantMagApp extends StatelessWidget { //base widget constructor
+class GrantMagApp extends StatelessWidget {
+  //base widget constructor
   const GrantMagApp({super.key});
+  final keyIsFirstLoaded = 'is_first_loaded';
   static const appTitle = 'Home Page';
 
   @override
@@ -51,32 +51,34 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(
+              255,
+              255,
+              255,
+              255,
+            ), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
-            textTheme: Theme.of(context).textTheme.apply(
-              fontSizeFactor: settingsModel.TextSize / 100
-          )
-        ),
-        home: HomePage(title: appTitle),
-        routes: {
-          '/homepage': (context) => const HomePage(title: appTitle),
-        },
-        title: appTitle,
-        );  
-      }
+            textTheme: Theme.of(
+              context,
+            ).textTheme.apply(fontSizeFactor: settingsModel.TextSize / 100),
+          ),
+          home: HomePage(title: appTitle),
+          routes: {'/homepage': (context) => const HomePage(title: appTitle)},
+          title: appTitle,
+        );
+      },
     );
   }
 }
 
-class HomePage extends StatefulWidget { //home page constructor
+class HomePage extends StatefulWidget {
+  //home page constructor
   const HomePage({super.key, required this.title});
 
   final String title;
 
   @override
   State<HomePage> createState() => _HomePageState();
-
-  
 }
 
 class _HomePageState extends State<HomePage> {
@@ -86,23 +88,71 @@ class _HomePageState extends State<HomePage> {
   List<String> notificationSelections = [];
 
   RssFeed? _feed;
-  
-  final FlutterLocalNotificationsPlugin notificationsPlugin = 
-  FlutterLocalNotificationsPlugin();
+
+  final FlutterLocalNotificationsPlugin notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     NotiService service = NotiService();
     service.initNotification();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkFirstSeen());
     loadFeed();
   }
 
+  Future<void> _checkFirstSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isFirstRun = prefs.getBool('isFirstRun') ?? true;
+
+    if (isFirstRun) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Select your preferences"),
+          content: Column(
+            children: [
+              SizedBox(
+                //Show checklist dialog when student is clicked
+                height: 300.0,
+                width: double.maxFinite,
+                child: ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return CheckboxListTile(
+                      title: Text(item.title),
+                      value: item.isChecked,
+                      onChanged: (bool? newValue) {
+                        setState(() {
+                          item.isChecked = newValue!;
+                        });
+                      },
+                      activeColor: Colors.blue,
+                      checkColor: Colors.blueGrey,
+                      controlAffinity: ListTileControlAffinity.leading,
+                    );
+                  },
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("Confirm"),
+              ),
+            ],
+          ),
+        ),
+      );
+      await prefs.setBool('isFirstRun', false);
+    }
+  }
 
   void makeStudent() {
     whoAreYou = 1;
   }
-  
+
   void makeParent() {
     whoAreYou = 2;
   }
@@ -110,12 +160,12 @@ class _HomePageState extends State<HomePage> {
   static const String FEED_URL = 'https://grantmagazine.com/feed/';
 
   Future<RssFeed> load() async {
-    try { 
+    try {
       final response = await http.get(Uri.parse(FEED_URL));
       return RssFeed.parse(response.body);
-    } catch (_) { 
-      return RssFeed(items: []); 
-    } 
+    } catch (_) {
+      return RssFeed(items: []);
+    }
   }
 
   Future<void> loadFeed() async {
@@ -132,19 +182,19 @@ class _HomePageState extends State<HomePage> {
     });
     return _selected;
   }
-  
+
   void showMultiSelect() async {
     List<String>? results = await showDialog(
-      context: context, 
+      context: context,
       builder: (BuildContext context) {
         return Text("");
-      }
+      },
     );
     results = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return Text("MultiSelect(items: items,);");
-      }
+      },
     );
 
     if (results != null) {
@@ -156,12 +206,12 @@ class _HomePageState extends State<HomePage> {
   final bool isAuthenticated = false;
   final List<int> colorCodes = <int>[600, 500, 100, 50];
   final List<Item> items = [
-      Item(title: 'Breaking News', isChecked: false),
-      Item(title: 'Culture', isChecked: false),
-      Item(title: 'Opinion', isChecked: false),
-      Item(title: 'Profiles', isChecked: false),
-      Item(title: 'Other/Updates', isChecked: false)
-    ];
+    Item(title: 'Breaking News', isChecked: false),
+    Item(title: 'Culture', isChecked: false),
+    Item(title: 'Opinion', isChecked: false),
+    Item(title: 'Profiles', isChecked: false),
+    Item(title: 'Other/Updates', isChecked: false),
+  ];
 
   bool _isChecked = false;
 
@@ -180,13 +230,19 @@ class _HomePageState extends State<HomePage> {
                       title: Text('I am a...'),
                       actions: [
                         TextButton(
-                            child: Text('Student.'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.black),
-                            onPressed: () => Navigator.pop(context)),
+                          child: Text('Student.'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.black,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                         TextButton(
-                            child: Text('Parent'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.black),
-                            onPressed: () => Navigator.pop(context))
+                          child: Text('Parent'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.black,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                       ],
                     ),
                   );
@@ -216,205 +272,215 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: CircularProgressIndicator());
         }
         return GrantMagBookmarks(feed: _feed!);
-            default:
-              return Center(child: Text('Content coming soon'));
-          }
-        }
+      default:
+        return Center(child: Text('Content coming soon'));
+    }
+  }
 
-@override
-Widget build(BuildContext context) {
-  return Consumer<SettingsModel>(
-    builder: (context, value, child) => Scaffold(
-      appBar: AppBar(
-        backgroundColor: value.ThemeLabel!.headerColor, 
-        title: const Text(GrantMagApp.appTitle),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.bento),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SettingsModel>(
+      builder: (context, value, child) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: value.ThemeLabel!.headerColor,
+          title: const Text(GrantMagApp.appTitle),
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.bento),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
           ),
         ),
-      ),
-      drawer: Drawer(
-        backgroundColor: value.ThemeLabel!.shelfColor,
-        child: ListView(
-          padding: EdgeInsets.zero,
+        drawer: Drawer(
+          backgroundColor: value.ThemeLabel!.shelfColor,
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.grey),
+                child: Text('Customization'),
+              ),
+              ListTile(
+                title: const Text('Settings'),
+                leading: const Icon(Icons.settings_outlined),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Profile'),
+                leading: const Icon(Icons.person_outline_outlined),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProfilePage()),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        body: Column(
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey),
-              child: Text('Customization'),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              leading: const Icon(Icons.settings_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsPage()),
+            if (_counter == 0)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('I am a...'),
+                        actions: [
+                          TextButton(
+                            child: const Text('Student'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Select your preferences"),
+                                  content: Column(
+                                    children: [
+                                      SizedBox(
+                                        //Show checklist dialog when student is clicked
+                                        height: 300.0,
+                                        width: double.maxFinite,
+                                        child: ListView.builder(
+                                          itemCount: items.length,
+                                          itemBuilder: (context, index) {
+                                            final item = items[index];
+                                            return CheckboxListTile(
+                                              title: Text(item.title),
+                                              value: item.isChecked,
+                                              onChanged: (bool? newValue) {
+                                                setState(() {
+                                                  item.isChecked = newValue!;
+                                                });
+                                              },
+                                              activeColor: Colors.blue,
+                                              checkColor: Colors.blueGrey,
+                                              controlAffinity:
+                                                  ListTileControlAffinity
+                                                      .leading,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text("Confirm"),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              makeParent();
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Select your preferences"),
+                                  content: Column(
+                                    children: [
+                                      SizedBox(
+                                        //Show checklist dialog when parent is clicked
+                                        height: 300.0,
+                                        width: double.maxFinite,
+                                        child: ListView.builder(
+                                          itemCount: items.length,
+                                          itemBuilder: (context, index) {
+                                            final item = items[index];
+                                            return CheckboxListTile(
+                                              title: Text(item.title),
+                                              value: item.isChecked,
+                                              onChanged: (bool? newValue) {
+                                                setState(() {
+                                                  item.isChecked = newValue!;
+                                                });
+                                              },
+                                              activeColor: Colors.blue,
+                                              checkColor: Colors.blueGrey,
+                                              controlAffinity:
+                                                  ListTileControlAffinity
+                                                      .leading,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text("Confirm"),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('Parent'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
+
+            Expanded(child: getBody()),
+          ],
+        ),
+
+        bottomNavigationBar: NavigationBar(
+          //nav bar for menu icons
+          onDestinationSelected: (index) => setState(() => _counter = index),
+          selectedIndex: _counter,
+          indicatorColor: Colors.amber,
+          labelTextStyle: WidgetStateProperty.all(
+            const TextStyle(fontSize: 11.0),
+          ),
+          destinations: const [
+            NavigationDestination(
+              selectedIcon: Icon(Icons.home),
+              icon: Icon(Icons.home_outlined),
+              label: 'Home',
             ),
-            ListTile(
-              title: const Text('Profile'),
-              leading: const Icon(Icons.person_outline_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ProfilePage()),
-              ),
+            NavigationDestination(
+              icon: Badge(child: Icon(Icons.newspaper_rounded)),
+              label: 'News',
+            ),
+            NavigationDestination(
+              icon: Badge(child: Icon(Icons.star)),
+              label: 'Features',
+            ),
+            NavigationDestination(
+              icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+              label: 'Opinion',
+            ),
+            NavigationDestination(
+              icon: Badge(child: Icon(Icons.bookmark)),
+              label: 'Bookmarks',
+            ),
+            NavigationDestination(
+              icon: Badge(child: Icon(Icons.search)),
+              label: 'Search',
             ),
           ],
         ),
       ),
-
-      body: Column(
-        children: [
-          if (_counter == 0)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('I am a...'),
-                      actions: [
-                        TextButton(
-                          child: const Text('Student'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Select your preferences"),
-                                content: Column(
-                                      children: [
-                                        SizedBox( //Show checklist dialog when student is clicked
-                                          height: 300.0,
-                                          width: double.maxFinite,
-                                          child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity: ListTileControlAffinity.leading,
-                                              );
-                                            }
-                                            ),
-                                          ),
-                                        TextButton(
-                                          onPressed: () {Navigator.pop(context);}, 
-                                          child: Text("Confirm")
-                                          )
-                                      ],
-                                    )
-                              ),
-                            );
-                          }
-                          
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            makeParent();
-                             showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Select your preferences"),
-                                content: Column(
-                                      children: [
-                                        SizedBox( //Show checklist dialog when parent is clicked
-                                          height: 300.0,
-                                          width: double.maxFinite,
-                                          child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity: ListTileControlAffinity.leading,
-                                              );
-                                            }
-                                            ),
-                                          ),
-                                        TextButton(
-                                          onPressed: () {Navigator.pop(context);}, 
-                                          child: Text("Confirm")
-                                          )
-                                      ],
-                                    )
-                              ),
-                            );
-                          },
-                          child: const Text('Parent'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-
-          Expanded(
-            child: getBody(),
-          ),
-        ],
-      ),
-
-      bottomNavigationBar: NavigationBar( //nav bar for menu icons
-        onDestinationSelected: (index) =>
-            setState(() => _counter = index),
-        selectedIndex: _counter,
-        indicatorColor: Colors.amber,
-        labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(
-            fontSize: 11.0,
-          )
-        ),
-        destinations: const [
-          NavigationDestination(
-              selectedIcon: Icon(Icons.home),
-              icon: Icon(Icons.home_outlined),
-              label: 'Home'),
-          NavigationDestination(
-              icon: Badge(child: Icon(Icons.newspaper_rounded)),
-              label: 'News'),
-          NavigationDestination(
-              icon: Badge(child: Icon(Icons.star)),
-              label: 'Features'),
-          NavigationDestination(
-              icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
-              label: 'Opinion'),
-          NavigationDestination(
-              icon: Badge(child: Icon(Icons.bookmark)),
-              label: 'Bookmarks'),
-          NavigationDestination(
-              icon: Badge(child: Icon(Icons.search)),
-              label: 'Search'),
-        ],
-      ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class CustomSearchDelegate extends SearchDelegate {
-
   List<String> titles = [
     'machine learning',
     'Ray Tate',
@@ -446,20 +512,21 @@ class CustomSearchDelegate extends SearchDelegate {
         onPressed: () {
           query = '';
         },
-        icon: const Icon(Icons.clear),)
+        icon: const Icon(Icons.clear),
+      ),
     ];
   }
-  
+
   @override
   Widget? buildLeading(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
-      onPressed:  () {
+      onPressed: () {
         close(context, null);
       },
     );
   }
-  
+
   @override
   Widget buildResults(BuildContext context) {
     List<String> matchQuery = [];
@@ -484,18 +551,16 @@ class CustomSearchDelegate extends SearchDelegate {
         matchQuery.add(fruit);
       }
     }
-    
+
     return ListView.builder(
       itemCount: matchQuery.length,
       itemBuilder: (context, index) {
         var result = matchQuery[index];
-        return ListTile(
-          title: Text(result),
-        );
+        return ListTile(title: Text(result));
       },
     );
   }
-  
+
   @override
   Widget buildSuggestions(BuildContext context) {
     List<String> matchQuery = [];
@@ -520,14 +585,12 @@ class CustomSearchDelegate extends SearchDelegate {
         matchQuery.add(fruit);
       }
     }
-    
+
     return ListView.builder(
       itemCount: matchQuery.length,
       itemBuilder: (context, index) {
         var result = matchQuery[index];
-        return ListTile(
-          title: Text(result),
-        );
+        return ListTile(title: Text(result));
       },
     );
   }
