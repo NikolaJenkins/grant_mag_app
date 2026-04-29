@@ -3,6 +3,7 @@
 import 'dart:collection';
 
 import 'package:http/http.dart' as http;
+import 'package:photo_view/photo_view.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
@@ -30,7 +31,8 @@ class CustomScrollPhysics extends BouncingScrollPhysics {
       damping: 25.0,    // higher = less oscillation
     );
 
-}
+}import 'dart:ui' as ui;
+
 
 class GrantMagFeed extends StatefulWidget { //primary builder
   final RssFeed feed;
@@ -210,6 +212,7 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 }
 
 class _ArticlePageState extends State<ArticlePage> {
+  bool _isInteracting = false;
   String? featuredImage;
   bool loadingImage = true;
   String? url;
@@ -222,20 +225,34 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 
   void _showLargeImage(BuildContext context, String imageUrl) {
+    Image image = Image.network(imageUrl);
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.all(2),
-          title: Container(
-            decoration: BoxDecoration(),
-            width: MediaQuery.of(context).size.width,
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.fitWidth
+      barrierDismissible: true,
+      builder: (_) {
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            Dismissible(
+              key: UniqueKey(),
+              direction: DismissDirection.vertical,
+              onDismissed: (_) => Navigator.of(context).pop(),
+              child: ClipRRect(
+                child: PhotoView( // Image zooming
+                imageProvider: NetworkImage(imageUrl),
+                backgroundDecoration: BoxDecoration(
+                  color: Colors.transparent
+                ),
+                
+                loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 2,
+                          ),
               ),
-          ),
+            ),
+          ]
         );
       },
     );
@@ -275,10 +292,10 @@ class _ArticlePageState extends State<ArticlePage> {
   }
   
   
+    //article list builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
-    bool _isInteracting = false;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
       debugPrint('HTML: ');
       debugPrint(html);
@@ -297,14 +314,13 @@ class _ArticlePageState extends State<ArticlePage> {
        body: SingleChildScrollView(
         physics: _isInteracting
         ? const NeverScrollableScrollPhysics()
-        : const AlwaysScrollableScrollPhysics()
-        ,
+        : const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (loadingImage) const LinearProgressIndicator(), //loading bar 
             if (!loadingImage && featuredImage != null)
-              GestureDetector( //makes featured images clickable using a GestureDetector
+              GestureDetector( //makes images clickable using a GestureDetector
                 onTap: () => _showLargeImage(context, featuredImage!),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -330,32 +346,18 @@ class _ArticlePageState extends State<ArticlePage> {
                       return Padding( //padding details for imgs
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child:
-                        GestureDetector(
-                          onScaleStart: (_) {},
-                          behavior: HitTestBehavior.translucent,
-                          onTap: () => _showLargeImage(this.context, src),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: InteractiveViewer(
-                                panEnabled: true,
-                                scaleEnabled: true,
-                                //clipBehavior: Clip.none,
-                                minScale: 1,
-                                maxScale: 4.0,
-                                onInteractionStart: (_) {
-                                  setState(() => _isInteracting = true);
-                                },
-                                onInteractionEnd: (_) {
-                                  setState(() => _isInteracting = false);
-                                },
-                                child: Image.network(
-                                  src,
-                                  width: screenWidth,
-                                  fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
-                              ),
-                            ),
-                          )
-                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: GestureDetector(
+                            onTap: () => _showLargeImage(this.context, src),
+                            child: Image.network(
+                              src,
+                              width: screenWidth,
+                              fit: BoxFit.fitWidth,
+                               //uses flutter boxfit for proper aspect ratio rendering
+                                                          ),
+                          ),
+                                                  ),
                       );
                     },
                   ),
@@ -423,5 +425,161 @@ extension ImageParsing on RssItem {
     //   caseSensitive: false,
     // ).firstMatch(html);
     return featuredImage; //error catch
+  }
+}
+
+class GrantMagBookmarks extends StatefulWidget {
+  final RssFeed feed;
+
+  const GrantMagBookmarks({required this.feed, super.key});
+
+  @override 
+  State<GrantMagBookmarks> createState() => GrantMagBookmarksState();
+}
+
+class GrantMagBookmarksState extends State<GrantMagBookmarks> {
+  List<String> bookmarks = [];
+  Map<String, int> bookmarkDates = {};
+  String bookmarkSort = "Publish Date";
+
+  @override
+  void initState() {
+    super.initState();
+    loadBookmarks();
+  }
+
+  Future<void> loadBookmarks() async {
+    final prefs = await SharedPreferences.getInstance(); //across multiple instances bookmark list 
+
+    final links = prefs.getStringList('bookmarks') ?? [];
+    final dates = prefs.getStringList('bookmark_dates') ?? [];
+
+    Map<String, int> tempMap = {};
+
+    for (int i = 0; i < links.length; i++) {
+      tempMap[links[i]] = int.tryParse(dates[i]) ?? 0;
+    }
+
+    setState(() {
+      bookmarks = links;
+      bookmarkDates = tempMap;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var bookmarkedItems = widget.feed.items
+        ?.where((item) => bookmarks.contains(item.link)) //sends sorted items to list
+        .toList() ?? [];
+      
+    if (bookmarkSort == 'Publish Date') {
+      bookmarkedItems.sort((a, b) => 
+          (b.pubDate ?? DateTime(0)).compareTo(a.pubDate ?? DateTime(0)));
+
+    } 
+    
+    else if (bookmarkSort == 'Bookmark Date') {
+      bookmarkedItems.sort((a, b) {
+        final aDate = bookmarkDates[a.link] ?? 0;
+        final bDate = bookmarkDates[b.link] ?? 0;
+        return bDate.compareTo(aDate); // newest first
+      });
+
+    } 
+    
+    else if (bookmarkSort == 'Article Name') {
+      bookmarkedItems.sort((a, b) =>
+          (a.title ?? '').compareTo(b.title ?? ''));
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, 
+          children: [
+            const Text("Bookmarked Articles"),
+            Text(bookmarkSort, style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+        actions: [
+          PopupMenuButton<String>( //sorting button dropdown
+            onSelected: (value) {
+              setState(() {
+                bookmarkSort = value;
+              });
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'Publish Date', child: Text('Publish Date')),
+              const PopupMenuItem(value: 'Bookmark Date', child: Text('Bookmark Date')),
+              const PopupMenuItem(value: 'Article Name', child: Text('Article Name')),
+            ],
+          ),
+        ]
+      ),
+      
+      body: bookmarkedItems.isEmpty
+          ? const Center(child: Text("No bookmarks yet"))
+          : ListView.builder(
+              itemCount: bookmarkedItems.length,
+              itemBuilder: (context, index) {
+                final item = bookmarkedItems[index];
+                return Dismissible(
+                  key: Key(item.link ?? index.toString()),
+                  direction: DismissDirection.endToStart, // swipe left
+                  background: Container(
+                    color: Colors.red[300],
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                  onDismissed: (direction) async {
+                    final prefs = await SharedPreferences.getInstance();
+
+                    final links = prefs.getStringList('bookmarks') ?? [];
+                    final dates = prefs.getStringList('bookmark_dates') ?? [];
+
+                    final link = item.link;
+                    if (link == null) return;
+
+                    final index = links.indexOf(link);
+                    if (index != -1) {
+                      links.removeAt(index);
+                      if (index < dates.length) {
+                        dates.removeAt(index);
+                      }
+
+                      await prefs.setStringList('bookmarks', links);
+                      await prefs.setStringList('bookmark_dates', dates);
+                      prefs.remove('bookmark_title_$link');
+                    }
+
+                    setState(() {
+                      bookmarks.remove(link);
+                      bookmarkDates.remove(link);
+                    });
+                  },
+                  child:
+                ListTile(
+                  title: Text(item.title ?? ''),
+                  subtitle: Text(
+                    () {
+                      final time = bookmarkDates[item.link ?? ''];
+                      if (time == null || time == 0) return '';
+                      final date = DateTime.fromMillisecondsSinceEpoch(time);
+                      return "Saved ${date.month}/${date.day}/${date.year}";
+                    }(),
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ArticlePage(article: item),
+                    ),
+                  ),
+                ),
+                );
+              },
+            ),
+    );
   }
 }
