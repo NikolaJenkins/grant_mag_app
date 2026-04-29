@@ -24,17 +24,24 @@ import 'opinion.dart';
 import 'bookmarks.dart';
 import 'search.dart';
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint("BG message: ${message.notification?.title}");
+}
 
 void main() async{ //initialize
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FirebaseMessaging.instance.requestPermission();
+  String? token = await FirebaseMessaging.instance.getToken();
+  debugPrint("FCM TOKEN: $token");
   debugPrint("Firebase initialized successfully");
- // final fcmToken = await FirebaseMessaging.instance.getToken(); //this is the push notifs token setup
 
   NotiService().initNotification();
-  
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   runApp(
     MultiProvider(
       providers: [
@@ -58,7 +65,7 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(255, 142, 141, 141), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
@@ -105,6 +112,25 @@ class _HomePageState extends State<HomePage> {
     NotiService service = NotiService();
     service.initNotification();
     super.initState();
+
+        // FOREGROUND messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final notif = message.notification;
+      if (notif != null) {
+        service.showNotification(
+          notifId: notif.hashCode,
+          notifTitle: notif.title ?? "New Notification",
+          notifBody: notif.body ?? "",
+        );
+      }
+    });
+
+    // When user taps notification (app in background)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint("Notification clicked!");
+      // you can navigate here later
+    });
+
     loadFeed();
   }
 
@@ -592,6 +618,7 @@ Widget build(BuildContext context) {
             fontSize: 11.0,
           )
         ),
+        backgroundColor: Color.fromARGB(255, 189, 189, 189),
         destinations: const [
           NavigationDestination(
               selectedIcon: Icon(Icons.home),

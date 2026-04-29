@@ -3,6 +3,7 @@
 import 'dart:collection';
 
 import 'package:http/http.dart' as http;
+import 'package:photo_view/photo_view.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
@@ -11,7 +12,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'dart:ui' as ui;
 class CustomScrollPhysics extends BouncingScrollPhysics {
   const CustomScrollPhysics({super.parent});
 
@@ -26,16 +27,12 @@ class CustomScrollPhysics extends BouncingScrollPhysics {
   @override
   SpringDescription get spring => const SpringDescription(
       mass: 1.0,
-      stiffness: 60.0, // end bounce simulation: lower = slower bounce
+      stiffness: 60.0, // lower = slower bounce
       damping: 25.0,    // higher = less oscillation
     );
 
-  @override
-    double applyBoundaryConditions(ScrollMetrics position, double value) {
-      final overscroll = super.applyBoundaryConditions(position, value);
-      return overscroll * 0.5; // caps how far it can stretch
-    }
 }
+
 
 class GrantMagFeed extends StatefulWidget { //primary builder
   final RssFeed feed;
@@ -57,13 +54,6 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   @override
   void initState() {
     super.initState();
-    loadBookmarks();
-  }
-
-    Future<void> loadBookmarks() async {
-      final prefs = await SharedPreferences.getInstance();
-      List<String> storedBookmarks = prefs.getStringList('bookmarks') ?? []; //sharedPref mirror
-    setState(() {bookmarks = storedBookmarks;});
   }
 
 
@@ -130,12 +120,22 @@ Widget list() { //article list builder
                   () => item.getFeaturedImage(),
                 ),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-                  return Image.network(
-                    snapshot.data!,
-                    fit: BoxFit.contain,
+                  return AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: snapshot.hasData && snapshot.data!.isNotEmpty
+                        ? Image.network(
+                            snapshot.data!,
+                            fit: BoxFit.cover,
+                            frameBuilder: (context, child, frame, wasSyncLoaded) {
+                              if (wasSyncLoaded) return child;
+                              return AnimatedOpacity(
+                                opacity: frame == null ? 0 : 1,
+                                duration: const Duration(milliseconds: 300),
+                                child: child,
+                              );
+                            },
+                          )
+                        : Container(color: Colors.grey[300]),
                   );
                 },
               )
@@ -205,6 +205,7 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 }
 
 class _ArticlePageState extends State<ArticlePage> {
+  bool _isInteracting = false;
   String? featuredImage;
   bool loadingImage = true;
   String? url;
@@ -217,20 +218,34 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 
   void _showLargeImage(BuildContext context, String imageUrl) {
+    Image image = Image.network(imageUrl);
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.all(2),
-          title: Container(
-            decoration: BoxDecoration(),
-            width: MediaQuery.of(context).size.width,
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.fitWidth
+      barrierDismissible: true,
+      builder: (_) {
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            Dismissible(
+              key: UniqueKey(),
+              direction: DismissDirection.vertical,
+              onDismissed: (_) => Navigator.of(context).pop(),
+              child: ClipRRect(
+                child: PhotoView( // Image zooming
+                imageProvider: NetworkImage(imageUrl),
+                backgroundDecoration: BoxDecoration(
+                  color: Colors.transparent
+                ),
+                
+                loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 2,
+                          ),
               ),
-          ),
+            ),
+          ]
         );
       },
     );
@@ -270,10 +285,10 @@ class _ArticlePageState extends State<ArticlePage> {
   }
   
   
+    //article list builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
-    bool _isInteracting = false;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
       debugPrint('HTML: ');
       debugPrint(html);
@@ -292,14 +307,13 @@ class _ArticlePageState extends State<ArticlePage> {
        body: SingleChildScrollView(
         physics: _isInteracting
         ? const NeverScrollableScrollPhysics()
-        : const AlwaysScrollableScrollPhysics()
-        ,
+        : const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (loadingImage) const LinearProgressIndicator(), //loading bar 
             if (!loadingImage && featuredImage != null)
-              GestureDetector( //makes featured images clickable using a GestureDetector
+              GestureDetector( //makes images clickable using a GestureDetector
                 onTap: () => _showLargeImage(context, featuredImage!),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -325,32 +339,18 @@ class _ArticlePageState extends State<ArticlePage> {
                       return Padding( //padding details for imgs
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child:
-                        GestureDetector(
-                          onScaleStart: (_) {},
-                          behavior: HitTestBehavior.translucent,
-                          onTap: () => _showLargeImage(this.context, src),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: InteractiveViewer(
-                                panEnabled: true,
-                                scaleEnabled: true,
-                                //clipBehavior: Clip.none,
-                                minScale: 1,
-                                maxScale: 4.0,
-                                onInteractionStart: (_) {
-                                  setState(() => _isInteracting = true);
-                                },
-                                onInteractionEnd: (_) {
-                                  setState(() => _isInteracting = false);
-                                },
-                                child: Image.network(
-                                  src,
-                                  width: screenWidth,
-                                  fit: BoxFit.fitWidth, //uses flutter boxfit for proper aspect ratio rendering
-                              ),
-                            ),
-                          )
-                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: GestureDetector(
+                            onTap: () => _showLargeImage(this.context, src),
+                            child: Image.network(
+                              src,
+                              width: screenWidth,
+                              fit: BoxFit.fitWidth,
+                               //uses flutter boxfit for proper aspect ratio rendering
+                                                          ),
+                          ),
+                                                  ),
                       );
                     },
                   ),
