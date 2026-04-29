@@ -232,7 +232,7 @@ class _HomePageState extends State<HomePage> {
                                         ),
                           ),
                           Container(
-                            color: Color.fromRGBO(75, 75, 75, 0.7),
+                            color: Color.fromRGBO(50, 50, 50, 0.8),
                             alignment: Alignment.center,
                             padding: const EdgeInsets.symmetric(horizontal: 10.0),
                             constraints: BoxConstraints.tightForFinite(
@@ -283,7 +283,7 @@ class _HomePageState extends State<HomePage> {
                 return Column(
                   children: [
                     Container(
-                            color: Color.fromRGBO(75, 75, 75, 0.7),
+                            color: Color.fromRGBO(25, 25, 25, 0.2),
                             alignment: Alignment.center,
                             padding: const EdgeInsets.symmetric(horizontal: 10.0),
                             constraints: BoxConstraints.tightForFinite(
@@ -317,9 +317,9 @@ class _HomePageState extends State<HomePage> {
                                       placeholderCacheHeight: 1, 
                                       fadeInCurve: Curves.linear,
                                       image: snapshot.data!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: double.infinity,
+                                      // fit: BoxFit.cover,
+                                      // width: double.infinity,
+                                      // height: double.infinity,
                                     );
                                 },
                               )
