@@ -60,9 +60,12 @@ Widget list() { //article list builder
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const SizedBox.shrink();
                   }
-                  return Image.network(
-                    snapshot.data!,
-                    fit: BoxFit.contain,
+                  return AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Image.network(
+                      snapshot.data!,
+                      fit: BoxFit.cover,
+                    ),
                   );
                 },
               )

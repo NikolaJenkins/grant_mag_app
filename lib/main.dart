@@ -292,6 +292,22 @@ class _HomePageState extends State<HomePage> {
                 )
               ),
 
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Container(
+                  color: Color.fromRGBO(25, 25, 25, .9),
+                  padding: EdgeInsets.all(20.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Recent Articles",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.merriweather(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold)
+                    ),
+                  ),
+              ),
+
               GridView.builder(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: latestArticles.length,
@@ -306,56 +322,58 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   final item = latestArticles[index];
 
-                return GestureDetector(
-                  child: Column(
-                    children: [
-                      Container(
-                              color: Color.fromRGBO(25, 25, 25, .9),
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                              constraints: BoxConstraints.tightForFinite(
-                                height: 75, 
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(20.0),
+                  child: GestureDetector(
+                    child: Column(
+                      children: [
+                        Container(
+                                color: Color.fromRGBO(25, 25, 25, .9),
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                constraints: BoxConstraints.tightForFinite(
+                                  height: 75, 
+                                ),
+                                child: Text(
+                                  item.title ?? '', 
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.merriweather(
+                                    textStyle: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                  )
+                                ),
                               ),
-                              child: Text(
-                                item.title ?? '', 
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.merriweather(
-                                  textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                )
-                              ),
+                        Container(
+                          height: 299,
+                          child: FutureBuilder<String>(
+                            future: imageCache.putIfAbsent(
+                              item.link ?? '',
+                              () => item.getFeaturedImage(),
                             ),
-                      Container(
-                        child: FutureBuilder<String>(
-                          future: imageCache.putIfAbsent(
-                            item.link ?? '',
-                            () => item.getFeaturedImage(),
-                          ),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            return FadeInImage.assetNetwork(
-                                placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-                                placeholderCacheWidth: 1,
-                                placeholderCacheHeight: 1, 
-                                fadeInCurve: Curves.linear,
-                                image: snapshot.data!,
-                                // fit: BoxFit.cover,
-                                // width: double.infinity,
-                                // height: double.infinity,
-                              );
-                          },
-                        )
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return FadeInImage.assetNetwork(
+                                  placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                  placeholderCacheWidth: 1,
+                                  placeholderCacheHeight: 1, 
+                                  fadeInCurve: Curves.linear,
+                                  image: snapshot.data!,
+                                  fit: BoxFit.cover,
+                                );
+                            },
+                          )
+                        ),
+                      ]
+                    ),
+                    onTap:() => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ArticlePage(article: item),
                       ),
-                    ]
-                  ),
-                  onTap:() => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ArticlePage(article: item),
                     ),
                   ),
                 );
