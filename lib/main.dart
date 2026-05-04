@@ -477,7 +477,16 @@ Widget build(BuildContext context) {
     builder: (context, value, child) => Scaffold(
       appBar: AppBar(
         backgroundColor: value.ThemeLabel!.headerColor, 
-        title: const Text(GrantMagApp.appTitle),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Align(
+          alignment: Alignment(-0.4,0.0),
+          child: const Text(GrantMagApp.appTitle, 
+            style: TextStyle(
+              fontFamily: 'Georgia'
+              ),
+           ),
+        ),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.bento),
