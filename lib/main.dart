@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -10,21 +11,36 @@ import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 // import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
-import 'rss.dart';
 
-void main() async {
-  //initialize
+import 'rss.dart';
+import 'featured.dart';
+import 'opinion.dart';
+import 'bookmarks.dart';
+import 'search.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint("BG message: ${message.notification?.title}");
+}
+
+void main() async{ //initialize
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FirebaseMessaging.instance.requestPermission();
+  String? token = await FirebaseMessaging.instance.getToken();
+  debugPrint("FCM TOKEN: $token");
   debugPrint("Firebase initialized successfully");
-  // final fcmToken = await FirebaseMessaging.instance.getToken(); //this is the push notifs token setup
 
   NotiService().initNotification();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
     MultiProvider(
@@ -71,9 +87,8 @@ class GrantMagApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  //home page constructor
-  const HomePage({super.key, required this.title});
+class HomePage extends StatefulWidget { //home page constructor
+  const HomePage({required this.title, super.key});
 
   final String title;
 
@@ -88,15 +103,37 @@ class _HomePageState extends State<HomePage> {
   List<String> notificationSelections = [];
 
   RssFeed? _feed;
+  
+  final FlutterLocalNotificationsPlugin notificationsPlugin = 
+  FlutterLocalNotificationsPlugin();
 
-  final FlutterLocalNotificationsPlugin notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final Map<String, Future<String>> imageCache = {};
+  CarouselSliderController articleCarouselController = CarouselSliderController();
 
   @override
   void initState() {
     NotiService service = NotiService();
     service.initNotification();
     super.initState();
+
+        // FOREGROUND messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final notif = message.notification;
+      if (notif != null) {
+        service.showNotification(
+          notifId: notif.hashCode,
+          notifTitle: notif.title ?? "New Notification",
+          notifBody: notif.body ?? "",
+        );
+      }
+    });
+
+    // When user taps notification (app in background)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint("Notification clicked!");
+      // you can navigate here later
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkFirstSeen());
     loadFeed();
   }
@@ -218,46 +255,218 @@ class _HomePageState extends State<HomePage> {
   Widget getBody() {
     switch (_counter) {
       case 0:
+
+        // gets latest four articles
+        final latestArticles = _feed?.items?.take(4).toList() ?? [];
+      
+        // gets articles with carousel category
+        final carouselItems = _feed?.items
+                    ?.where((item) =>
+                      (item.categories?.map((c) => c.value).join(', ') ?? '').toLowerCase().contains('Carousel'.toLowerCase())
+                    )
+                .toList();
+
         return SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              ElevatedButton(
-                child: Text('Open Dialogsssssss'),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('I am a...'),
-                      actions: [
-                        TextButton(
-                          child: Text('Student.'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.black,
+              CarouselSlider(
+                items: carouselItems?.map((item) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return Stack(
+                        alignment: AlignmentDirectional.bottomCenter,
+                        children: <Widget>[
+                          GestureDetector(
+                            child: Container(
+                              child: FutureBuilder<String>(
+                                future: imageCache.putIfAbsent(
+                                  item.link ?? '',
+                                  () => item.getFeaturedImage(),
+                                ),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return FadeInImage.assetNetwork(
+                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                      placeholderCacheWidth: 1,
+                                      placeholderCacheHeight: 1, 
+                                      fadeInCurve: Curves.linear,
+                                      image: snapshot.data!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    );
+                                },
+                              )
+                            ),
+                            onTap:() => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ArticlePage(article: item),
+                                          )
+                                        ),
                           ),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        TextButton(
-                          child: Text('Parent'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.black,
+                          Container(
+                            color: Color.fromRGBO(50, 50, 50, 0.8),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            constraints: BoxConstraints.tightForFinite(
+                              height: 75, 
+                            ),
+                            child: Text(
+                              item.title ?? '', 
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.merriweather(
+                                textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                              )
+                            ),
+                          )
+                        ]
+                      );
+                    }
+                  );
+                }).toList(),
+                carouselController: articleCarouselController,
+                options: CarouselOptions(
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 6),
+                  enlargeCenterPage: false,
+                  viewportFraction: 1.0,
+                  height: 300.0,
+                  aspectRatio: 9.0 / 16.0,
+                  initialPage: 0,
+                )
+              ),
+
+              GridView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: latestArticles.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 5.0,
+                  mainAxisSpacing: 5.0,
+                  childAspectRatio: 0.5,
+                ),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final item = latestArticles[index];
+
+                return Column(
+                  children: [
+                    Container(
+                            color: Color.fromRGBO(25, 25, 25, 0.2),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            constraints: BoxConstraints.tightForFinite(
+                              height: 75, 
+                            ),
+                            child: Text(
+                              item.title ?? '', 
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.merriweather(
+                                textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                              )
+                            ),
                           ),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                    GestureDetector(
+                            child: Container(
+                              child: FutureBuilder<String>(
+                                future: imageCache.putIfAbsent(
+                                  item.link ?? '',
+                                  () => item.getFeaturedImage(),
+                                ),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return FadeInImage.assetNetwork(
+                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                      placeholderCacheWidth: 1,
+                                      placeholderCacheHeight: 1, 
+                                      fadeInCurve: Curves.linear,
+                                      image: snapshot.data!,
+                                      // fit: BoxFit.cover,
+                                      // width: double.infinity,
+                                      // height: double.infinity,
+                                    );
+                                },
+                              )
+                            ),
+                            onTap:() => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ArticlePage(article: item),
+                                          )
+                                        ),
+                          ),
+                  ]
+                );
+                //   return ListTile(
+                //     title: Text(item.title ?? ''),
+                //     subtitle: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+                //         Text(item.author ?? ''),
+                //         FutureBuilder<String>(
+                //           future: imageCache.putIfAbsent(
+                //             item.link ?? '',
+                //             () => item.getFeaturedImage(),
+                //           ),
+                //           builder: (context, snapshot) {
+                //             if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                //               return const SizedBox.shrink();
+                //             }
+                //             return Image.network(
+                //               snapshot.data!,
+                //               fit: BoxFit.contain,
+                //             );
+                //           },
+                //         ),
+                //       ]),
+                //     onTap: () {
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (_) => ArticlePage(article: item),
+                //         ),
+                //       );
+                //     },
+                //   );
+                // },            
+                }
               ),
-              ElevatedButton(
-                onPressed: () {
-                  NotiService().showNotification(
-                    notifId: 0,
-                    notifTitle: 'Did you commit today?',
-                    notifBody: 'Mr. Mandell won\'t be happy',
-                  );
-                },
-                child: const Text("Teachers"),
-              ),
+
+              // ElevatedButton(
+              //   child: Text('Open Dialogsssssss'),
+              //   onPressed: () {
+              //     showDialog(
+              //       context: context,
+              //       builder: (context) => AlertDialog(
+              //         title: Text('I am a...'),
+              //         actions: [
+              //           TextButton(
+              //               child: Text('Student.'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context)),
+              //           TextButton(
+              //               child: Text('Parent'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context))
+              //         ],
+              //       ),
+              //     );
+              //   },
+              // ),
             ],
           ),
         );
@@ -267,188 +476,200 @@ class _HomePageState extends State<HomePage> {
         }
         return GrantMagFeed(feed: _feed!);
 
+      case 2:
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return FeaturedArticles(feed: _feed!);
+
+      case 3:
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return OpinionatedArticles(feed: _feed!);
+        
       case 4:
         if (_feed == null) {
           return const Center(child: CircularProgressIndicator());
         }
         return GrantMagBookmarks(feed: _feed!);
+
       default:
-        return Center(child: Text('Content coming soon'));
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return GrantMagSearch(feed: _feed!,);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<SettingsModel>(
-      builder: (context, value, child) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: value.ThemeLabel!.headerColor,
-          title: const Text(GrantMagApp.appTitle),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.bento),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-          ),
-        ),
-        drawer: Drawer(
-          backgroundColor: value.ThemeLabel!.shelfColor,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(color: Colors.grey),
-                child: Text('Customization'),
-              ),
-              ListTile(
-                title: const Text('Settings'),
-                leading: const Icon(Icons.settings_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SettingsPage()),
-                ),
-              ),
-              ListTile(
-                title: const Text('Profile'),
-                leading: const Icon(Icons.person_outline_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProfilePage()),
-                ),
-              ),
-            ],
-          ),
-        ),
 
-        body: Column(
+@override
+Widget build(BuildContext context) {
+  
+  return Consumer<SettingsModel>(
+    builder: (context, value, child) => Scaffold(
+      appBar: AppBar(
+        backgroundColor: value.ThemeLabel!.headerColor, 
+        title: const Text(GrantMagApp.appTitle),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.bento),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
+      drawer: Drawer(
+        backgroundColor: value.ThemeLabel!.shelfColor,
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            if (_counter == 0)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('I am a...'),
-                        actions: [
-                          TextButton(
-                            child: const Text('Student'),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text("Select your preferences"),
-                                  content: Column(
-                                    children: [
-                                      SizedBox(
-                                        //Show checklist dialog when student is clicked
-                                        height: 300.0,
-                                        width: double.maxFinite,
-                                        child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity:
-                                                  ListTileControlAffinity
-                                                      .leading,
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text("Confirm"),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              makeParent();
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text("Select your preferences"),
-                                  content: Column(
-                                    children: [
-                                      SizedBox(
-                                        //Show checklist dialog when parent is clicked
-                                        height: 300.0,
-                                        width: double.maxFinite,
-                                        child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity:
-                                                  ListTileControlAffinity
-                                                      .leading,
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text("Confirm"),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text('Parent'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.grey),
+              child: Text('Customization'),
+            ),
+            ListTile(
+              title: const Text('Settings'),
+              leading: const Icon(Icons.settings_outlined),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsPage()),
               ),
+            ),
+            ListTile(
+              title: const Text('Profile'),
+              leading: const Icon(Icons.person_outline_outlined),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ProfilePage()),
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      body: Column(
+        children: [
+          if (_counter == 0)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              // child: ElevatedButton(
+              //   child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
+              //   onPressed: () {
+              //     showDialog(
+              //       context: context,
+              //       builder: (context) => AlertDialog(
+              //         title: const Text('I am a...'),
+              //         actions: [
+              //           TextButton(
+              //             child: const Text('Student'),
+              //             onPressed: () {
+              //               Navigator.pop(context);
+              //               showDialog(
+              //                 context: context,
+              //                 builder: (context) => AlertDialog(
+              //                   title: const Text("Select your preferences"),
+              //                   content: Column(
+              //                         children: [
+              //                           SizedBox( //Show checklist dialog when student is clicked
+              //                             height: 300.0,
+              //                             width: double.maxFinite,
+              //                             child: ListView.builder(
+              //                             itemCount: items.length,
+              //                             itemBuilder: (context, index) {
+              //                               final item = items[index];
+              //                               return CheckboxListTile(
+              //                                 title: Text(item.title),
+              //                                 value: item.isChecked,
+              //                                 onChanged: (bool? newValue) {
+              //                                   setState(() {
+              //                                     item.isChecked = newValue!;
+              //                                   });
+              //                                 },
+              //                                 activeColor: Colors.blue,
+              //                                 checkColor: Colors.blueGrey,
+              //                                 controlAffinity: ListTileControlAffinity.leading,
+              //                                 );
+              //                               }
+              //                               ),
+              //                             ),
+              //                           TextButton(
+              //                             onPressed: () {Navigator.pop(context);}, 
+              //                             child: Text("Confirm")
+              //                             )
+              //                         ],
+              //                       )
+              //                 ),
+              //               );
+              //             }
+                          
+              //           ),
+              //           TextButton(
+              //             onPressed: () {
+              //               Navigator.pop(context);
+              //               makeParent();
+              //                showDialog(
+              //                 context: context,
+              //                 builder: (context) => AlertDialog(
+              //                   title: const Text("Select your preferences"),
+              //                   content: Column(
+              //                         children: [
+              //                           SizedBox( //Show checklist dialog when parent is clicked
+              //                             height: 300.0,
+              //                             width: double.maxFinite,
+              //                             child: ListView.builder(
+              //                             itemCount: items.length,
+              //                             itemBuilder: (context, index) {
+              //                               final item = items[index];
+              //                               return CheckboxListTile(
+              //                                 title: Text(item.title),
+              //                                 value: item.isChecked,
+              //                                 onChanged: (bool? newValue) {
+              //                                   setState(() {
+              //                                     item.isChecked = newValue!;
+              //                                   });
+              //                                 },
+              //                                 activeColor: Colors.blue,
+              //                                 checkColor: Colors.blueGrey,
+              //                                 controlAffinity: ListTileControlAffinity.leading,
+              //                                 );
+              //                               }
+              //                               ),
+              //                             ),
+              //                           TextButton(
+              //                             onPressed: () {Navigator.pop(context);}, 
+              //                             child: Text("Confirm")
+              //                             )
+              //                         ],
+              //                       )
+              //                 ),
+              //               );
+              //             },
+              //             child: const Text('Parent'),
+              //           ),
+              //         ],
+              //       ),
+              //     );
+              //   },
+              // ),
+            ),
 
             Expanded(child: getBody()),
           ],
         ),
 
-        bottomNavigationBar: NavigationBar(
-          //nav bar for menu icons
-          onDestinationSelected: (index) => setState(() => _counter = index),
-          selectedIndex: _counter,
-          indicatorColor: Colors.amber,
-          labelTextStyle: WidgetStateProperty.all(
-            const TextStyle(fontSize: 11.0),
-          ),
-          destinations: const [
-            NavigationDestination(
+      bottomNavigationBar: NavigationBar( //nav bar for menu icons
+        onDestinationSelected: (index) =>
+            setState(() => _counter = index),
+        selectedIndex: _counter,
+        indicatorColor: Colors.amber,
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(
+            fontSize: 11.0,
+          )
+        ),
+        backgroundColor: Color.fromARGB(255, 189, 189, 189),
+        destinations: const [
+          NavigationDestination(
               selectedIcon: Icon(Icons.home),
               icon: Icon(Icons.home_outlined),
               label: 'Home',

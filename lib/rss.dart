@@ -1,14 +1,37 @@
 // ignore_for_file: avoid_print
 
+import 'dart:collection';
+
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
+import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui' as ui;
+class CustomScrollPhysics extends BouncingScrollPhysics {
+  const CustomScrollPhysics({super.parent});
+
+  @override
+    CustomScrollPhysics applyTo(ScrollPhysics ? ancestor) {
+      return CustomScrollPhysics(parent: buildParent(ancestor));
+    }
+  
+  @override
+  double get maxFlingVelocity => 4000.0;
+
+  @override
+  SpringDescription get spring => const SpringDescription(
+      mass: 1.0,
+      stiffness: 60.0, // lower = slower bounce
+      damping: 25.0,    // higher = less oscillation
+    );
+
+}
 
 
 class GrantMagFeed extends StatefulWidget { //primary builder
@@ -24,18 +47,13 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   final Map<String, Future<String>> imageCache = {};
   String featuredImage = '';
-  List<String> bookmarks = []; //disc version
+  List<String> bookmarks = []; 
+  int currentPage = 0;
+  final int pageSize = 25;
 
   @override
   void initState() {
     super.initState();
-    loadBookmarks();
-  }
-
-    Future<void> loadBookmarks() async {
-      final prefs = await SharedPreferences.getInstance();
-      List<String> storedBookmarks = prefs.getStringList('bookmarks') ?? []; //sharedPref mirror
-    setState(() {bookmarks = storedBookmarks;});
   }
 
 
@@ -70,20 +88,24 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   await prefs.setStringList('bookmark_dates', bookmarkDates);
 }
 
-  Widget list() {
-    const excludedCategories = {'PDF Issues', 'Flipbooks'};
-
-    final filteredItems = widget.feed.items
-        ?.where((item) {
+Widget list() { //article list builder
+  const excludedCategories = {'PDF Issues', 'Flipbooks'};
+  final filteredItems = widget.feed.items?.where((item) {
           final categories = item.categories?.map((c) => c.value).toSet() ?? {};
           return categories.intersection(excludedCategories).isEmpty;
-        })
-        .toList() ?? [];
+        }).toList() ?? [];
+  final start = currentPage * pageSize;
+  final end = (start + pageSize > filteredItems.length)
+    ? filteredItems.length
+    : start + pageSize;
 
-    return ListView.builder(
-      itemCount: filteredItems.length,
+  final currentItems = filteredItems.sublist(start, end);
+  return Column(children: [
+    Expanded(child: ListView.builder(
+      physics: const CustomScrollPhysics(),
+      itemCount: currentItems.length,
       itemBuilder: (context, index) {
-        final item = filteredItems[index];
+        final item = currentItems[index];
         
         return ListTile(
           title: Text(item.title ?? ''),
@@ -91,19 +113,29 @@ class GrantMagFeedState extends State<GrantMagFeed> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+              Text(item.author ?? ''),
               FutureBuilder<String>(
                 future: imageCache.putIfAbsent(
-                item.link ?? '',
-                () => item.getFeaturedImage(),
-              ),
+                  item.link ?? '',
+                  () => item.getFeaturedImage(),
+                ),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return Image.network(
-                    snapshot.data!,
-                    fit: BoxFit.contain,
+                  return AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: snapshot.hasData && snapshot.data!.isNotEmpty
+                        ? Image.network(
+                            snapshot.data!,
+                            fit: BoxFit.cover,
+                            frameBuilder: (context, child, frame, wasSyncLoaded) {
+                              if (wasSyncLoaded) return child;
+                              return AnimatedOpacity(
+                                opacity: frame == null ? 0 : 1,
+                                duration: const Duration(milliseconds: 300),
+                                child: child,
+                              );
+                            },
+                          )
+                        : Container(color: Colors.grey[300]),
                   );
                 },
               )
@@ -125,8 +157,31 @@ class GrantMagFeedState extends State<GrantMagFeed> {
           },
         );
       },
-    );
-  }
+    )
+  ),
+
+  Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: currentPage > 0
+              ? () => setState(() => currentPage--)
+              : null,
+        ),
+        Text('Page ${currentPage + 1}'),
+        IconButton(
+          icon: Icon(Icons.arrow_forward),
+          onPressed: end < filteredItems.length
+              ? () => setState(() => currentPage++)
+              : null,
+          ),
+        ],
+      ),
+    ],
+  );
+}
+  
 
   @override 
   Widget build(BuildContext context) {
@@ -138,38 +193,6 @@ class GrantMagFeedState extends State<GrantMagFeed> {
       }, // no-op for now
       child: list(),
     );
-  }
-
-  Future<void> _loadFeaturedImage(RssItem item) async { //fetches html and loads image
-    final url = item.link;
-    if (url == null) return;
-    try {
-      final response = await http.get(Uri.parse(url));//url parse
-
-      if (response.statusCode != 200) return;
-      final html = response.body;
-
-      final ogMatch = RegExp( //og syntax for fallback
-        r'<meta property="og:image" content="([^"]+)"',
-        caseSensitive: false,
-      ).firstMatch(html);
-
-      if (ogMatch != null) {
-        featuredImage = ogMatch.group(1) ?? '';
-      } else {
-        final photoMatch = RegExp( //wordpress specific featured image grabber
-          r'<div class="photowrap">[\s\S]*?<img[^>]+src="([^"]+)"',
-          caseSensitive: false,
-        ).firstMatch(html);
-        featuredImage = photoMatch?.group(1) ?? ''; //sets featured image to variable
-      }
-    } catch (e) {
-      debugPrint('Image scrape failed: $e'); //error catch
-    }
-
-    // if (mounted) { //fallback for disposed widget
-    //   setState(() => loadingImage = false);
-    // }
   }
 }
 
@@ -395,161 +418,5 @@ extension ImageParsing on RssItem {
     //   caseSensitive: false,
     // ).firstMatch(html);
     return featuredImage; //error catch
-  }
-}
-
-class GrantMagBookmarks extends StatefulWidget {
-  final RssFeed feed;
-
-  const GrantMagBookmarks({required this.feed, super.key});
-
-  @override 
-  State<GrantMagBookmarks> createState() => GrantMagBookmarksState();
-}
-
-class GrantMagBookmarksState extends State<GrantMagBookmarks> {
-  List<String> bookmarks = [];
-  Map<String, int> bookmarkDates = {};
-  String bookmarkSort = "Publish Date";
-
-  @override
-  void initState() {
-    super.initState();
-    loadBookmarks();
-  }
-
-  Future<void> loadBookmarks() async {
-    final prefs = await SharedPreferences.getInstance(); //across multiple instances bookmark list 
-
-    final links = prefs.getStringList('bookmarks') ?? [];
-    final dates = prefs.getStringList('bookmark_dates') ?? [];
-
-    Map<String, int> tempMap = {};
-
-    for (int i = 0; i < links.length; i++) {
-      tempMap[links[i]] = int.tryParse(dates[i]) ?? 0;
-    }
-
-    setState(() {
-      bookmarks = links;
-      bookmarkDates = tempMap;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var bookmarkedItems = widget.feed.items
-        ?.where((item) => bookmarks.contains(item.link)) //sends sorted items to list
-        .toList() ?? [];
-      
-    if (bookmarkSort == 'Publish Date') {
-      bookmarkedItems.sort((a, b) => 
-          (b.pubDate ?? DateTime(0)).compareTo(a.pubDate ?? DateTime(0)));
-
-    } 
-    
-    else if (bookmarkSort == 'Bookmark Date') {
-      bookmarkedItems.sort((a, b) {
-        final aDate = bookmarkDates[a.link] ?? 0;
-        final bDate = bookmarkDates[b.link] ?? 0;
-        return bDate.compareTo(aDate); // newest first
-      });
-
-    } 
-    
-    else if (bookmarkSort == 'Article Name') {
-      bookmarkedItems.sort((a, b) =>
-          (a.title ?? '').compareTo(b.title ?? ''));
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, 
-          children: [
-            const Text("Bookmarked Articles"),
-            Text(bookmarkSort, style: const TextStyle(fontSize: 16)),
-          ],
-        ),
-        actions: [
-          PopupMenuButton<String>( //sorting button dropdown
-            onSelected: (value) {
-              setState(() {
-                bookmarkSort = value;
-              });
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'Publish Date', child: Text('Publish Date')),
-              const PopupMenuItem(value: 'Bookmark Date', child: Text('Bookmark Date')),
-              const PopupMenuItem(value: 'Article Name', child: Text('Article Name')),
-            ],
-          ),
-        ]
-      ),
-      
-      body: bookmarkedItems.isEmpty
-          ? const Center(child: Text("No bookmarks yet"))
-          : ListView.builder(
-              itemCount: bookmarkedItems.length,
-              itemBuilder: (context, index) {
-                final item = bookmarkedItems[index];
-                return Dismissible(
-                  key: Key(item.link ?? index.toString()),
-                  direction: DismissDirection.endToStart, // swipe left
-                  background: Container(
-                    color: Colors.red[300],
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Icon(Icons.delete, color: Colors.white),
-                  ),
-                  onDismissed: (direction) async {
-                    final prefs = await SharedPreferences.getInstance();
-
-                    final links = prefs.getStringList('bookmarks') ?? [];
-                    final dates = prefs.getStringList('bookmark_dates') ?? [];
-
-                    final link = item.link;
-                    if (link == null) return;
-
-                    final index = links.indexOf(link);
-                    if (index != -1) {
-                      links.removeAt(index);
-                      if (index < dates.length) {
-                        dates.removeAt(index);
-                      }
-
-                      await prefs.setStringList('bookmarks', links);
-                      await prefs.setStringList('bookmark_dates', dates);
-                      prefs.remove('bookmark_title_$link');
-                    }
-
-                    setState(() {
-                      bookmarks.remove(link);
-                      bookmarkDates.remove(link);
-                    });
-                  },
-                  child:
-                ListTile(
-                  title: Text(item.title ?? ''),
-                  subtitle: Text(
-                    () {
-                      final time = bookmarkDates[item.link ?? ''];
-                      if (time == null || time == 0) return '';
-                      final date = DateTime.fromMillisecondsSinceEpoch(time);
-                      return "Saved ${date.month}/${date.day}/${date.year}";
-                    }(),
-                  ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ArticlePage(article: item),
-                    ),
-                  ),
-                ),
-                );
-              },
-            ),
-    );
   }
 }
