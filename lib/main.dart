@@ -100,7 +100,8 @@ class _HomePageState extends State<HomePage> {
   int _counter = 0;
   // to distinguish between students/parents
   int whoAreYou = 0;
-  List<String> notificationSelections = [];
+  //TODO: don't redefine notificationSelections every time app is closed and reopened
+  late List<String> notificationSelections;
 
   RssFeed? _feed;
   
@@ -114,9 +115,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     NotiService service = NotiService();
     service.initNotification();
+    notificationSelections = [];
     super.initState();
 
-        // FOREGROUND messages
+    // FOREGROUND messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notif = message.notification;
       if (notif != null) {
@@ -139,46 +141,63 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _checkFirstSeen() async {
+    // SharedPreferences.setMockInitialValues({'isFirstRun': true});
+
     final prefs = await SharedPreferences.getInstance();
     bool isFirstRun = prefs.getBool('isFirstRun') ?? true;
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.getNotificationSettings();
+    bool authorizationState = switch(settings.authorizationStatus) {
+      AuthorizationStatus.authorized => true,
+      AuthorizationStatus.denied => false,
+      AuthorizationStatus.notDetermined => false,
+      AuthorizationStatus.provisional => false
+    };
 
-    if (isFirstRun) {
+    if (isFirstRun && authorizationState) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Select your preferences"),
-          content: Column(
-            children: [
-              SizedBox(
-                //Show checklist dialog when student is clicked
-                height: 300.0,
-                width: double.maxFinite,
-                child: ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return CheckboxListTile(
-                      title: Text(item.title),
-                      value: item.isChecked,
-                      onChanged: (bool? newValue) {
-                        setState(() {
-                          item.isChecked = newValue!;
-                        });
-                      },
-                      activeColor: Colors.blue,
-                      checkColor: Colors.blueGrey,
-                      controlAffinity: ListTileControlAffinity.leading,
-                    );
-                  },
+        builder: (context) => StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text("Select your notification preferences"),
+            content: Column(
+              children: [
+                SizedBox(
+                  //Show checklist dialog when student is clicked
+                  height: 300.0,
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return CheckboxListTile(
+                        title: Text(item.title),
+                        value: item.isChecked,
+                        onChanged: (bool? newValue) {
+                          setState(() {
+                            item.isChecked = newValue!;
+                          });
+                          if (item.isChecked) {
+                            notificationSelections.add(item.title);
+                          } else {
+                            notificationSelections.remove(item.title);
+                          }
+                        },
+                        activeColor: Colors.blue,
+                        checkColor: Colors.blueGrey,
+                        controlAffinity: ListTileControlAffinity.leading,
+                      );
+                    },
+                  ),
                 ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("Confirm"),
-              ),
-            ],
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text("Confirm"),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -243,11 +262,10 @@ class _HomePageState extends State<HomePage> {
   final bool isAuthenticated = false;
   final List<int> colorCodes = <int>[600, 500, 100, 50];
   final List<Item> items = [
-    Item(title: 'Breaking News', isChecked: false),
-    Item(title: 'Culture', isChecked: false),
+    Item(title: 'News', isChecked: false),
+    Item(title: 'Features', isChecked: false),
     Item(title: 'Opinion', isChecked: false),
     Item(title: 'Profiles', isChecked: false),
-    Item(title: 'Other/Updates', isChecked: false),
   ];
 
   bool _isChecked = false;
@@ -270,6 +288,13 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                color: Colors.blue[50],
+                child: Column(
+                  children: notificationSelections.map((value) => Text(value)).toList()
+                )
+              ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
                   return Builder(
