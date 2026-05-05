@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -23,6 +24,7 @@ import 'featured.dart';
 import 'opinion.dart';
 import 'bookmarks.dart';
 import 'search.dart';
+import 'dart:async';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -41,7 +43,7 @@ void main() async{ //initialize
 
   NotiService().initNotification();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
+  FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
   runApp(
     MultiProvider(
       providers: [
@@ -59,13 +61,14 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
 
   @override
   Widget build(BuildContext context) {
+    Timer(Duration(seconds: 7), () {FlutterNativeSplash.remove();});
     // creates listeners to pass information between pages
     return Consumer<SettingsModel>(
       builder: (context, settingsModel, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 142, 141, 141), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(255, 214, 214, 214), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
@@ -476,52 +479,54 @@ Widget build(BuildContext context) {
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(
       appBar: AppBar(
-        backgroundColor: value.ThemeLabel!.headerColor, 
+        backgroundColor: Colors.black,
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Align(
           alignment: Alignment(-0.4,0.0),
           child: const Text(GrantMagApp.appTitle, 
             style: TextStyle(
-              fontFamily: 'Georgia'
+              fontFamily: 'Georgia',
+              color: Colors.white
               ),
            ),
         ),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.bento),
+            icon: const Icon(Icons.notifications, 
+              color: Colors.white),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
       ),
-      drawer: Drawer(
-        backgroundColor: value.ThemeLabel!.shelfColor,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey),
-              child: Text('Customization'),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              leading: const Icon(Icons.settings_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsPage()),
-              ),
-            ),
-            ListTile(
-              title: const Text('Profile'),
-              leading: const Icon(Icons.person_outline_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ProfilePage()),
-              ),
-            ),
-          ],
-        ),
-      ),
+      // drawer: Drawer(
+      //   backgroundColor: value.ThemeLabel!.shelfColor,
+      //   child: ListView(
+      //     padding: EdgeInsets.zero,
+      //     children: [
+      //       const DrawerHeader(
+      //         decoration: BoxDecoration(color: Colors.grey),
+      //         child: Text('Customization'),
+      //       ),
+      //       ListTile(
+      //         title: const Text('Settings'),
+      //         leading: const Icon(Icons.settings_outlined),
+      //         onTap: () => Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => SettingsPage()),
+      //         ),
+      //       ),
+      //       ListTile(
+      //         title: const Text('Profile'),
+      //         leading: const Icon(Icons.person_outline_outlined),
+      //         onTap: () => Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => ProfilePage()),
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      // ),
 
       body: Column(
         children: [
