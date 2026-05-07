@@ -28,13 +28,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("BG message: ${message.notification?.title}");
 }
 
-void main() async{ //initialize
+void main() async{ // initialize
   debugPrint("app start");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseMessaging.instance.requestPermission();
+  await FirebaseMessaging.instance.requestPermission(); // push notif token passing
   debugPrint("permission granted");
   String? token = await FirebaseMessaging.instance.getToken();
   debugPrint("FCM TOKEN: $token");
@@ -54,7 +54,7 @@ void main() async{ //initialize
   );
 }
 
-class GrantMagApp extends StatelessWidget { //base widget constructor
+class GrantMagApp extends StatelessWidget { // base widget constructor
   GrantMagApp({super.key});
   static const appTitle = 'Home Page';
 
@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
 
   static const String FEED_URL = 'https://grantmagazine.com/feed/';
 
-  Future<RssFeed> load() async {
+  Future<RssFeed> load() async { // overall feed loader
     try { 
       final response = await http.get(Uri.parse(FEED_URL));
       return RssFeed.parse(response.body);
