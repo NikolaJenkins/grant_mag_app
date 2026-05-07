@@ -101,7 +101,10 @@ class _HomePageState extends State<HomePage> {
   // to distinguish between students/parents
   int whoAreYou = 0;
   //TODO: don't redefine notificationSelections every time app is closed and reopened
-  late List<String> notificationSelections;
+  // final Future<SharedPreferencesWithCache> _prefs = 
+  //   SharedPreferencesWithCache.create(
+  //     cacheOptions: const SharedPreferencesWithCacheOptions()
+  //   );
 
   RssFeed? _feed;
   
@@ -115,7 +118,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     NotiService service = NotiService();
     service.initNotification();
-    notificationSelections = [];
     super.initState();
 
     // FOREGROUND messages
@@ -142,9 +144,9 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _checkFirstSeen() async {
     // SharedPreferences.setMockInitialValues({'isFirstRun': true});
+    bool isFirstRun = await getBool();
+    List<String> notificationSelections = await getList();
 
-    final prefs = await SharedPreferences.getInstance();
-    bool isFirstRun = prefs.getBool('isFirstRun') ?? true;
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     NotificationSettings settings = await messaging.getNotificationSettings();
     bool authorizationState = switch(settings.authorizationStatus) {
@@ -179,8 +181,10 @@ class _HomePageState extends State<HomePage> {
                           });
                           if (item.isChecked) {
                             notificationSelections.add(item.title);
+                            saveList(notificationSelections);
                           } else {
                             notificationSelections.remove(item.title);
+                            saveList(notificationSelections);
                           }
                         },
                         activeColor: Colors.blue,
@@ -201,7 +205,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       );
-      await prefs.setBool('isFirstRun', false);
+      await saveBool(false);
     }
   }
 
@@ -239,24 +243,24 @@ class _HomePageState extends State<HomePage> {
     return _selected;
   }
 
-  void showMultiSelect() async {
-    List<String>? results = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Text("");
-      },
-    );
-    results = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Text("MultiSelect(items: items,);");
-      },
-    );
+  Future<void> saveList(List<String> items) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('Preferences', items);
+  }
 
-    if (results != null) {
-      notificationSelections = results;
-      //NAO DO NOTIFICATIONS THING HERE
-    }
+  Future<List<String>> getList() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('Preferences') ?? [];
+  }
+
+  Future<void> saveBool(bool hasStarted) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFirstRun', hasStarted);
+  }
+
+  Future<bool> getBool() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isFirstRun') ?? true;
   }
 
   final bool isAuthenticated = false;
@@ -267,8 +271,6 @@ class _HomePageState extends State<HomePage> {
     Item(title: 'Opinion', isChecked: false),
     Item(title: 'Profiles', isChecked: false),
   ];
-
-  bool _isChecked = false;
 
   Widget getBody() {
     switch (_counter) {
@@ -288,12 +290,18 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Container(
-                padding: EdgeInsets.all(16),
-                color: Colors.blue[50],
-                child: Column(
-                  children: notificationSelections.map((value) => Text(value)).toList()
-                )
+              FutureBuilder(
+                future: getList(),
+                builder: (context, asyncSnapshot) {
+                  final notiSelect = asyncSnapshot.data ?? [];
+                  return Container(
+                  padding: EdgeInsets.all(16),
+                  color: Colors.blue[50],
+                  child: Column(
+                    children: notiSelect.map((value) => Text(value)).toList()
+                  )
+                  );
+                },
               ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
@@ -434,64 +442,9 @@ class _HomePageState extends State<HomePage> {
                                         ),
                           ),
                   ]
-                );
-                //   return ListTile(
-                //     title: Text(item.title ?? ''),
-                //     subtitle: Column(
-                //       crossAxisAlignment: CrossAxisAlignment.start,
-                //       children: [
-                //         Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
-                //         Text(item.author ?? ''),
-                //         FutureBuilder<String>(
-                //           future: imageCache.putIfAbsent(
-                //             item.link ?? '',
-                //             () => item.getFeaturedImage(),
-                //           ),
-                //           builder: (context, snapshot) {
-                //             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                //               return const SizedBox.shrink();
-                //             }
-                //             return Image.network(
-                //               snapshot.data!,
-                //               fit: BoxFit.contain,
-                //             );
-                //           },
-                //         ),
-                //       ]),
-                //     onTap: () {
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (_) => ArticlePage(article: item),
-                //         ),
-                //       );
-                //     },
-                //   );
-                // },            
+                );            
                 }
               ),
-
-              // ElevatedButton(
-              //   child: Text('Open Dialogsssssss'),
-              //   onPressed: () {
-              //     showDialog(
-              //       context: context,
-              //       builder: (context) => AlertDialog(
-              //         title: Text('I am a...'),
-              //         actions: [
-              //           TextButton(
-              //               child: Text('Student.'),
-              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
-              //               onPressed: () => Navigator.pop(context)),
-              //           TextButton(
-              //               child: Text('Parent'),
-              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
-              //               onPressed: () => Navigator.pop(context))
-              //         ],
-              //       ),
-              //     );
-              //   },
-              // ),
             ],
           ),
         );
