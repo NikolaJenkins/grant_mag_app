@@ -11,6 +11,7 @@ import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 // import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
@@ -20,8 +21,10 @@ import 'package:webfeed_plus/webfeed_plus.dart';
 
 
 import 'rss.dart';
-import 'search.dart';
+import 'featured.dart';
+import 'opinion.dart';
 import 'bookmarks.dart';
+import 'search.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -56,7 +59,7 @@ void main() async{ // initialize
 
 class GrantMagApp extends StatelessWidget { // base widget constructor
   GrantMagApp({super.key});
-  static const appTitle = 'Home Page';
+  static const appTitle = 'Grant Magazine';
 
   @override
   Widget build(BuildContext context) {
@@ -206,9 +209,8 @@ class _HomePageState extends State<HomePage> {
     switch (_counter) {
       case 0:
 
-        // gets latest article
-        final latestArticle = _feed?.items?[0];
-        final latestImage= latestArticle?.getFeaturedImage();
+        // gets latest four articles
+        final latestArticles = _feed?.items?.take(4).toList() ?? [];
       
         // gets articles with carousel category
         final carouselItems = _feed?.items
@@ -219,66 +221,65 @@ class _HomePageState extends State<HomePage> {
 
         return SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // ListTile(
-              //   title: Text(latestArticle?.title ?? ''),
-              //   subtitle: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //                 Text(latestArticle?.author ?? ''),
-              //                 FutureBuilder<String>(
-              //                   future: imageCache.putIfAbsent(
-              //                     '',
-              //                     () => latestImage ?? Future<String>(() => ''),
-              //                   ),
-              //                   builder: (context, snapshot) {
-              //                     return FadeInImage.assetNetwork(
-              //                         placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-              //                         placeholderCacheWidth: 1,
-              //                         placeholderCacheHeight: 1, 
-              //                         fadeInCurve: Curves.linear,
-              //                         image: snapshot.data ?? '',
-              //                       );
-              //                   },
-              //                 )
-              //               ]
-              //   )
-              // ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
                   return Builder(
                     builder: (BuildContext context) {
-                      return ListTile(
-                        title: Text(item.title ?? ''),
-                        subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.author ?? ''),
-                                FutureBuilder<String>(
-                                  future: imageCache.putIfAbsent(
-                                    item.link ?? '',
-                                    () => item.getFeaturedImage(),
-                                  ),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    return FadeInImage.assetNetwork(
-                                        placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-                                        placeholderCacheWidth: 1,
-                                        placeholderCacheHeight: 1, 
-                                        fadeInCurve: Curves.linear,
-                                        image: snapshot.data!
-                                      );
-                                  },
-                                )
-                              ]),
-                        onTap:() => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ArticlePage(article: item),
+                      return Stack(
+                        alignment: AlignmentDirectional.bottomCenter,
+                        children: <Widget>[
+                          GestureDetector(
+                            child: Container(
+                              child: FutureBuilder<String>(
+                                future: imageCache.putIfAbsent(
+                                  item.link ?? '',
+                                  () => item.getFeaturedImage(),
+                                ),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return FadeInImage.assetNetwork(
+                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                      placeholderCacheWidth: 1,
+                                      placeholderCacheHeight: 1, 
+                                      fadeInCurve: Curves.linear,
+                                      image: snapshot.data!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    );
+                                },
                               )
                             ),
+                            onTap:() => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ArticlePage(article: item),
+                                          )
+                                        ),
+                          ),
+                          Container(
+                            color: Color.fromRGBO(50, 50, 50, 0.8),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            constraints: BoxConstraints.tightForFinite(
+                              height: 75, 
+                            ),
+                            child: Text(
+                              item.title ?? '', 
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.merriweather(
+                                textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                              )
+                            ),
+                          )
+                        ]
                       );
                     }
                   );
@@ -294,37 +295,131 @@ class _HomePageState extends State<HomePage> {
                   initialPage: 0,
                 )
               ),
-              ElevatedButton(
-                child: Text('Open Dialogsssssss'),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('I am a...'),
-                      actions: [
-                        TextButton(
-                            child: Text('Student.'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.black),
-                            onPressed: () => Navigator.pop(context)),
-                        TextButton(
-                            child: Text('Parent'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.black),
-                            onPressed: () => Navigator.pop(context))
-                      ],
-                    ),
-                  );
-                },
+
+              GridView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: latestArticles.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 5.0,
+                  mainAxisSpacing: 5.0,
+                  childAspectRatio: 0.5,
+                ),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final item = latestArticles[index];
+
+                return Column(
+                  children: [
+                    Container(
+                            color: Color.fromRGBO(25, 25, 25, 0.2),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            constraints: BoxConstraints.tightForFinite(
+                              height: 75, 
+                            ),
+                            child: Text(
+                              item.title ?? '', 
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.merriweather(
+                                textStyle: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                              )
+                            ),
+                          ),
+                    GestureDetector(
+                            child: Container(
+                              child: FutureBuilder<String>(
+                                future: imageCache.putIfAbsent(
+                                  item.link ?? '',
+                                  () => item.getFeaturedImage(),
+                                ),
+                                builder: (context, snapshot) {
+                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return FadeInImage.assetNetwork(
+                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                      placeholderCacheWidth: 1,
+                                      placeholderCacheHeight: 1, 
+                                      fadeInCurve: Curves.linear,
+                                      image: snapshot.data!,
+                                      // fit: BoxFit.cover,
+                                      // width: double.infinity,
+                                      // height: double.infinity,
+                                    );
+                                },
+                              )
+                            ),
+                            onTap:() => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ArticlePage(article: item),
+                                          )
+                                        ),
+                          ),
+                  ]
+                );
+                //   return ListTile(
+                //     title: Text(item.title ?? ''),
+                //     subtitle: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+                //         Text(item.author ?? ''),
+                //         FutureBuilder<String>(
+                //           future: imageCache.putIfAbsent(
+                //             item.link ?? '',
+                //             () => item.getFeaturedImage(),
+                //           ),
+                //           builder: (context, snapshot) {
+                //             if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                //               return const SizedBox.shrink();
+                //             }
+                //             return Image.network(
+                //               snapshot.data!,
+                //               fit: BoxFit.contain,
+                //             );
+                //           },
+                //         ),
+                //       ]),
+                //     onTap: () {
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (_) => ArticlePage(article: item),
+                //         ),
+                //       );
+                //     },
+                //   );
+                // },            
+                }
               ),
-              ElevatedButton(
-                onPressed: () {
-                  NotiService().showNotification(
-                    notifId: 0,
-                    notifTitle: 'Did you commit today?',
-                    notifBody: 'Mr. Mandell won\'t be happy',
-                  );
-                },
-                child: const Text("Teachers"),
-              ),
+
+              // ElevatedButton(
+              //   child: Text('Open Dialogsssssss'),
+              //   onPressed: () {
+              //     showDialog(
+              //       context: context,
+              //       builder: (context) => AlertDialog(
+              //         title: Text('I am a...'),
+              //         actions: [
+              //           TextButton(
+              //               child: Text('Student.'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context)),
+              //           TextButton(
+              //               child: Text('Parent'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context))
+              //         ],
+              //       ),
+              //     );
+              //   },
+              // ),
             ],
           ),
         );
@@ -335,9 +430,16 @@ class _HomePageState extends State<HomePage> {
         return GrantMagFeed(feed: _feed!);
 
       case 2:
-        return const Center(child: Text('data'));
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return FeaturedArticles(feed: _feed!);
+
       case 3:
-        return const Center(child: Text('Content coming soon'));
+        if (_feed == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return OpinionatedArticles(feed: _feed!);
         
       case 4:
         if (_feed == null) {
@@ -403,105 +505,105 @@ Widget build(BuildContext context) {
           if (_counter == 0)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('I am a...'),
-                      actions: [
-                        TextButton(
-                          child: const Text('Student'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Select your preferences"),
-                                content: Column(
-                                      children: [
-                                        SizedBox( //Show checklist dialog when student is clicked
-                                          height: 300.0,
-                                          width: double.maxFinite,
-                                          child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity: ListTileControlAffinity.leading,
-                                              );
-                                            }
-                                            ),
-                                          ),
-                                        TextButton(
-                                          onPressed: () {Navigator.pop(context);}, 
-                                          child: Text("Confirm")
-                                          )
-                                      ],
-                                    )
-                              ),
-                            );
-                          }
+              // child: ElevatedButton(
+              //   child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
+              //   onPressed: () {
+              //     showDialog(
+              //       context: context,
+              //       builder: (context) => AlertDialog(
+              //         title: const Text('I am a...'),
+              //         actions: [
+              //           TextButton(
+              //             child: const Text('Student'),
+              //             onPressed: () {
+              //               Navigator.pop(context);
+              //               showDialog(
+              //                 context: context,
+              //                 builder: (context) => AlertDialog(
+              //                   title: const Text("Select your preferences"),
+              //                   content: Column(
+              //                         children: [
+              //                           SizedBox( //Show checklist dialog when student is clicked
+              //                             height: 300.0,
+              //                             width: double.maxFinite,
+              //                             child: ListView.builder(
+              //                             itemCount: items.length,
+              //                             itemBuilder: (context, index) {
+              //                               final item = items[index];
+              //                               return CheckboxListTile(
+              //                                 title: Text(item.title),
+              //                                 value: item.isChecked,
+              //                                 onChanged: (bool? newValue) {
+              //                                   setState(() {
+              //                                     item.isChecked = newValue!;
+              //                                   });
+              //                                 },
+              //                                 activeColor: Colors.blue,
+              //                                 checkColor: Colors.blueGrey,
+              //                                 controlAffinity: ListTileControlAffinity.leading,
+              //                                 );
+              //                               }
+              //                               ),
+              //                             ),
+              //                           TextButton(
+              //                             onPressed: () {Navigator.pop(context);}, 
+              //                             child: Text("Confirm")
+              //                             )
+              //                         ],
+              //                       )
+              //                 ),
+              //               );
+              //             }
                           
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            makeParent();
-                             showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Select your preferences"),
-                                content: Column(
-                                      children: [
-                                        SizedBox( //Show checklist dialog when parent is clicked
-                                          height: 300.0,
-                                          width: double.maxFinite,
-                                          child: ListView.builder(
-                                          itemCount: items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = items[index];
-                                            return CheckboxListTile(
-                                              title: Text(item.title),
-                                              value: item.isChecked,
-                                              onChanged: (bool? newValue) {
-                                                setState(() {
-                                                  item.isChecked = newValue!;
-                                                });
-                                              },
-                                              activeColor: Colors.blue,
-                                              checkColor: Colors.blueGrey,
-                                              controlAffinity: ListTileControlAffinity.leading,
-                                              );
-                                            }
-                                            ),
-                                          ),
-                                        TextButton(
-                                          onPressed: () {Navigator.pop(context);}, 
-                                          child: Text("Confirm")
-                                          )
-                                      ],
-                                    )
-                              ),
-                            );
-                          },
-                          child: const Text('Parent'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              //           ),
+              //           TextButton(
+              //             onPressed: () {
+              //               Navigator.pop(context);
+              //               makeParent();
+              //                showDialog(
+              //                 context: context,
+              //                 builder: (context) => AlertDialog(
+              //                   title: const Text("Select your preferences"),
+              //                   content: Column(
+              //                         children: [
+              //                           SizedBox( //Show checklist dialog when parent is clicked
+              //                             height: 300.0,
+              //                             width: double.maxFinite,
+              //                             child: ListView.builder(
+              //                             itemCount: items.length,
+              //                             itemBuilder: (context, index) {
+              //                               final item = items[index];
+              //                               return CheckboxListTile(
+              //                                 title: Text(item.title),
+              //                                 value: item.isChecked,
+              //                                 onChanged: (bool? newValue) {
+              //                                   setState(() {
+              //                                     item.isChecked = newValue!;
+              //                                   });
+              //                                 },
+              //                                 activeColor: Colors.blue,
+              //                                 checkColor: Colors.blueGrey,
+              //                                 controlAffinity: ListTileControlAffinity.leading,
+              //                                 );
+              //                               }
+              //                               ),
+              //                             ),
+              //                           TextButton(
+              //                             onPressed: () {Navigator.pop(context);}, 
+              //                             child: Text("Confirm")
+              //                             )
+              //                         ],
+              //                       )
+              //                 ),
+              //               );
+              //             },
+              //             child: const Text('Parent'),
+              //           ),
+              //         ],
+              //       ),
+              //     );
+              //   },
+              // ),
             ),
 
           Expanded(
