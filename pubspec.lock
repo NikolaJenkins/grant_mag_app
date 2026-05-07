@@ -105,6 +105,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  circular_progress_with_logo:
+    dependency: "direct main"
+    description:
+      name: circular_progress_with_logo
+      sha256: f4db2e627b659bc30c61b324653869b4aac7d7148755dbb5d2c22d66c2e7f12a
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   clock:
     dependency: transitive
     description:

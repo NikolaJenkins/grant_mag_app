@@ -53,6 +53,7 @@ dependencies:
   google_fonts: ^8.0.2
   flutter_native_splash: ^2.4.7
   async: ^2.13.1
+  circular_progress_with_logo: ^1.0.0
 
 
 

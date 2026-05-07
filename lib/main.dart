@@ -18,7 +18,7 @@ import 'package:grant_mag_app/noti_service.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
-
+import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
 import 'rss.dart';
 import 'featured.dart';
 import 'opinion.dart';
@@ -241,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                                     return const SizedBox.shrink();
                                   }
                                   return FadeInImage.assetNetwork(
-                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                      placeholder: 'assets/blendertimer-load-37.gif',
                                       placeholderCacheWidth: 1,
                                       placeholderCacheHeight: 1, 
                                       fadeInCurve: Curves.linear,
@@ -296,7 +296,7 @@ class _HomePageState extends State<HomePage> {
               ),
 
               Padding(
-                padding: const EdgeInsets.only(top: 20.0),
+                padding: const EdgeInsets.only(top: 16.0),
                 child: Container(
                   color: Color.fromRGBO(25, 25, 25, .9),
                   padding: EdgeInsets.all(20.0),
@@ -305,6 +305,7 @@ class _HomePageState extends State<HomePage> {
                     "Recent Articles",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.merriweather(
+                      fontSize: 24,
                       color: Colors.white,
                       fontWeight: FontWeight.bold)
                     ),
@@ -360,9 +361,10 @@ class _HomePageState extends State<HomePage> {
                                 return const SizedBox.shrink();
                               }
                               return FadeInImage.assetNetwork(
-                                  placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
+                                  placeholder: 'assets/blendertimer-load-37.gif',
                                   placeholderCacheWidth: 1,
                                   placeholderCacheHeight: 1, 
+                                  placeholderFit: BoxFit.fitHeight,
                                   fadeInCurve: Curves.linear,
                                   image: snapshot.data!,
                                   fit: BoxFit.cover,
@@ -478,7 +480,9 @@ Widget build(BuildContext context) {
   
   return Consumer<SettingsModel>(
     builder: (context, value, child) => Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        toolbarHeight: 35,
         backgroundColor: Colors.black,
         elevation: 0,
         scrolledUnderElevation: 0,
