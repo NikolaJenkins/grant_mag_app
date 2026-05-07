@@ -53,9 +53,11 @@ void main() async{ //initialize
   );
 }
 
-class GrantMagApp extends StatelessWidget { //base widget constructor
-  GrantMagApp({super.key});
-  static const appTitle = 'Grant Magazine';
+class GrantMagApp extends StatelessWidget {
+  //base widget constructor
+  const GrantMagApp({super.key});
+  final keyIsFirstLoaded = 'is_first_loaded';
+  static const appTitle = 'Home Page';
 
   @override
   Widget build(BuildContext context) {
@@ -65,19 +67,22 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(255, 142, 141, 141), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(
+              255,
+              255,
+              255,
+              255,
+            ), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
-            textTheme: Theme.of(context).textTheme.apply(
-              fontSizeFactor: settingsModel.TextSize / 100
-          )
-        ),
-        home: HomePage(title: appTitle),
-        routes: {
-          '/homepage': (context) => const HomePage(title: appTitle),
-        },
-        title: appTitle,
-        );  
-      }
+            textTheme: Theme.of(
+              context,
+            ).textTheme.apply(fontSizeFactor: settingsModel.TextSize / 100),
+          ),
+          home: HomePage(title: appTitle),
+          routes: {'/homepage': (context) => const HomePage(title: appTitle)},
+          title: appTitle,
+        );
+      },
     );
   }
 }
@@ -89,15 +94,17 @@ class HomePage extends StatefulWidget { //home page constructor
 
   @override
   State<HomePage> createState() => _HomePageState();
-
-  
 }
 
 class _HomePageState extends State<HomePage> {
   int _counter = 0;
   // to distinguish between students/parents
   int whoAreYou = 0;
-  List<String> notificationSelections = [];
+  //TODO: don't redefine notificationSelections every time app is closed and reopened
+  // final Future<SharedPreferencesWithCache> _prefs = 
+  //   SharedPreferencesWithCache.create(
+  //     cacheOptions: const SharedPreferencesWithCacheOptions()
+  //   );
 
   RssFeed? _feed;
   
@@ -113,7 +120,7 @@ class _HomePageState extends State<HomePage> {
     service.initNotification();
     super.initState();
 
-        // FOREGROUND messages
+    // FOREGROUND messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notif = message.notification;
       if (notif != null) {
@@ -131,14 +138,81 @@ class _HomePageState extends State<HomePage> {
       // you can navigate here later
     });
 
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkFirstSeen());
     loadFeed();
   }
 
+  Future<void> _checkFirstSeen() async {
+    // SharedPreferences.setMockInitialValues({'isFirstRun': true});
+    bool isFirstRun = await getBool();
+    List<String> notificationSelections = await getList();
+
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.getNotificationSettings();
+    bool authorizationState = switch(settings.authorizationStatus) {
+      AuthorizationStatus.authorized => true,
+      AuthorizationStatus.denied => false,
+      AuthorizationStatus.notDetermined => false,
+      AuthorizationStatus.provisional => false
+    };
+
+    if (isFirstRun && authorizationState) {
+      showDialog(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text("Select your notification preferences"),
+            content: Column(
+              children: [
+                SizedBox(
+                  //Show checklist dialog when student is clicked
+                  height: 300.0,
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return CheckboxListTile(
+                        title: Text(item.title),
+                        value: item.isChecked,
+                        onChanged: (bool? newValue) {
+                          setState(() {
+                            item.isChecked = newValue!;
+                          });
+                          if (item.isChecked) {
+                            notificationSelections.add(item.title);
+                            saveList(notificationSelections);
+                          } else {
+                            notificationSelections.remove(item.title);
+                            saveList(notificationSelections);
+                          }
+                        },
+                        activeColor: Colors.blue,
+                        checkColor: Colors.blueGrey,
+                        controlAffinity: ListTileControlAffinity.leading,
+                      );
+                    },
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text("Confirm"),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await saveBool(false);
+    }
+  }
 
   void makeStudent() {
     whoAreYou = 1;
   }
-  
+
   void makeParent() {
     whoAreYou = 2;
   }
@@ -146,12 +220,12 @@ class _HomePageState extends State<HomePage> {
   static const String FEED_URL = 'https://grantmagazine.com/feed/';
 
   Future<RssFeed> load() async {
-    try { 
+    try {
       final response = await http.get(Uri.parse(FEED_URL));
       return RssFeed.parse(response.body);
-    } catch (_) { 
-      return RssFeed(items: []); 
-    } 
+    } catch (_) {
+      return RssFeed(items: []);
+    }
   }
 
   Future<void> loadFeed() async {
@@ -168,38 +242,35 @@ class _HomePageState extends State<HomePage> {
     });
     return _selected;
   }
-  
-  void showMultiSelect() async {
-    List<String>? results = await showDialog(
-      context: context, 
-      builder: (BuildContext context) {
-        return Text("");
-      }
-    );
-    results = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Text("MultiSelect(items: items,);");
-      }
-    );
 
-    if (results != null) {
-      notificationSelections = results;
-      //NAO DO NOTIFICATIONS THING HERE
-    }
+  Future<void> saveList(List<String> items) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('Preferences', items);
+  }
+
+  Future<List<String>> getList() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('Preferences') ?? [];
+  }
+
+  Future<void> saveBool(bool hasStarted) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFirstRun', hasStarted);
+  }
+
+  Future<bool> getBool() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isFirstRun') ?? true;
   }
 
   final bool isAuthenticated = false;
   final List<int> colorCodes = <int>[600, 500, 100, 50];
   final List<Item> items = [
-      Item(title: 'Breaking News', isChecked: false),
-      Item(title: 'Culture', isChecked: false),
-      Item(title: 'Opinion', isChecked: false),
-      Item(title: 'Profiles', isChecked: false),
-      Item(title: 'Other/Updates', isChecked: false)
-    ];
-
-  bool _isChecked = false;
+    Item(title: 'News', isChecked: false),
+    Item(title: 'Features', isChecked: false),
+    Item(title: 'Opinion', isChecked: false),
+    Item(title: 'Profiles', isChecked: false),
+  ];
 
   Widget getBody() {
     switch (_counter) {
@@ -219,6 +290,19 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              FutureBuilder(
+                future: getList(),
+                builder: (context, asyncSnapshot) {
+                  final notiSelect = asyncSnapshot.data ?? [];
+                  return Container(
+                  padding: EdgeInsets.all(16),
+                  color: Colors.blue[50],
+                  child: Column(
+                    children: notiSelect.map((value) => Text(value)).toList()
+                  )
+                  );
+                },
+              ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
                   return Builder(
@@ -358,64 +442,9 @@ class _HomePageState extends State<HomePage> {
                                         ),
                           ),
                   ]
-                );
-                //   return ListTile(
-                //     title: Text(item.title ?? ''),
-                //     subtitle: Column(
-                //       crossAxisAlignment: CrossAxisAlignment.start,
-                //       children: [
-                //         Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
-                //         Text(item.author ?? ''),
-                //         FutureBuilder<String>(
-                //           future: imageCache.putIfAbsent(
-                //             item.link ?? '',
-                //             () => item.getFeaturedImage(),
-                //           ),
-                //           builder: (context, snapshot) {
-                //             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                //               return const SizedBox.shrink();
-                //             }
-                //             return Image.network(
-                //               snapshot.data!,
-                //               fit: BoxFit.contain,
-                //             );
-                //           },
-                //         ),
-                //       ]),
-                //     onTap: () {
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (_) => ArticlePage(article: item),
-                //         ),
-                //       );
-                //     },
-                //   );
-                // },            
+                );            
                 }
               ),
-
-              // ElevatedButton(
-              //   child: Text('Open Dialogsssssss'),
-              //   onPressed: () {
-              //     showDialog(
-              //       context: context,
-              //       builder: (context) => AlertDialog(
-              //         title: Text('I am a...'),
-              //         actions: [
-              //           TextButton(
-              //               child: Text('Student.'),
-              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
-              //               onPressed: () => Navigator.pop(context)),
-              //           TextButton(
-              //               child: Text('Parent'),
-              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
-              //               onPressed: () => Navigator.pop(context))
-              //         ],
-              //       ),
-              //     );
-              //   },
-              // ),
             ],
           ),
         );
@@ -501,112 +530,11 @@ Widget build(BuildContext context) {
           if (_counter == 0)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              // child: ElevatedButton(
-              //   child: const Text('SSSSSSSSSOpen Dialogaaaaaaaa'),
-              //   onPressed: () {
-              //     showDialog(
-              //       context: context,
-              //       builder: (context) => AlertDialog(
-              //         title: const Text('I am a...'),
-              //         actions: [
-              //           TextButton(
-              //             child: const Text('Student'),
-              //             onPressed: () {
-              //               Navigator.pop(context);
-              //               showDialog(
-              //                 context: context,
-              //                 builder: (context) => AlertDialog(
-              //                   title: const Text("Select your preferences"),
-              //                   content: Column(
-              //                         children: [
-              //                           SizedBox( //Show checklist dialog when student is clicked
-              //                             height: 300.0,
-              //                             width: double.maxFinite,
-              //                             child: ListView.builder(
-              //                             itemCount: items.length,
-              //                             itemBuilder: (context, index) {
-              //                               final item = items[index];
-              //                               return CheckboxListTile(
-              //                                 title: Text(item.title),
-              //                                 value: item.isChecked,
-              //                                 onChanged: (bool? newValue) {
-              //                                   setState(() {
-              //                                     item.isChecked = newValue!;
-              //                                   });
-              //                                 },
-              //                                 activeColor: Colors.blue,
-              //                                 checkColor: Colors.blueGrey,
-              //                                 controlAffinity: ListTileControlAffinity.leading,
-              //                                 );
-              //                               }
-              //                               ),
-              //                             ),
-              //                           TextButton(
-              //                             onPressed: () {Navigator.pop(context);}, 
-              //                             child: Text("Confirm")
-              //                             )
-              //                         ],
-              //                       )
-              //                 ),
-              //               );
-              //             }
-                          
-              //           ),
-              //           TextButton(
-              //             onPressed: () {
-              //               Navigator.pop(context);
-              //               makeParent();
-              //                showDialog(
-              //                 context: context,
-              //                 builder: (context) => AlertDialog(
-              //                   title: const Text("Select your preferences"),
-              //                   content: Column(
-              //                         children: [
-              //                           SizedBox( //Show checklist dialog when parent is clicked
-              //                             height: 300.0,
-              //                             width: double.maxFinite,
-              //                             child: ListView.builder(
-              //                             itemCount: items.length,
-              //                             itemBuilder: (context, index) {
-              //                               final item = items[index];
-              //                               return CheckboxListTile(
-              //                                 title: Text(item.title),
-              //                                 value: item.isChecked,
-              //                                 onChanged: (bool? newValue) {
-              //                                   setState(() {
-              //                                     item.isChecked = newValue!;
-              //                                   });
-              //                                 },
-              //                                 activeColor: Colors.blue,
-              //                                 checkColor: Colors.blueGrey,
-              //                                 controlAffinity: ListTileControlAffinity.leading,
-              //                                 );
-              //                               }
-              //                               ),
-              //                             ),
-              //                           TextButton(
-              //                             onPressed: () {Navigator.pop(context);}, 
-              //                             child: Text("Confirm")
-              //                             )
-              //                         ],
-              //                       )
-              //                 ),
-              //               );
-              //             },
-              //             child: const Text('Parent'),
-              //           ),
-              //         ],
-              //       ),
-              //     );
-              //   },
-              // ),
             ),
 
-          Expanded(
-            child: getBody(),
-          ),
-        ],
-      ),
+            Expanded(child: getBody()),
+          ],
+        ),
 
       bottomNavigationBar: NavigationBar( //nav bar for menu icons
         onDestinationSelected: (index) =>
@@ -623,27 +551,149 @@ Widget build(BuildContext context) {
           NavigationDestination(
               selectedIcon: Icon(Icons.home),
               icon: Icon(Icons.home_outlined),
-              label: 'Home'),
-          NavigationDestination(
+              label: 'Home',
+            ),
+            NavigationDestination(
               icon: Badge(child: Icon(Icons.newspaper_rounded)),
-              label: 'News'),
-          NavigationDestination(
+              label: 'News',
+            ),
+            NavigationDestination(
               icon: Badge(child: Icon(Icons.star)),
-              label: 'Features'),
-          NavigationDestination(
+              label: 'Features',
+            ),
+            NavigationDestination(
               icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
-              label: 'Opinion'),
-          NavigationDestination(
+              label: 'Opinion',
+            ),
+            NavigationDestination(
               icon: Badge(child: Icon(Icons.bookmark)),
-              label: 'Bookmarks'),
-          NavigationDestination(
+              label: 'Bookmarks',
+            ),
+            NavigationDestination(
               icon: Badge(child: Icon(Icons.search)),
-              label: 'Search'),
-        ],
+              label: 'Search',
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
+
+class CustomSearchDelegate extends SearchDelegate {
+  List<String> titles = [
+    'machine learning',
+    'Ray Tate',
+    'One of the boys',
+    'A new perspective',
+    'Budget "whats"',
+  ];
+
+  List<String> authors = [
+    'Eliot Logan',
+    'Logan Hendrickson',
+    'Margot Kalmanson',
+    'Amelia Shaw',
+    'Zoe Shaw',
+  ];
+
+  List<String> decks = [
+    'Three days after the Bondi Beach shooting, Grant High School\’s Jewish Student Alliance put up two posters at the school honoring the victims.',
+    'As artificial intelligence sweeps the nation, Portland Public Schools is exploring its use in education.',
+    'This year, Grantasia featured a production in collaboration with a nonprofit organization called Sing Me a Story. The performance celebrates joy, creativity and inclusion through student choreography and original music.',
+    'Grant High School math teacher Ray Tate’s worsening kidney disease has kept him from the classroom. Now, he is requesting a kidney donation from a living donor.',
+    'Grant Magazine is now taking applications for the 2024 – 2025 school year. Complete the application, found at this link, and email a copy with editing access for anyone with the link to grantmagazine1@gmail.com. Applications are due by February 13, 2024. No late applications will be accepted.',
+  ];
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        onPressed: () {
+          query = '';
+        },
+        icon: const Icon(Icons.clear),
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    List<String> matchQuery = [];
+
+    // check titles
+    for (var fruit in titles) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check authors
+    for (var fruit in authors) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check decks
+    for (var fruit in decks) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(title: Text(result));
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    List<String> matchQuery = [];
+
+    // check titles
+    for (var fruit in titles) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check authors
+    for (var fruit in authors) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    // check decks
+    for (var fruit in decks) {
+      if (fruit.toLowerCase().contains(query.toLowerCase())) {
+        matchQuery.add(fruit);
+      }
+    }
+
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(title: Text(result));
+      },
+    );
+  }
 }
 
 class Item {
