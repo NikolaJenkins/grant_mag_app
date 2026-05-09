@@ -657,28 +657,74 @@ Widget build(BuildContext context) {
         labelTextStyle: WidgetStateProperty.all(
           const TextStyle(
             fontSize: 11.0,
+            color: Colors.white,
+            fontFamily: 'Georgia'
           )
         ),
-        backgroundColor: Color.fromARGB(255, 189, 189, 189),
+        backgroundColor: Colors.black,
         destinations: const [
           NavigationDestination(
-              selectedIcon: Icon(Icons.home),
-              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(
+                Icons.home,
+                color: Colors.white
+                ),
+              icon: Icon(
+                Icons.home_outlined,
+                color: Colors.white
+                ),
               label: 'Home'),
           NavigationDestination(
-              icon: Icon(Icons.newspaper_rounded),
+              icon: Icon(
+                Icons.newspaper_rounded,
+                color: Colors.white
+                ),
+              selectedIcon: Icon(
+                Icons.newspaper_rounded,
+                color: Colors.white,
+                fill: 1.0
+                ),
               label: 'News'),
           NavigationDestination(
-              icon: Icon(Icons.star),
+              icon: Icon(
+                Icons.star_border,
+                color: Colors.white
+                ),
+              selectedIcon: Icon(
+                Icons.star,
+                color: Colors.white
+                ),
               label: 'Features'),
           NavigationDestination(
-              icon: Icon(Icons.record_voice_over_outlined),
+              icon: Icon(
+                Icons.record_voice_over_outlined,
+                color: Colors.white
+                ),
+              selectedIcon: Icon(
+                Icons.record_voice_over,
+                color: Colors.white
+                ),
               label: 'Opinion'),
           NavigationDestination(
-              icon: Icon(Icons.bookmark),
-              label: 'Bookmarks'),
+              icon: Icon(
+                Icons.bookmark_outline,
+                color: Colors.white
+                ),
+              selectedIcon: Icon(
+                Icons.bookmark,
+                color: Colors.white
+                ),
+              label: 'Bookmarks'
+              ),
           NavigationDestination(
-              icon: Icon(Icons.search),
+              icon: Icon(
+                Icons.search,
+                color: Colors.white
+              ),
+              selectedIcon: Icon(
+                Icons.saved_search_outlined,
+                color: Colors.white,
+                fill: 1.0
+              ),
               label: 'Search'),
         ],
       ),
