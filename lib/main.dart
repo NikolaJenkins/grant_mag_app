@@ -661,19 +661,19 @@ Widget build(BuildContext context) {
               icon: Icon(Icons.home_outlined),
               label: 'Home'),
           NavigationDestination(
-              icon: Badge(child: Icon(Icons.newspaper_rounded)),
+              icon: Icon(Icons.newspaper_rounded),
               label: 'News'),
           NavigationDestination(
-              icon: Badge(child: Icon(Icons.star)),
+              icon: Icon(Icons.star),
               label: 'Features'),
           NavigationDestination(
-              icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
+              icon: Icon(Icons.record_voice_over_outlined),
               label: 'Opinion'),
           NavigationDestination(
-              icon: Badge(child: Icon(Icons.bookmark)),
+              icon: Icon(Icons.bookmark),
               label: 'Bookmarks'),
           NavigationDestination(
-              icon: Badge(child: Icon(Icons.search)),
+              icon: Icon(Icons.search),
               label: 'Search'),
         ],
       ),
