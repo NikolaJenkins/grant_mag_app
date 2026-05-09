@@ -72,7 +72,12 @@ class GrantMagApp extends StatelessWidget { //base widget constructor
             primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
               fontSizeFactor: settingsModel.TextSize / 100
-          )
+            ),
+            appBarTheme: AppBarTheme(
+              iconTheme: IconThemeData(
+                color: Colors.white, //Makes white the default color for icons in the app bar
+              ),
+            )
         ),
         home: HomePage(title: appTitle),
         routes: {
