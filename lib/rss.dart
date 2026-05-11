@@ -4,6 +4,7 @@ import 'dart:collection';
 
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
@@ -46,6 +47,7 @@ class GrantMagFeed extends StatefulWidget { //primary builder
 class GrantMagFeedState extends State<GrantMagFeed> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   final Map<String, Future<String>> imageCache = {};
+  final ScrollController _scrollController = ScrollController();
   String featuredImage = '';
   List<String> bookmarks = []; 
   int currentPage = 0;
@@ -54,6 +56,12 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
 
@@ -102,6 +110,7 @@ Widget list() { //article list builder
   final currentItems = filteredItems.sublist(start, end);
   return Column(children: [
     Expanded(child: ListView.builder(
+      controller: _scrollController,
       physics: const CustomScrollPhysics(),
       itemCount: currentItems.length,
       itemBuilder: (context, index) {
@@ -123,18 +132,22 @@ Widget list() { //article list builder
                   return AspectRatio(
                     aspectRatio: 16 / 9,
                     child: snapshot.hasData && snapshot.data!.isNotEmpty
-                        ? Image.network(
-                            snapshot.data!,
-                            fit: BoxFit.cover,
-                            frameBuilder: (context, child, frame, wasSyncLoaded) {
-                              if (wasSyncLoaded) return child;
-                              return AnimatedOpacity(
-                                opacity: frame == null ? 0 : 1,
-                                duration: const Duration(milliseconds: 300),
-                                child: child,
-                              );
-                            },
-                          )
+                        ? Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                        height: 50,
+                                        width: 50,
+                                        child: Image.asset('assets/blendertimer-load-37.gif'),
+                                      ),
+                              FadeInImage.memoryNetwork(
+                                placeholder: kTransparentImage,
+                                image: snapshot.data!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              )
+                            ],
+                        )
                         : Container(color: Colors.grey[300]),
                   );
                 },
@@ -166,14 +179,28 @@ Widget list() { //article list builder
         IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: currentPage > 0
-              ? () => setState(() => currentPage--)
+              ? () {
+                  setState(() => currentPage--);
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
               : null,
         ),
         Text('Page ${currentPage + 1}'),
         IconButton(
           icon: Icon(Icons.arrow_forward),
           onPressed: end < filteredItems.length
-              ? () => setState(() => currentPage++)
+              ? () {
+                  setState(() => currentPage++);
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
               : null,
           ),
         ],
@@ -210,14 +237,14 @@ class _ArticlePageState extends State<ArticlePage> {
   bool loadingImage = true;
   String? url;
   String? imageUrl;
-
+  int tapCount = 0; //For stopping scroll when zooming in on photoview
   @override
   void initState() {
     super.initState();
     _loadFeaturedImage(); // async fetch starts here
   }
 
-  void _showLargeImage(BuildContext context, String imageUrl) {
+  void _showLargeImage(BuildContext context, String imageUrl) { //Shows an image when one is tapped on in the article. Allows zooming in and scrolling to dismiss
     Image image = Image.network(imageUrl);
     showDialog(
       context: context,
@@ -228,21 +255,28 @@ class _ArticlePageState extends State<ArticlePage> {
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
             ),
-            Dismissible(
-              key: UniqueKey(),
-              direction: DismissDirection.vertical,
-              onDismissed: (_) => Navigator.of(context).pop(),
-              child: ClipRRect(
-                child: PhotoView( // Image zooming
-                imageProvider: NetworkImage(imageUrl),
-                backgroundDecoration: BoxDecoration(
-                  color: Colors.transparent
+            Listener(
+              onPointerDown: (event) => setState(() => tapCount++),
+              onPointerUp: (event) => setState(() => tapCount--),
+              onPointerCancel: (event) => setState(() => tapCount--),
+              child: Dismissible( //Doesn't quite work yet
+                key: UniqueKey(),
+                direction: tapCount > 1 //Dismisses image only when two fingers are not on the screen, allowing for pinch zooming without accidentally dismissing (thanks vscode ai for predicting this comment)
+                    ? DismissDirection.none
+                    : DismissDirection.vertical,
+                onDismissed: (direction) => Navigator.of(context).pop(),
+                child: ClipRRect(
+                  child: PhotoView( // Image zooming
+                  imageProvider: NetworkImage(imageUrl),
+                  backgroundDecoration: BoxDecoration(
+                    color: Colors.transparent
+                  ),
+                  
+                  loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
+                  minScale: PhotoViewComputedScale.contained,
+                  maxScale: PhotoViewComputedScale.covered * 2,
+                            ),
                 ),
-                
-                loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
-                minScale: PhotoViewComputedScale.contained,
-                maxScale: PhotoViewComputedScale.covered * 2,
-                          ),
               ),
             ),
           ]
@@ -295,10 +329,15 @@ class _ArticlePageState extends State<ArticlePage> {
 
       return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.black,
         toolbarHeight: 100, //max height
         title: AutoSizeText(
+          style: TextStyle(
+            fontFamily: 'Georgia',
+            color: Colors.white
+          ),
           widget.article.title ?? 'Article',
-          maxLines: 3,                      
+          maxLines: 3,                     
           minFontSize: 18,                  
           overflow: TextOverflow.ellipsis,   //title bounds and wrapping
         ),
@@ -316,7 +355,10 @@ class _ArticlePageState extends State<ArticlePage> {
               GestureDetector( //makes images clickable using a GestureDetector
                 onTap: () => _showLargeImage(context, featuredImage!),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(8),
+                    bottomRight: Radius.circular(8),
+                  ),
                   child: Image.network(
                     featuredImage!,
                     width: screenWidth,
@@ -359,16 +401,19 @@ class _ArticlePageState extends State<ArticlePage> {
                 style: { //html style rendering for figs (captions) and text
                   "figure": Style(
                     width: Width(screenWidth),
-                    fontSize: FontSize(11), //captions
+                    fontSize: FontSize(20), //caption text styling
                     height: Height.auto(),
                     display: Display.block,
                     textAlign: TextAlign.center,
-                    margin: Margins.symmetric(vertical: 16),
+                    margin: Margins.symmetric(vertical: 48),
                     padding: HtmlPaddings.only(right: 16.0),
                   ),
 
                   "p": Style(
-                    fontSize: FontSize(14.0)
+                    fontFamily: 'Georgia', //body text styling
+                    fontSize: FontSize(25),
+                    margin: Margins.symmetric(horizontal: 10),
+                    padding: HtmlPaddings.only(bottom: 20.0)
                   ),
                 }
               ),
