@@ -20,6 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'rss.dart';
 import 'featured.dart';
 import 'opinion.dart';
@@ -35,7 +36,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async{ //initialize
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -46,7 +47,8 @@ void main() async{ //initialize
 
   NotiService().initNotification();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
+  // FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   runApp(
     MultiProvider(
       providers: [
@@ -56,6 +58,7 @@ void main() async{ //initialize
       child: GrantMagApp(),
     ),
   );
+  FlutterNativeSplash.remove();
 }
 
 class GrantMagApp extends StatelessWidget {
@@ -298,19 +301,19 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              FutureBuilder(
-                future: getList(),
-                builder: (context, asyncSnapshot) {
-                  final notiSelect = asyncSnapshot.data ?? [];
-                  return Container(
-                  padding: EdgeInsets.all(16),
-                  color: Colors.blue[50],
-                  child: Column(
-                    children: notiSelect.map((value) => Text(value)).toList()
-                  )
-                  );
-                },
-              ),
+              // FutureBuilder(
+              //   future: getList(),
+              //   builder: (context, asyncSnapshot) {
+              //     final notiSelect = asyncSnapshot.data ?? [];
+              //     return Container(
+              //     padding: EdgeInsets.all(16),
+              //     color: Colors.blue[50],
+              //     child: Column(
+              //       children: notiSelect.map((value) => Text(value)).toList()
+              //     )
+              //     );
+              //   },
+              // ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
                   return Builder(
