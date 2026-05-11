@@ -78,6 +78,7 @@ class GrantMagBookmarksState extends State<GrantMagBookmarks> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
+        toolbarHeight: 75,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start, 
           children: [
