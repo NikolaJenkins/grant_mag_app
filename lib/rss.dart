@@ -4,6 +4,7 @@ import 'dart:collection';
 
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
@@ -131,18 +132,22 @@ Widget list() { //article list builder
                   return AspectRatio(
                     aspectRatio: 16 / 9,
                     child: snapshot.hasData && snapshot.data!.isNotEmpty
-                        ? Image.network(
-                            snapshot.data!,
-                            fit: BoxFit.cover,
-                            frameBuilder: (context, child, frame, wasSyncLoaded) {
-                              if (wasSyncLoaded) return child;
-                              return AnimatedOpacity(
-                                opacity: frame == null ? 0 : 1,
-                                duration: const Duration(milliseconds: 200),
-                                child: child,
-                              );
-                            },
-                          )
+                        ? Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                        height: 50,
+                                        width: 50,
+                                        child: Image.asset('assets/blendertimer-load-37.gif'),
+                                      ),
+                              FadeInImage.memoryNetwork(
+                                placeholder: kTransparentImage,
+                                image: snapshot.data!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              )
+                            ],
+                        )
                         : Container(color: Colors.grey[300]),
                   );
                 },

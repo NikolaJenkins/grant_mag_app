@@ -19,12 +19,15 @@ import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
+import 'package:transparent_image/transparent_image.dart';
 import 'rss.dart';
 import 'featured.dart';
 import 'opinion.dart';
 import 'bookmarks.dart';
 import 'search.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -245,16 +248,27 @@ class _HomePageState extends State<HomePage> {
                                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                     return const SizedBox.shrink();
                                   }
-                                  return FadeInImage.assetNetwork(
-                                      placeholder: 'assets/blendertimer-load-37.gif',
-                                      placeholderCacheWidth: 1,
-                                      placeholderCacheHeight: 1, 
-                                      fadeInCurve: Curves.linear,
-                                      image: snapshot.data!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                    );
+                                  return Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      SizedBox(
+                                        height: 75,
+                                        width: 75,
+                                        child: Image.asset('assets/blendertimer-load-37.gif'),
+                                      ),
+                                      FadeInImage.memoryNetwork(
+                                        placeholder: kTransparentImage,
+                                        // placeholderCacheWidth: 50,
+                                        // placeholderCacheHeight: 50, 
+                                        // placeholderScale: .25,tima
+                                        fadeInCurve: Curves.linear,
+                                        image: snapshot.data!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      )
+                                    ],
+                                  );
                                 },
                               )
                             ),
@@ -365,15 +379,26 @@ class _HomePageState extends State<HomePage> {
                               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                 return const SizedBox.shrink();
                               }
-                              return FadeInImage.assetNetwork(
-                                  placeholder: 'assets/blendertimer-load-37.gif',
-                                  placeholderCacheWidth: 1,
-                                  placeholderCacheHeight: 1, 
-                                  placeholderFit: BoxFit.fitHeight,
-                                  fadeInCurve: Curves.linear,
-                                  image: snapshot.data!,
-                                  fit: BoxFit.cover,
-                                );
+                              return Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                        height: 75,
+                                        width: 75,
+                                        child: Image.asset('assets/blendertimer-load-37.gif'),
+                                      ),
+                                  FadeInImage.memoryNetwork(
+                                    placeholder: kTransparentImage,
+                                    placeholderCacheWidth: 1,
+                                    placeholderCacheHeight: 1, 
+                                    placeholderFit: BoxFit.fitHeight,
+                                    fadeInCurve: Curves.linear,
+                                    image: snapshot.data!,
+                                    fit: BoxFit.cover,
+                                    height: double.infinity,
+                                  )
+                                ],
+                              );
                             },
                           )
                         ),
