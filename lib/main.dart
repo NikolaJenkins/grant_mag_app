@@ -38,6 +38,8 @@ void main() async{ // initialize
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await FirebaseMessaging.instance.requestPermission(); // push notif token passing
+  await FirebaseMessaging.instance.subscribeToTopic("news");
+  
   debugPrint("permission granted");
   String? token = await FirebaseMessaging.instance.getToken();
   debugPrint("FCM TOKEN: $token");
