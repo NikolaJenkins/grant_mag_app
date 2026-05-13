@@ -39,7 +39,7 @@ void main() async{ // initialize
   );
   await FirebaseMessaging.instance.requestPermission(); // push notif token passing
   await FirebaseMessaging.instance.subscribeToTopic("news");
-  
+
   debugPrint("permission granted");
   String? token = await FirebaseMessaging.instance.getToken();
   debugPrint("FCM TOKEN: $token");
@@ -522,10 +522,10 @@ Widget build(BuildContext context) {
             ListTile(
               title: const Text('Profile'),
               leading: const Icon(Icons.person_outline_outlined),
-              onTap: () => Navigator.push(
+              /*onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => ProfilePage()),
-              ),
+              ),*/
             ),
           ],
         ),
