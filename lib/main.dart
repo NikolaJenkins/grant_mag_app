@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -17,6 +18,9 @@ import 'package:grant_mag_app/noti_service.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
+import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
+import 'package:transparent_image/transparent_image.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 
 
@@ -25,13 +29,17 @@ import 'featured.dart';
 import 'opinion.dart';
 import 'bookmarks.dart';
 import 'search.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint("BG message: ${message.notification?.title}");
 }
 
-void main() async{ // initialize
+void main() async{ //initialize
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();// initialize
   debugPrint("app start");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -47,7 +55,8 @@ void main() async{ // initialize
 
   NotiService().initNotification();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
+  // FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   runApp(
     MultiProvider(
       providers: [
@@ -57,38 +66,42 @@ void main() async{ // initialize
       child: GrantMagApp(),
     ),
   );
+  FlutterNativeSplash.remove();
 }
 
 class GrantMagApp extends StatelessWidget {
   //base widget constructor
   const GrantMagApp({super.key});
   final keyIsFirstLoaded = 'is_first_loaded';
-  static const appTitle = 'Home Page';
+  static const appTitle = 'Grant Magazine';
 
   @override
   Widget build(BuildContext context) {
+    Timer(Duration(seconds: 7), () {FlutterNativeSplash.remove();});
     // creates listeners to pass information between pages
     return Consumer<SettingsModel>(
       builder: (context, settingsModel, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: const Color.fromARGB(
-              255,
-              255,
-              255,
-              255,
-            ), // use listener to get provider info
+            scaffoldBackgroundColor: const Color.fromARGB(255, 214, 214, 214), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
-            textTheme: Theme.of(
-              context,
-            ).textTheme.apply(fontSizeFactor: settingsModel.TextSize / 100),
-          ),
-          home: HomePage(title: appTitle),
-          routes: {'/homepage': (context) => const HomePage(title: appTitle)},
-          title: appTitle,
-        );
-      },
+            textTheme: Theme.of(context).textTheme.apply(
+              fontSizeFactor: settingsModel.TextSize / 100
+            ),
+            appBarTheme: AppBarTheme(
+              iconTheme: IconThemeData(
+                color: Colors.white, //Makes white the default color for icons in the app bar
+              ),
+            )
+        ),
+        home: HomePage(title: appTitle),
+        routes: {
+          '/homepage': (context) => const HomePage(title: appTitle),
+        },
+        title: appTitle,
+        );  
+      }
     );
   }
 }
@@ -296,28 +309,28 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              FutureBuilder(
-                future: getList(),
-                builder: (context, asyncSnapshot) {
-                  final notiSelect = asyncSnapshot.data ?? [];
-                  return Container(
-                  padding: EdgeInsets.all(16),
-                  color: Colors.blue[50],
-                  child: Column(
-                    children: notiSelect.map((value) => Text(value)).toList()
-                  )
-                  );
-                },
-              ),
+              // FutureBuilder(
+              //   future: getList(),
+              //   builder: (context, asyncSnapshot) {
+              //     final notiSelect = asyncSnapshot.data ?? [];
+              //     return Container(
+              //     padding: EdgeInsets.all(16),
+              //     color: Colors.blue[50],
+              //     child: Column(
+              //       children: notiSelect.map((value) => Text(value)).toList()
+              //     )
+              //     );
+              //   },
+              // ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
                   return Builder(
                     builder: (BuildContext context) {
-                      return Stack(
-                        alignment: AlignmentDirectional.bottomCenter,
-                        children: <Widget>[
-                          GestureDetector(
-                            child: Container(
+                      return GestureDetector(
+                        child: Stack(
+                          alignment: AlignmentDirectional.bottomCenter,
+                          children: <Widget>[
+                            Container(
                               child: FutureBuilder<String>(
                                 future: imageCache.putIfAbsent(
                                   item.link ?? '',
@@ -327,45 +340,56 @@ class _HomePageState extends State<HomePage> {
                                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                     return const SizedBox.shrink();
                                   }
-                                  return FadeInImage.assetNetwork(
-                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-                                      placeholderCacheWidth: 1,
-                                      placeholderCacheHeight: 1, 
-                                      fadeInCurve: Curves.linear,
-                                      image: snapshot.data!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                    );
+                                  return Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      SizedBox(
+                                        height: 75,
+                                        width: 75,
+                                        child: Image.asset('assets/blendertimer-load-37.gif'),
+                                      ),
+                                      FadeInImage.memoryNetwork(
+                                        placeholder: kTransparentImage,
+                                        // placeholderCacheWidth: 50,
+                                        // placeholderCacheHeight: 50, 
+                                        // placeholderScale: .25,tima
+                                        fadeInCurve: Curves.linear,
+                                        image: snapshot.data!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      )
+                                    ],
+                                  );
                                 },
                               )
                             ),
-                            onTap:() => Navigator.push(
+                            Container(
+                              color: Color.fromRGBO(50, 50, 50, 0.8),
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                              constraints: BoxConstraints.tightForFinite(
+                                height: 75, 
+                              ),
+                              child: Text(
+                                item.title ?? '', 
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.merriweather(
+                                  textStyle: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                )
+                              ),
+                            )
+                          ]
+                        ),
+                        onTap:() => Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (_) => ArticlePage(article: item),
                                           )
                                         ),
-                          ),
-                          Container(
-                            color: Color.fromRGBO(50, 50, 50, 0.8),
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            constraints: BoxConstraints.tightForFinite(
-                              height: 75, 
-                            ),
-                            child: Text(
-                              item.title ?? '', 
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.merriweather(
-                                textStyle: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                              )
-                            ),
-                          )
-                        ]
                       );
                     }
                   );
@@ -382,6 +406,23 @@ class _HomePageState extends State<HomePage> {
                 )
               ),
 
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Container(
+                  color: Color.fromRGBO(25, 25, 25, .9),
+                  padding: EdgeInsets.all(20.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Recent Articles",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.merriweather(
+                      fontSize: 24,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold)
+                    ),
+                  ),
+              ),
+
               GridView.builder(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: latestArticles.length,
@@ -396,61 +437,130 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   final item = latestArticles[index];
 
-                return Column(
-                  children: [
-                    Container(
-                            color: Color.fromRGBO(25, 25, 25, 0.2),
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            constraints: BoxConstraints.tightForFinite(
-                              height: 75, 
-                            ),
-                            child: Text(
-                              item.title ?? '', 
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.merriweather(
-                                textStyle: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                              )
-                            ),
-                          ),
-                    GestureDetector(
-                            child: Container(
-                              child: FutureBuilder<String>(
-                                future: imageCache.putIfAbsent(
-                                  item.link ?? '',
-                                  () => item.getFeaturedImage(),
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(20.0),
+                  child: GestureDetector(
+                    child: Column(
+                      children: [
+                        Container(
+                                color: Color.fromRGBO(25, 25, 25, .9),
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                                constraints: BoxConstraints.tightForFinite(
+                                  height: 75, 
                                 ),
-                                builder: (context, snapshot) {
-                                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return FadeInImage.assetNetwork(
-                                      placeholder: 'assets/cupertino_activity_indicator_square_large.gif',
-                                      placeholderCacheWidth: 1,
-                                      placeholderCacheHeight: 1, 
-                                      fadeInCurve: Curves.linear,
-                                      image: snapshot.data!,
-                                      // fit: BoxFit.cover,
-                                      // width: double.infinity,
-                                      // height: double.infinity,
-                                    );
-                                },
-                              )
+                                child: Text(
+                                  item.title ?? '', 
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.merriweather(
+                                    textStyle: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                  )
+                                ),
+                              ),
+                        Container(
+                          height: 299,
+                          child: FutureBuilder<String>(
+                            future: imageCache.putIfAbsent(
+                              item.link ?? '',
+                              () => item.getFeaturedImage(),
                             ),
-                            onTap:() => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ArticlePage(article: item),
-                                          )
-                                        ),
-                          ),
-                  ]
-                );            
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return const SizedBox.shrink();
+                              }
+                              return Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                        height: 75,
+                                        width: 75,
+                                        child: Image.asset('assets/blendertimer-load-37.gif'),
+                                      ),
+                                  FadeInImage.memoryNetwork(
+                                    placeholder: kTransparentImage,
+                                    placeholderCacheWidth: 1,
+                                    placeholderCacheHeight: 1, 
+                                    placeholderFit: BoxFit.fitHeight,
+                                    fadeInCurve: Curves.linear,
+                                    image: snapshot.data!,
+                                    fit: BoxFit.cover,
+                                    height: double.infinity,
+                                  )
+                                ],
+                              );
+                            },
+                          )
+                        ),
+                      ]
+                    ),
+                    onTap:() => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ArticlePage(article: item),
+                      ),
+                    ),
+                  ),
+                );
+                //   return ListTile(
+                //     title: Text(item.title ?? ''),
+                //     subtitle: Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+                //         Text(item.author ?? ''),
+                //         FutureBuilder<String>(
+                //           future: imageCache.putIfAbsent(
+                //             item.link ?? '',
+                //             () => item.getFeaturedImage(),
+                //           ),
+                //           builder: (context, snapshot) {
+                //             if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                //               return const SizedBox.shrink();
+                //             }
+                //             return Image.network(
+                //               snapshot.data!,
+                //               fit: BoxFit.contain,
+                //             );
+                //           },
+                //         ),
+                //       ]),
+                //     onTap: () {
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (_) => ArticlePage(article: item),
+                //         ),
+                //       );
+                //     },
+                //   );
+                // },            
                 }
               ),
+
+              // ElevatedButton(
+              //   child: Text('Open Dialogsssssss'),
+              //   onPressed: () {
+              //     showDialog(
+              //       context: context,
+              //       builder: (context) => AlertDialog(
+              //         title: Text('I am a...'),
+              //         actions: [
+              //           TextButton(
+              //               child: Text('Student.'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context)),
+              //           TextButton(
+              //               child: Text('Parent'),
+              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
+              //               onPressed: () => Navigator.pop(context))
+              //         ],
+              //       ),
+              //     );
+              //   },
+              // ),
             ],
           ),
         );
@@ -492,44 +602,57 @@ Widget build(BuildContext context) {
   
   return Consumer<SettingsModel>( // drawer scaffolding
     builder: (context, value, child) => Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: value.ThemeLabel!.headerColor, 
-        title: const Text(GrantMagApp.appTitle),
+        toolbarHeight: 35,
+        backgroundColor: Colors.black,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Align(
+          alignment: Alignment(-0.4,0.0),
+          child: const Text(GrantMagApp.appTitle, 
+            style: TextStyle(
+              fontFamily: 'Georgia',
+              color: Colors.white
+              ),
+           ),
+        ),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.bento),
+            icon: const Icon(Icons.notifications, 
+              color: Colors.white),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
       ),
-      drawer: Drawer(
-        backgroundColor: value.ThemeLabel!.shelfColor,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.grey),
-              child: Text('Customization'),
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              leading: const Icon(Icons.settings_outlined),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsPage()),
-              ),
-            ),
-            ListTile(
-              title: const Text('Profile'),
-              leading: const Icon(Icons.person_outline_outlined),
-              /*onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ProfilePage()),
-              ),*/
-            ),
-          ],
-        ),
-      ),
+      // drawer: Drawer(
+      //   backgroundColor: value.ThemeLabel!.shelfColor,
+      //   child: ListView(
+      //     padding: EdgeInsets.zero,
+      //     children: [
+      //       const DrawerHeader(
+      //         decoration: BoxDecoration(color: Colors.grey),
+      //         child: Text('Customization'),
+      //       ),
+      //       ListTile(
+      //         title: const Text('Settings'),
+      //         leading: const Icon(Icons.settings_outlined),
+      //         onTap: () => Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => SettingsPage()),
+      //         ),
+      //       ),
+      //       ListTile(
+      //         title: const Text('Profile'),
+      //         leading: const Icon(Icons.person_outline_outlined),
+      //         onTap: () => Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => ProfilePage()),
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      // ),
 
       body: Column(
         children: [
@@ -542,48 +665,90 @@ Widget build(BuildContext context) {
           ],
         ),
 
-      bottomNavigationBar: NavigationBar( //nav bar for menu icons
-        onDestinationSelected: (index) =>
-            setState(() => _counter = index),
-        selectedIndex: _counter,
-        indicatorColor: Colors.amber,
-        labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(
-            fontSize: 11.0,
-          )
-        ),
-        backgroundColor: Color.fromARGB(255, 189, 189, 189),
-        destinations: const [
-          NavigationDestination(
-              selectedIcon: Icon(Icons.home),
-              icon: Icon(Icons.home_outlined),
-              label: 'Home',
-            ),
+      bottomNavigationBar: ClipRRect(
+        borderRadius: BorderRadius.circular(20.0),
+        child: NavigationBar( //nav bar for menu icons
+          onDestinationSelected: (index) =>
+              setState(() => _counter = index),
+          selectedIndex: _counter,
+          indicatorColor: Colors.amber,
+          labelTextStyle: WidgetStateProperty.all(
+            const TextStyle(
+              fontSize: 11.0,
+              color: Colors.white,
+              fontFamily: 'Georgia'
+            )
+          ),
+          backgroundColor: Colors.black,
+          destinations: const [
             NavigationDestination(
-              icon: Badge(child: Icon(Icons.newspaper_rounded)),
-              label: 'News',
-            ),
+                selectedIcon: Icon(
+                  Icons.home,
+                  color: Colors.white
+                  ),
+                icon: Icon(
+                  Icons.home_outlined,
+                  color: Colors.white
+                  ),
+                label: 'Home'),
             NavigationDestination(
-              icon: Badge(child: Icon(Icons.star)),
-              label: 'Features',
-            ),
+                icon: Icon(
+                  Icons.newspaper_rounded,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.newspaper_rounded,
+                  color: Colors.white,
+                  fill: 1.0
+                  ),
+                label: 'News'),
             NavigationDestination(
-              icon: Badge(child: Icon(Icons.record_voice_over_outlined)),
-              label: 'Opinion',
-            ),
+                icon: Icon(
+                  Icons.star_border,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.star,
+                  color: Colors.white
+                  ),
+                label: 'Features'),
             NavigationDestination(
-              icon: Badge(child: Icon(Icons.bookmark)),
-              label: 'Bookmarks',
-            ),
+                icon: Icon(
+                  Icons.record_voice_over_outlined,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.record_voice_over,
+                  color: Colors.white
+                  ),
+                label: 'Opinion'),
             NavigationDestination(
-              icon: Badge(child: Icon(Icons.search)),
-              label: 'Search',
-            ),
+                icon: Icon(
+                  Icons.bookmark_outline,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.bookmark,
+                  color: Colors.white
+                  ),
+                label: 'Bookmarks'),
+            NavigationDestination(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.white
+                ),
+                selectedIcon: Icon(
+                  Icons.saved_search_outlined,
+                  color: Colors.white,
+                  fill: 1.0
+                ),
+                label: 'Search'),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class CustomSearchDelegate extends SearchDelegate {
