@@ -46,7 +46,7 @@ class NotiService {
     );
 
     //initialize the plugin
-    // FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin test = FlutterLocalNotificationsPlugin();
     await notificationsPlugin.initialize(
       settings: initializationSettings
     );

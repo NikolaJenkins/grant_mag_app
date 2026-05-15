@@ -21,6 +21,9 @@ import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+
+
+
 import 'rss.dart';
 import 'featured.dart';
 import 'opinion.dart';
@@ -36,14 +39,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async{ //initialize
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();// initialize
+  debugPrint("app start");
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseMessaging.instance.requestPermission();
+  await FirebaseMessaging.instance.requestPermission(); // push notif token passing
+  await FirebaseMessaging.instance.subscribeToTopic("news");
+
+  debugPrint("permission granted");
   String? token = await FirebaseMessaging.instance.getToken();
   debugPrint("FCM TOKEN: $token");
-  debugPrint("Firebase initialized successfully");
+  debugPrint("firebase initialized");
 
   NotiService().initNotification();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -230,8 +238,8 @@ class _HomePageState extends State<HomePage> {
 
   static const String FEED_URL = 'https://grantmagazine.com/feed/';
 
-  Future<RssFeed> load() async {
-    try {
+  Future<RssFeed> load() async { // overall feed loader
+    try { 
       final response = await http.get(Uri.parse(FEED_URL));
       return RssFeed.parse(response.body);
     } catch (_) {
@@ -592,7 +600,7 @@ class _HomePageState extends State<HomePage> {
 @override
 Widget build(BuildContext context) {
   
-  return Consumer<SettingsModel>(
+  return Consumer<SettingsModel>( // drawer scaffolding
     builder: (context, value, child) => Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
