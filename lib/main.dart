@@ -490,7 +490,7 @@ class _HomePageState extends State<HomePage> {
 @override
 Widget build(BuildContext context) {
   
-  return Consumer<SettingsModel>(
+  return Consumer<SettingsModel>( // drawer scaffolding
     builder: (context, value, child) => Scaffold(
       appBar: AppBar(
         backgroundColor: value.ThemeLabel!.headerColor, 
