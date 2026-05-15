@@ -676,6 +676,7 @@ Widget build(BuildContext context) {
             const TextStyle(
               fontSize: 11.0,
               color: Colors.white,
+              fontWeight: FontWeight(750),
               fontFamily: 'Georgia'
             )
           ),

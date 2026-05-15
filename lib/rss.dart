@@ -401,7 +401,7 @@ class _ArticlePageState extends State<ArticlePage> {
                 style: { //html style rendering for figs (captions) and text
                   "figure": Style(
                     width: Width(screenWidth),
-                    fontSize: FontSize(20), //caption text styling
+                    fontSize: FontSize(16), //caption text styling
                     height: Height.auto(),
                     display: Display.block,
                     textAlign: TextAlign.center,
@@ -411,8 +411,8 @@ class _ArticlePageState extends State<ArticlePage> {
 
                   "p": Style(
                     fontFamily: 'Georgia', //body text styling
-                    fontSize: FontSize(25),
-                    margin: Margins.symmetric(horizontal: 10),
+                    fontSize: FontSize(18),
+                    margin: Margins.symmetric(horizontal: 25),
                     padding: HtmlPaddings.only(bottom: 20.0)
                   ),
                 }
