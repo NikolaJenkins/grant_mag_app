@@ -116,7 +116,7 @@ Widget list() { //article list builder
       itemBuilder: (context, index) {
         final item = currentItems[index];
         
-        return ListTile(
+        return ListTile( //listtile setup
           title: Text(item.title ?? ''),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,7 +153,7 @@ Widget list() { //article list builder
                 },
               )
             ]),
-          trailing: IconButton(
+          trailing: IconButton( //bookmark icon
             icon: Icon(
               bookmarks.contains(item.link) ? Icons.bookmark : Icons.bookmark_add,
               color: bookmarks.contains(item.link) ? Colors.blue : null,
@@ -398,8 +398,10 @@ class _ArticlePageState extends State<ArticlePage> {
                   ),
                 ],
 
-                style: { //html style rendering for figs (captions) and text
-                  "figure": Style(
+                style: { 
+                  "aside": Style(display: Display.none), //strips uneeded css code in sno
+                  "style": Style(display: Display.none),
+                  "figure": Style( //html style rendering for figs (captions) and text
                     width: Width(screenWidth),
                     fontSize: FontSize(20), //caption text styling
                     height: Height.auto(),
@@ -407,6 +409,7 @@ class _ArticlePageState extends State<ArticlePage> {
                     textAlign: TextAlign.center,
                     margin: Margins.symmetric(vertical: 48),
                     padding: HtmlPaddings.only(right: 16.0),
+                    
                   ),
 
                   "p": Style(

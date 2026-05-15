@@ -16,6 +16,7 @@ class OpinionatedArticles extends StatefulWidget { //primary builder
 class OpinionatedArticlesState extends State<OpinionatedArticles> {
   final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<RefreshIndicatorState>();
   final Map<String, Future<String>> imageCache = {};
+  final ScrollController _scrollController = ScrollController();
   String featuredImage = '';
   List<String> bookmarks = []; 
   int currentPage = 0;
@@ -40,6 +41,7 @@ Widget list() { //article list builder
   final currentItems = filteredItems.sublist(start, end);
   return Column(children: [
     Expanded(child: ListView.builder(
+      controller: _scrollController,
       physics: const CustomScrollPhysics(),
       itemCount: currentItems.length,
       itemBuilder: (context, index) {
@@ -102,14 +104,28 @@ Widget list() { //article list builder
         IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: currentPage > 0
-              ? () => setState(() => currentPage--)
+              ? () {
+                  setState(() => currentPage--);
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
               : null,
         ),
         Text('Page ${currentPage + 1}'),
         IconButton(
           icon: Icon(Icons.arrow_forward),
           onPressed: end < filteredItems.length
-              ? () => setState(() => currentPage++)
+              ? () {
+                  setState(() => currentPage++);
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
               : null,
           ),
         ],
