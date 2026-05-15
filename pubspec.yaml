@@ -62,7 +62,7 @@ flutter_native_splash:
   image: "assets/g.jpg"
   fullscreen: true
   android_12:
-    color: "#42a5f5"
+    color: "#000000"
     image: "assets/g.jpg"
     icon_background_color: "#111111"
 
@@ -70,15 +70,15 @@ flutter_launcher_icons:
   image_path: "assets/g.jpg"
 
   android: "launcher_icon"
-  # image_path_android: "assets/icon/icon.png"
+  image_path_android: "assets/g.jpg"
   min_sdk_android: 21 # android min sdk min:16, default 21
   # adaptive_icon_background: "assets/icon/background.png"
-  # adaptive_icon_foreground: "assets/icon/foreground.png"
+  adaptive_icon_foreground: "assets/g.jpg"
   # adaptive_icon_foreground_inset: 16
   # adaptive_icon_monochrome: "assets/icon/monochrome.png"
 
   ios: true
-  # image_path_ios: "assets/icon/icon.png"
+  image_path_ios: "assets/g.jpg"
   remove_alpha_ios: true
   # image_path_ios_dark_transparent: "assets/icon/icon_dark.png"
   # image_path_ios_tinted_grayscale: "assets/icon/icon_tinted.png"
@@ -87,18 +87,18 @@ flutter_launcher_icons:
 
   web:
     generate: true
-    image_path: "path/to/image.png"
+    image_path: "assets/g.jpg"
     background_color: "#hexcode"
     theme_color: "#hexcode"
 
   windows:
     generate: true
-    image_path: "path/to/image.png"
+    image_path: "assets/g.jpg"
     icon_size: 48 # min:48, max:256, default: 48
 
   macos:
     generate: true
-    image_path: "path/to/image.png"
+    image_path: "assets/g.jpg"
 
   
 
@@ -112,6 +112,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
