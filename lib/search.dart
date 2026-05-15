@@ -53,7 +53,7 @@ class GrantMagSearchState extends State<GrantMagSearch> {
                   onTap: () {
                     controller.openView();
                   },
-                  onChanged: (_) {
+                  onSubmitted: (_) {
                     controller.openView();
                   },
                   leading: const Icon(Icons.search),
@@ -62,7 +62,7 @@ class GrantMagSearchState extends State<GrantMagSearch> {
                     initialSelection: "Title",
                     controller: filterController,
                     requestFocusOnTap: false,
-                    enableSearch: false,
+                    enableSearch: true,
                     label: const Text('Filter'),
                     inputDecorationTheme: const InputDecorationTheme(
                       filled: false,
