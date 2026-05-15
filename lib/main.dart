@@ -18,6 +18,8 @@ import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 
+
+
 import 'rss.dart';
 import 'featured.dart';
 import 'opinion.dart';
@@ -29,15 +31,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("BG message: ${message.notification?.title}");
 }
 
-void main() async{ //initialize
+void main() async{ // initialize
+  debugPrint("app start");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseMessaging.instance.requestPermission();
+  await FirebaseMessaging.instance.requestPermission(); // push notif token passing
+  await FirebaseMessaging.instance.subscribeToTopic("news");
+
+  debugPrint("permission granted");
   String? token = await FirebaseMessaging.instance.getToken();
   debugPrint("FCM TOKEN: $token");
-  debugPrint("Firebase initialized successfully");
+  debugPrint("firebase initialized");
 
   NotiService().initNotification();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -219,8 +225,8 @@ class _HomePageState extends State<HomePage> {
 
   static const String FEED_URL = 'https://grantmagazine.com/feed/';
 
-  Future<RssFeed> load() async {
-    try {
+  Future<RssFeed> load() async { // overall feed loader
+    try { 
       final response = await http.get(Uri.parse(FEED_URL));
       return RssFeed.parse(response.body);
     } catch (_) {
@@ -516,10 +522,10 @@ Widget build(BuildContext context) {
             ListTile(
               title: const Text('Profile'),
               leading: const Icon(Icons.person_outline_outlined),
-              onTap: () => Navigator.push(
+              /*onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => ProfilePage()),
-              ),
+              ),*/
             ),
           ],
         ),
