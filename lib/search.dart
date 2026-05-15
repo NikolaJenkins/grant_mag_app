@@ -51,11 +51,9 @@ class GrantMagSearchState extends State<GrantMagSearch> {
                   ),
                   focusNode: _searchFocusNode,
                   onTap: () {
-                    print("tap request");
                     controller.openView();
                   },
                   onSubmitted: (_) {
-                    print("Submitting request");
                     controller.openView();
                   },
                   leading: const Icon(Icons.search),

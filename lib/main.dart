@@ -20,6 +20,7 @@ import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'rss.dart';
 import 'featured.dart';
 import 'opinion.dart';
@@ -35,7 +36,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async{ //initialize
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -46,7 +47,8 @@ void main() async{ //initialize
 
   NotiService().initNotification();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
+  // FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   runApp(
     MultiProvider(
       providers: [
@@ -56,13 +58,14 @@ void main() async{ //initialize
       child: GrantMagApp(),
     ),
   );
+  FlutterNativeSplash.remove();
 }
 
 class GrantMagApp extends StatelessWidget {
   //base widget constructor
   const GrantMagApp({super.key});
   final keyIsFirstLoaded = 'is_first_loaded';
-  static const appTitle = 'Home Page';
+  static const appTitle = 'Grant Magazine';
 
   @override
   Widget build(BuildContext context) {
@@ -298,19 +301,19 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              FutureBuilder(
-                future: getList(),
-                builder: (context, asyncSnapshot) {
-                  final notiSelect = asyncSnapshot.data ?? [];
-                  return Container(
-                  padding: EdgeInsets.all(16),
-                  color: Colors.blue[50],
-                  child: Column(
-                    children: notiSelect.map((value) => Text(value)).toList()
-                  )
-                  );
-                },
-              ),
+              // FutureBuilder(
+              //   future: getList(),
+              //   builder: (context, asyncSnapshot) {
+              //     final notiSelect = asyncSnapshot.data ?? [];
+              //     return Container(
+              //     padding: EdgeInsets.all(16),
+              //     color: Colors.blue[50],
+              //     child: Column(
+              //       children: notiSelect.map((value) => Text(value)).toList()
+              //     )
+              //     );
+              //   },
+              // ),
               CarouselSlider(
                 items: carouselItems?.map((item) {
                   return Builder(
@@ -654,83 +657,86 @@ Widget build(BuildContext context) {
           ],
         ),
 
-      bottomNavigationBar: NavigationBar( //nav bar for menu icons
-        onDestinationSelected: (index) =>
-            setState(() => _counter = index),
-        selectedIndex: _counter,
-        indicatorColor: Colors.amber,
-        labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(
-            fontSize: 11.0,
-            color: Colors.white,
-            fontFamily: 'Georgia'
-          )
+      bottomNavigationBar: ClipRRect(
+        borderRadius: BorderRadius.circular(20.0),
+        child: NavigationBar( //nav bar for menu icons
+          onDestinationSelected: (index) =>
+              setState(() => _counter = index),
+          selectedIndex: _counter,
+          indicatorColor: Colors.amber,
+          labelTextStyle: WidgetStateProperty.all(
+            const TextStyle(
+              fontSize: 11.0,
+              color: Colors.white,
+              fontFamily: 'Georgia'
+            )
+          ),
+          backgroundColor: Colors.black,
+          destinations: const [
+            NavigationDestination(
+                selectedIcon: Icon(
+                  Icons.home,
+                  color: Colors.white
+                  ),
+                icon: Icon(
+                  Icons.home_outlined,
+                  color: Colors.white
+                  ),
+                label: 'Home'),
+            NavigationDestination(
+                icon: Icon(
+                  Icons.newspaper_rounded,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.newspaper_rounded,
+                  color: Colors.white,
+                  fill: 1.0
+                  ),
+                label: 'News'),
+            NavigationDestination(
+                icon: Icon(
+                  Icons.star_border,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.star,
+                  color: Colors.white
+                  ),
+                label: 'Features'),
+            NavigationDestination(
+                icon: Icon(
+                  Icons.record_voice_over_outlined,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.record_voice_over,
+                  color: Colors.white
+                  ),
+                label: 'Opinion'),
+            NavigationDestination(
+                icon: Icon(
+                  Icons.bookmark_outline,
+                  color: Colors.white
+                  ),
+                selectedIcon: Icon(
+                  Icons.bookmark,
+                  color: Colors.white
+                  ),
+                label: 'Bookmarks'),
+            NavigationDestination(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.white
+                ),
+                selectedIcon: Icon(
+                  Icons.saved_search_outlined,
+                  color: Colors.white,
+                  fill: 1.0
+                ),
+                label: 'Search'),
+          ],
         ),
-        backgroundColor: Colors.black,
-        destinations: const [
-          NavigationDestination(
-              selectedIcon: Icon(
-                Icons.home,
-                color: Colors.white
-                ),
-              icon: Icon(
-                Icons.home_outlined,
-                color: Colors.white
-                ),
-              label: 'Home'),
-          NavigationDestination(
-              icon: Icon(
-                Icons.newspaper_rounded,
-                color: Colors.white
-                ),
-              selectedIcon: Icon(
-                Icons.newspaper_rounded,
-                color: Colors.white,
-                fill: 1.0
-                ),
-              label: 'News'),
-          NavigationDestination(
-              icon: Icon(
-                Icons.star_border,
-                color: Colors.white
-                ),
-              selectedIcon: Icon(
-                Icons.star,
-                color: Colors.white
-                ),
-              label: 'Features'),
-          NavigationDestination(
-              icon: Icon(
-                Icons.record_voice_over_outlined,
-                color: Colors.white
-                ),
-              selectedIcon: Icon(
-                Icons.record_voice_over,
-                color: Colors.white
-                ),
-              label: 'Opinion'),
-          NavigationDestination(
-              icon: Icon(
-                Icons.bookmark_outline,
-                color: Colors.white
-                ),
-              selectedIcon: Icon(
-                Icons.bookmark,
-                color: Colors.white
-                ),
-              label: 'Bookmarks'),
-          NavigationDestination(
-              icon: Icon(
-                Icons.search,
-                color: Colors.white
-              ),
-              selectedIcon: Icon(
-                Icons.saved_search_outlined,
-                color: Colors.white,
-                fill: 1.0
-              ),
-              label: 'Search'),
-        ],
       ),
     ),
   );
