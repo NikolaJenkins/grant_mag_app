@@ -55,6 +55,7 @@ dependencies:
   async: ^2.13.1
   circular_progress_with_logo: ^1.0.0
   transparent_image: ^2.0.1
+  invert_colors: ^0.0.4
 
 flutter_native_splash:
   color: "#42a5f5"

@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:invert_colors/invert_colors.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -694,13 +695,12 @@ Widget build(BuildContext context) {
                 label: 'Home'),
             NavigationDestination(
                 icon: Icon(
-                  Icons.newspaper_rounded,
-                  color: Colors.white
+                  Icons.my_library_books_outlined,
+                  color: Colors.white,
                   ),
                 selectedIcon: Icon(
-                  Icons.newspaper_rounded,
-                  color: Colors.white,
-                  fill: 1.0
+                  Icons.my_library_books,
+                  color: Colors.white,  
                   ),
                 label: 'News'),
             NavigationDestination(
