@@ -1,7 +1,8 @@
 // ignore_for_file: avoid_print
 
 import 'dart:collection';
-
+import 'bookmark_log.dart';
+import 'package:grant_mag_app/bookmark_log.dart';
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -56,45 +57,23 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   @override
   void initState() {
     super.initState();
+    loadBookmarks();
   }
+
+  Future<void> loadBookmarks() async {
+  bookmarks =
+      await BookmarkService.loadBookmarks();
+
+  if (mounted) {
+    setState(() {});
+  }
+}
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
-
-
- Future<void> addBookmark(String? link, String? title) async {
-  if (link == null) return;
-
-  final prefs = await SharedPreferences.getInstance();
-  List<String> storedBookmarks = prefs.getStringList('bookmarks') ?? [];
-  List<String> bookmarkDates = prefs.getStringList('bookmark_dates') ?? [];
-
-  setState(() {
-    if (storedBookmarks.contains(link)) {
-      //remove bookmark
-      final index = storedBookmarks.indexOf(link);
-      storedBookmarks.removeAt(index);
-      if (index < bookmarkDates.length) {
-        bookmarkDates.removeAt(index);
-      }
-      this.bookmarks.remove(link); // update in-memory list
-      prefs.remove('bookmark_title_$link'); // remove saved title
-    } else {
-      //add bookmark
-      storedBookmarks.add(link);
-      bookmarkDates.add(DateTime.now().millisecondsSinceEpoch.toString());
-      this.bookmarks.add(link); // update in-memory list
-      prefs.setString('bookmark_title_$link', title ?? link);
-    }
-  });
-
-  //save changes to SharedPreferences
-  await prefs.setStringList('bookmarks', storedBookmarks);
-  await prefs.setStringList('bookmark_dates', bookmarkDates);
-}
 
 Widget list() { //article list builder
   const excludedCategories = {'PDF Issues', 'Flipbooks'};
@@ -132,7 +111,7 @@ Widget list() { //article list builder
                   return AspectRatio(
                     aspectRatio: 16 / 9,
                     child: snapshot.hasData && snapshot.data!.isNotEmpty
-                        ? Stack(
+                        ? Stack( //preset container logic
                             alignment: Alignment.center,
                             children: [
                               SizedBox(
@@ -148,7 +127,7 @@ Widget list() { //article list builder
                               )
                             ],
                         )
-                        : Container(color: Colors.grey[300]),
+                        : Container(color: Colors.grey[300]), //fixing scroll physics using preset container
                   );
                 },
               )
@@ -158,7 +137,24 @@ Widget list() { //article list builder
               bookmarks.contains(item.link) ? Icons.bookmark : Icons.bookmark_add,
               color: bookmarks.contains(item.link) ? Colors.blue : null,
             ),
-            onPressed: () => addBookmark(item.link, item.title),
+            onPressed: () async { //new bookmark adding function, calling bookmarkservice
+              final link = item.link;
+
+              if (link == null) return;
+
+              await BookmarkService.toggleBookmark(
+                link,
+                item.title,
+              );
+
+              setState(() {
+                if (bookmarks.contains(link)) {
+                  bookmarks.remove(link);
+                } else {
+                  bookmarks.add(link);
+                }
+              });
+            },
           ),
           onTap: () {
             Navigator.push(

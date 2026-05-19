@@ -1,7 +1,7 @@
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
-
+import 'bookmark_log.dart';
 import 'rss.dart';
 
 class FeaturedArticles extends StatefulWidget { //primary builder
@@ -21,18 +21,35 @@ class FeaturedArticlesState extends State<FeaturedArticles> {
   List<String> bookmarks = []; 
   int currentPage = 0;
   final int pageSize = 25;
+  final allowedTags = {
+    'featured',
+    'features',
+    'feature',
+  };
 
   @override
   void initState() {
     super.initState();
+    loadBookmarks();
+  }
+
+  Future<void> loadBookmarks() async {
+    bookmarks =
+        await BookmarkService.loadBookmarks();
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
 Widget list() { //article list builder
-  final filteredItems = widget.feed.items
-                    ?.where((item) =>
-                      (item.categories?.map((c) => c.value).join(', ') ?? '').toLowerCase().contains('Featured'.toLowerCase())
-                    )
-                .toList() ?? [];
+  final filteredItems = widget.feed.items?.where((item) {
+    final categories = item.categories
+            ?.map((c) => c.value.toLowerCase())
+            .toSet() ??
+        {};
+    return categories.any((cat) => allowedTags.contains(cat));
+  }).toList() ?? [];
   final start = currentPage * pageSize;
   final end = (start + pageSize > filteredItems.length)
     ? filteredItems.length
@@ -60,12 +77,10 @@ Widget list() { //article list builder
                   () => item.getFeaturedImage(),
                 ),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
                   return AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: Stack(
+                    child: snapshot.hasData && snapshot.data!.isNotEmpty
+                      ? Stack(
                             alignment: Alignment.center,
                             children: [
                               SizedBox(
@@ -80,11 +95,36 @@ Widget list() { //article list builder
                                 width: double.infinity,
                               )
                             ],
-                        ),
+                        )
+                        : Container(color: Colors.grey[300]), //fixing scroll physics using preset container
                   );
                 },
               )
             ]),
+            trailing: IconButton( //bookmark icon
+            icon: Icon(
+              bookmarks.contains(item.link) ? Icons.bookmark : Icons.bookmark_add,
+              color: bookmarks.contains(item.link) ? Colors.blue : null,
+            ),
+            onPressed: () async { //new bookmark adding function, calling bookmarkservice
+              final link = item.link;
+
+              if (link == null) return;
+
+              await BookmarkService.toggleBookmark(
+                link,
+                item.title,
+              );
+
+              setState(() {
+                if (bookmarks.contains(link)) {
+                  bookmarks.remove(link);
+                } else {
+                  bookmarks.add(link);
+                }
+              });
+            },
+          ),
           onTap: () {
             Navigator.push(
               context,

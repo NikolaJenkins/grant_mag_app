@@ -20,7 +20,6 @@ import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 
 
@@ -49,8 +48,8 @@ void main() async{ //initialize
   await FirebaseMessaging.instance.subscribeToTopic("news");
 
   debugPrint("permission granted");
-  String? token = await FirebaseMessaging.instance.getToken();
-  debugPrint("FCM TOKEN: $token");
+ String? token = await FirebaseMessaging.instance.getToken();
+ debugPrint("FCM TOKEN: $token");
   debugPrint("firebase initialized");
 
   NotiService().initNotification();
