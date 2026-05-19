@@ -2,25 +2,20 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:invert_colors/invert_colors.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:grant_mag_app/profile_model.dart';
 import 'package:grant_mag_app/settings_model.dart';
-import 'package:grant_mag_app/settings.dart';
-import 'package:grant_mag_app/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:flutter_checklist/checklist.dart';
 import 'package:grant_mag_app/noti_service.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
 import 'package:http/http.dart' as http;
 import 'package:webfeed_plus/webfeed_plus.dart';
-import 'package:circular_progress_with_logo/circular_progress_with_logo.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 
 
@@ -30,8 +25,6 @@ import 'opinion.dart';
 import 'bookmarks.dart';
 import 'search.dart';
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -49,8 +42,8 @@ void main() async{ //initialize
   await FirebaseMessaging.instance.subscribeToTopic("news");
 
   debugPrint("permission granted");
- String? token = await FirebaseMessaging.instance.getToken();
- debugPrint("FCM TOKEN: $token");
+  String? token = await FirebaseMessaging.instance.getToken();
+  debugPrint("FCM TOKEN: $token");
   debugPrint("firebase initialized");
 
   NotiService().initNotification();
