@@ -23,7 +23,6 @@ import 'rss.dart';
 import 'featured.dart';
 import 'opinion.dart';
 import 'bookmarks.dart';
-import 'search.dart';
 import 'dart:async';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -125,6 +124,8 @@ class _HomePageState extends State<HomePage> {
 
   final Map<String, Future<String>> imageCache = {};
   CarouselSliderController articleCarouselController = CarouselSliderController();
+
+  final SearchController controller = SearchController();
 
   @override
   void initState() {
@@ -496,64 +497,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                );
-                //   return ListTile(
-                //     title: Text(item.title ?? ''),
-                //     subtitle: Column(
-                //       crossAxisAlignment: CrossAxisAlignment.start,
-                //       children: [
-                //         Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
-                //         Text(item.author ?? ''),
-                //         FutureBuilder<String>(
-                //           future: imageCache.putIfAbsent(
-                //             item.link ?? '',
-                //             () => item.getFeaturedImage(),
-                //           ),
-                //           builder: (context, snapshot) {
-                //             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                //               return const SizedBox.shrink();
-                //             }
-                //             return Image.network(
-                //               snapshot.data!,
-                //               fit: BoxFit.contain,
-                //             );
-                //           },
-                //         ),
-                //       ]),
-                //     onTap: () {
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (_) => ArticlePage(article: item),
-                //         ),
-                //       );
-                //     },
-                //   );
-                // },            
+                );            
                 }
               ),
-
-              // ElevatedButton(
-              //   child: Text('Open Dialogsssssss'),
-              //   onPressed: () {
-              //     showDialog(
-              //       context: context,
-              //       builder: (context) => AlertDialog(
-              //         title: Text('I am a...'),
-              //         actions: [
-              //           TextButton(
-              //               child: Text('Student.'),
-              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
-              //               onPressed: () => Navigator.pop(context)),
-              //           TextButton(
-              //               child: Text('Parent'),
-              //               style: TextButton.styleFrom(foregroundColor: Colors.black),
-              //               onPressed: () => Navigator.pop(context))
-              //         ],
-              //       ),
-              //     );
-              //   },
-              // ),
             ],
           ),
         );
@@ -575,17 +521,11 @@ class _HomePageState extends State<HomePage> {
         }
         return OpinionatedArticles(feed: _feed!);
         
-      case 4:
-        if (_feed == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return GrantMagBookmarks(feed: _feed!);
-
       default:
         if (_feed == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        return GrantMagSearch(feed: _feed!,);
+        return GrantMagBookmarks(feed: _feed!);
     }
   }
 
@@ -610,42 +550,115 @@ Widget build(BuildContext context) {
               ),
            ),
         ),
-        leading: Builder(
-          builder: (context) => IconButton(
+        leading: FutureBuilder(
+          future: getList(),
+          builder: (context, snapshot) => IconButton(
             icon: const Icon(Icons.notifications, 
               color: Colors.white),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => StatefulBuilder(
+                  builder: (context, setState) => AlertDialog(
+                    title: const Text("Select your notification preferences"),
+                    content: Column(
+                      children: [
+                        SizedBox(
+                          //Show checklist dialog when student is clicked
+                          height: 300.0,
+                          width: double.maxFinite,
+                          child: ListView.builder(
+                            itemCount: items.length,
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              return CheckboxListTile(
+                                title: Text(item.title),
+                                value: item.isChecked,
+                                onChanged: (bool? newValue) {
+                                  setState(() {
+                                    item.isChecked = newValue!;
+                                  });
+                                  if (item.isChecked) {
+                                    snapshot.data?.add(item.title);
+                                    saveList(snapshot.data!);
+                                  } else {
+                                    snapshot.data?.remove(item.title);
+                                    saveList(snapshot.data!);
+                                  }
+                                },
+                                activeColor: Colors.blue,
+                                checkColor: Colors.blueGrey,
+                                controlAffinity: ListTileControlAffinity.leading,
+                              );
+                            },
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text("Confirm"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
+        actions: [
+          SearchAnchor(
+            viewLeading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+            viewTrailing: [
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.black),
+                onPressed: () => controller.clear()
+              ),
+            ],
+            viewBackgroundColor: const Color.fromARGB(255, 255, 247, 247),
+            searchController: controller,
+            builder: (BuildContext context, SearchController controller) {
+              return IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () => controller.openView(),
+              );
+            },
+            suggestionsBuilder: (BuildContext context, SearchController controller) {
+              var searchResults = _feed!.items?.where(
+                (item) => item.title!.toLowerCase().contains(controller.text.toLowerCase())).toList();
+              return [
+                ListView.builder(
+                  itemCount: searchResults!.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    final item = searchResults[index];
+                    return ListTile(
+                      title: Text(item.title ?? ''),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.categories?.map((c) => c.value).join(', ') ?? ''),
+                          Text(item.author ?? ''),
+                        ]),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ArticlePage(article: item),
+                        )
+                      )
+                    );
+                  }
+                )
+              ];
+            },
+          )
+        ]
       ),
-      // drawer: Drawer(
-      //   backgroundColor: value.ThemeLabel!.shelfColor,
-      //   child: ListView(
-      //     padding: EdgeInsets.zero,
-      //     children: [
-      //       const DrawerHeader(
-      //         decoration: BoxDecoration(color: Colors.grey),
-      //         child: Text('Customization'),
-      //       ),
-      //       ListTile(
-      //         title: const Text('Settings'),
-      //         leading: const Icon(Icons.settings_outlined),
-      //         onTap: () => Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (_) => SettingsPage()),
-      //         ),
-      //       ),
-      //       ListTile(
-      //         title: const Text('Profile'),
-      //         leading: const Icon(Icons.person_outline_outlined),
-      //         onTap: () => Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (_) => ProfilePage()),
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      // ),
 
       body: Column(
         children: [
@@ -725,139 +738,12 @@ Widget build(BuildContext context) {
                   color: Colors.white
                   ),
                 label: 'Bookmarks'),
-            NavigationDestination(
-                icon: Icon(
-                  Icons.search,
-                  color: Colors.white
-                ),
-                selectedIcon: Icon(
-                  Icons.saved_search_outlined,
-                  color: Colors.white,
-                  fill: 1.0
-                ),
-                label: 'Search'),
           ],
         ),
       ),
     ),
   );
 }
-}
-
-class CustomSearchDelegate extends SearchDelegate {
-  List<String> titles = [
-    'machine learning',
-    'Ray Tate',
-    'One of the boys',
-    'A new perspective',
-    'Budget "whats"',
-  ];
-
-  List<String> authors = [
-    'Eliot Logan',
-    'Logan Hendrickson',
-    'Margot Kalmanson',
-    'Amelia Shaw',
-    'Zoe Shaw',
-  ];
-
-  List<String> decks = [
-    'Three days after the Bondi Beach shooting, Grant High School\’s Jewish Student Alliance put up two posters at the school honoring the victims.',
-    'As artificial intelligence sweeps the nation, Portland Public Schools is exploring its use in education.',
-    'This year, Grantasia featured a production in collaboration with a nonprofit organization called Sing Me a Story. The performance celebrates joy, creativity and inclusion through student choreography and original music.',
-    'Grant High School math teacher Ray Tate’s worsening kidney disease has kept him from the classroom. Now, he is requesting a kidney donation from a living donor.',
-    'Grant Magazine is now taking applications for the 2024 – 2025 school year. Complete the application, found at this link, and email a copy with editing access for anyone with the link to grantmagazine1@gmail.com. Applications are due by February 13, 2024. No late applications will be accepted.',
-  ];
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        onPressed: () {
-          query = '';
-        },
-        icon: const Icon(Icons.clear),
-      ),
-    ];
-  }
-
-  @override
-  Widget? buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, null);
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    List<String> matchQuery = [];
-
-    // check titles
-    for (var fruit in titles) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check authors
-    for (var fruit in authors) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check decks
-    for (var fruit in decks) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    return ListView.builder(
-      itemCount: matchQuery.length,
-      itemBuilder: (context, index) {
-        var result = matchQuery[index];
-        return ListTile(title: Text(result));
-      },
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    List<String> matchQuery = [];
-
-    // check titles
-    for (var fruit in titles) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check authors
-    for (var fruit in authors) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    // check decks
-    for (var fruit in decks) {
-      if (fruit.toLowerCase().contains(query.toLowerCase())) {
-        matchQuery.add(fruit);
-      }
-    }
-
-    return ListView.builder(
-      itemCount: matchQuery.length,
-      itemBuilder: (context, index) {
-        var result = matchQuery[index];
-        return ListTile(title: Text(result));
-      },
-    );
-  }
 }
 
 class Item {
