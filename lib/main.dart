@@ -170,12 +170,13 @@ class _HomePageState extends State<HomePage> {
       AuthorizationStatus.provisional => false
     };
 
-    if (isFirstRun && authorizationState) {
+    if (isFirstRun && authorizationState) { //if this is the first run and notifications are authorized, shows dialog to select notification preferences
       showDialog(
         context: context,
         builder: (context) => StatefulBuilder(
           builder: (context, setState) => AlertDialog(
             title: const Text(
+              textAlign: TextAlign.center,
               "Select your notification preferences",
               style: TextStyle(
                 fontFamily: 'Georgia',
@@ -184,7 +185,6 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               children: [
                 SizedBox(
-                  //Show checklist dialog when student is clicked
                   height: 300.0,
                   width: double.maxFinite,
                   child: ListView.builder(
@@ -540,9 +540,9 @@ Widget build(BuildContext context) {
     builder: (context, value, child) => Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        elevation: 0,
         toolbarHeight: 35,
         backgroundColor: Colors.black,
-        elevation: 0,
         scrolledUnderElevation: 0,
         title: Align(
           alignment: Alignment(-0.4,0.0),
@@ -556,15 +556,16 @@ Widget build(BuildContext context) {
         leading: FutureBuilder(
           future: getList(),
           builder: (context, snapshot) => IconButton(
-            icon: const Icon(Icons.notifications, 
+            icon: const Icon(Icons.notifications_none,
               color: Colors.white),
-            onPressed: () {
+            onPressed: () { //show checklist dialog to choose notification settings when bell icon is clicked
               showDialog(
                 context: context,
                 builder: (context) => StatefulBuilder(
                   builder: (context, setState) => AlertDialog(
                     title: const Text(
-                      "Select your notification preferences",
+                      textAlign: TextAlign.center,
+                      "Select your notification preferences.",
                       style: TextStyle(
                         fontFamily: 'Georgia',
                         fontSize: 25
@@ -572,7 +573,6 @@ Widget build(BuildContext context) {
                     content: Column(
                       children: [
                         SizedBox(
-                          //Show checklist dialog when student is clicked
                           height: 300.0,
                           width: double.maxFinite,
                           child: ListView.builder(
@@ -601,7 +601,10 @@ Widget build(BuildContext context) {
                             },
                           ),
                         ),
-                        TextButton(
+                        TextButton( // confirm button to close dialog
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(Colors.blue),
+                          ),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -609,6 +612,7 @@ Widget build(BuildContext context) {
                             "Confirm",
                             style: TextStyle(
                               fontFamily: 'Georgia',
+                              color: Colors.black,
                               fontSize: 18
                             )
                           ),
@@ -621,7 +625,7 @@ Widget build(BuildContext context) {
             },
           ),
         ),
-        actions: [
+        actions: [ //search menu
           SearchAnchor(
             viewHintText: 'Search',
             viewLeading: IconButton(
