@@ -230,7 +230,7 @@ class _HomePageState extends State<HomePage> {
     whoAreYou = 2;
   }
 
-  static const String FEED_URL = 'https://grantmagazine.com/feed/';
+  static const String FEED_URL = 'grantmag-backend-production.up.railway.app';
 
   Future<RssFeed> load() async { // overall feed loader
     try { 
