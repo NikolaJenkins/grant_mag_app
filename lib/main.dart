@@ -79,7 +79,8 @@ class GrantMagApp extends StatelessWidget {
             scaffoldBackgroundColor: const Color.fromARGB(255, 214, 214, 214), // use listener to get provider info
             primarySwatch: Colors.blueGrey,
             textTheme: Theme.of(context).textTheme.apply(
-              fontSizeFactor: settingsModel.TextSize / 100
+              fontSizeFactor: settingsModel.TextSize / 100,
+              fontFamily: 'Georgia',
             ),
             appBarTheme: AppBarTheme(
               iconTheme: IconThemeData(
@@ -174,7 +175,12 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (context) => StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            title: const Text("Select your notification preferences"),
+            title: const Text(
+              "Select your notification preferences",
+              style: TextStyle(
+                fontFamily: 'Georgia',
+                fontSize: 18,
+              ),),
             content: Column(
               children: [
                 SizedBox(
@@ -211,7 +217,13 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: Text("Confirm"),
+                  child: Text(
+                    "Confirm",
+                    style: TextStyle(
+                      fontFamily: 'Georgia',
+                      fontSize: 18
+                    )
+                  ),
                 ),
               ],
             ),
@@ -245,15 +257,6 @@ class _HomePageState extends State<HomePage> {
     final result = await load();
     if (!mounted) return;
     setState(() => _feed = result);
-  }
-
-  Set<String> _selected = {'News'}; //LIST OF CURRENTLY SELECTED VALUES
-
-  Set<String> updateSelected(Set<String> newSelection) {
-    setState(() {
-      _selected = newSelection;
-    });
-    return _selected;
   }
 
   Future<void> saveList(List<String> items) async {
@@ -560,7 +563,12 @@ Widget build(BuildContext context) {
                 context: context,
                 builder: (context) => StatefulBuilder(
                   builder: (context, setState) => AlertDialog(
-                    title: const Text("Select your notification preferences"),
+                    title: const Text(
+                      "Select your notification preferences",
+                      style: TextStyle(
+                        fontFamily: 'Georgia',
+                        fontSize: 25
+                      )),
                     content: Column(
                       children: [
                         SizedBox(
@@ -597,7 +605,13 @@ Widget build(BuildContext context) {
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          child: Text("Confirm"),
+                          child: Text(
+                            "Confirm",
+                            style: TextStyle(
+                              fontFamily: 'Georgia',
+                              fontSize: 18
+                            )
+                          ),
                         ),
                       ],
                     ),
@@ -609,6 +623,7 @@ Widget build(BuildContext context) {
         ),
         actions: [
           SearchAnchor(
+            viewHintText: 'Search',
             viewLeading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
