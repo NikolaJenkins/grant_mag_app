@@ -448,7 +448,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 5.0,
                   mainAxisSpacing: 5.0,
-                  childAspectRatio: 0.5,
+                  childAspectRatio: 0.6,
                 ),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -478,8 +478,7 @@ class _HomePageState extends State<HomePage> {
                                   )
                                 ),
                               ),
-                        Container(
-                          height: 299,
+                        Expanded(
                           child: FutureBuilder<String>(
                             future: imageCache.putIfAbsent(
                               item.link ?? '',
