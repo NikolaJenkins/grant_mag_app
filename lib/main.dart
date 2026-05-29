@@ -33,15 +33,36 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async{ //initialize
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();// initialize
   debugPrint("app start");
-  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseMessaging.instance.requestPermission(); // push notif token passing
-  await FirebaseMessaging.instance.subscribeToTopic("news");
+await FirebaseMessaging.instance.requestPermission();
 
-  debugPrint("permission granted");
-  String? token = await FirebaseMessaging.instance.getToken();
+debugPrint("permission granted");
+
+// wait for APNS token
+String? apnsToken;
+
+for (int i = 0; i < 20; i++) {
+  apnsToken =
+      await FirebaseMessaging.instance.getAPNSToken();
+
+  if (apnsToken != null) break;
+
+  debugPrint("Waiting for APNS token...");
+
+  await Future.delayed(
+    const Duration(milliseconds: 500),
+  );
+}
+
+debugPrint("APNS TOKEN: $apnsToken");
+
+await FirebaseMessaging.instance.subscribeToTopic("news");
+
+String? token =
+    await FirebaseMessaging.instance.getToken();
+
   debugPrint("FCM TOKEN: $token");
   debugPrint("firebase initialized");
 
@@ -242,7 +263,7 @@ class _HomePageState extends State<HomePage> {
     whoAreYou = 2;
   }
 
-  static const String FEED_URL = 'https://grantmagazine.com/feed/';
+  static const String FEED_URL = 'https://grantmag-backend-production.up.railway.app/feed';
 
   Future<RssFeed> load() async { // overall feed loader
     try { 
@@ -427,7 +448,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 5.0,
                   mainAxisSpacing: 5.0,
-                  childAspectRatio: 0.5,
+                  childAspectRatio: 0.6,
                 ),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -457,8 +478,7 @@ class _HomePageState extends State<HomePage> {
                                   )
                                 ),
                               ),
-                        Container(
-                          height: 299,
+                        Expanded(
                           child: FutureBuilder<String>(
                             future: imageCache.putIfAbsent(
                               item.link ?? '',

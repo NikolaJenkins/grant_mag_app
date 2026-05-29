@@ -102,10 +102,10 @@ Widget list() { //article list builder
               )
             ]),
             trailing: IconButton( //bookmark icon
-            icon: Icon(
-              bookmarks.contains(item.link) ? Icons.bookmark : Icons.bookmark_add,
-              color: bookmarks.contains(item.link) ? Colors.blue : null,
-            ),
+              icon: Icon(
+                bookmarks.contains(item.link) ? Icons.bookmark : Icons.bookmark_add,
+                color: bookmarks.contains(item.link) ? Colors.blue : null,
+              ),
             onPressed: () async { //new bookmark adding function, calling bookmarkservice
               final link = item.link;
 

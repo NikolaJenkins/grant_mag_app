@@ -75,7 +75,7 @@ class GrantMagFeedState extends State<GrantMagFeed> {
     super.dispose();
   }
 
-Widget list() { //article list builder
+Widget list() { //article builder
   const excludedCategories = {'PDF Issues', "PDF Issue", 'Flipbooks', "Flipbook", "Video", "Videos", "Interactive", "Quiz", "Quizzes"};
   final filteredItems = widget.feed.items?.where((item) {
           final categories = item.categories?.map((c) => c.value).toSet() ?? {};
@@ -315,7 +315,7 @@ class _ArticlePageState extends State<ArticlePage> {
   }
   
   
-    //article list builder
+    //article builder
    @override
    Widget build(BuildContext context){
     final screenWidth = MediaQuery.of(context).size.width;
@@ -362,6 +362,7 @@ class _ArticlePageState extends State<ArticlePage> {
                     loadingBuilder: (context, child, loadingProgress) =>
                       (loadingProgress == null) ? child : CircularProgressIndicator(),
                   ),
+                  
                 ),
               ),
             SizedBox(
