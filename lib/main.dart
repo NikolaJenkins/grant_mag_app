@@ -86,7 +86,7 @@ class GrantMagApp extends StatelessWidget {
   //base widget constructor
   const GrantMagApp({super.key});
   final keyIsFirstLoaded = 'is_first_loaded';
-  static const appTitle = 'Grant Magazine';
+  static const appTitle = '  Grant Magazine';
 
   @override
   Widget build(BuildContext context) {
@@ -131,8 +131,7 @@ class HomePage extends StatefulWidget { //home page constructor
 
 class _HomePageState extends State<HomePage> {
   int _counter = 0;
-  // to distinguish between students/parents
-  int whoAreYou = 0;
+
   //TODO: don't redefine notificationSelections every time app is closed and reopened
   // final Future<SharedPreferencesWithCache> _prefs = 
   //   SharedPreferencesWithCache.create(
@@ -253,14 +252,6 @@ class _HomePageState extends State<HomePage> {
       );
       await saveBool(false);
     }
-  }
-
-  void makeStudent() {
-    whoAreYou = 1;
-  }
-
-  void makeParent() {
-    whoAreYou = 2;
   }
 
   static const String FEED_URL = 'https://grantmag-backend-production.up.railway.app/feed';

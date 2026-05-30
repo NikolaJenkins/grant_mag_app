@@ -228,7 +228,6 @@ class ArticlePage extends StatefulWidget { //declares article page widget
 }
 
 class _ArticlePageState extends State<ArticlePage> {
-  bool _isInteracting = false;
   String? featuredImage;
   bool loadingImage = true;
   String? url;
@@ -241,40 +240,30 @@ class _ArticlePageState extends State<ArticlePage> {
   }
 
   void _showLargeImage(BuildContext context, String imageUrl) { //Shows an image when one is tapped on in the article. Allows zooming in and scrolling to dismiss
-    Image image = Image.network(imageUrl);
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (_) {
         return Stack(
           children: [
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-            ),
-            Listener(
-              onPointerDown: (event) => setState(() => tapCount++),
-              onPointerUp: (event) => setState(() => tapCount--),
-              onPointerCancel: (event) => setState(() => tapCount--),
-              child: Dismissible( //Doesn't quite work yet
-                key: UniqueKey(),
-                direction: tapCount > 1 //Dismisses image only when two fingers are not on the screen, allowing for pinch zooming without accidentally dismissing (thanks vscode ai for predicting this comment)
-                    ? DismissDirection.none
-                    : DismissDirection.vertical,
-                onDismissed: (direction) => Navigator.of(context).pop(),
-                child: ClipRRect(
-                  child: PhotoView( // Image zooming
-                  imageProvider: NetworkImage(imageUrl),
-                  backgroundDecoration: BoxDecoration(
-                    color: Colors.transparent
-                  ),
-                  
-                  loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
-                  minScale: PhotoViewComputedScale.contained,
-                  maxScale: PhotoViewComputedScale.covered * 2,
-                            ),
-                ),
+            PhotoView( // Image zooming
+            imageProvider: NetworkImage(imageUrl),
+            backgroundDecoration: BoxDecoration(
+              color: Colors.transparent
               ),
+            loadingBuilder: (context, event) => const Center(child: CircularProgressIndicator()),
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered * 2,
             ),
+            Positioned( //Puts a close button in the top right corner of the photoview
+              top: 25,
+              right: 30,
+              child: IconButton(
+                icon: Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            )
+
           ]
         );
       },
@@ -285,7 +274,6 @@ class _ArticlePageState extends State<ArticlePage> {
     url = widget.article.link;
     if (url == null) return;
     try {
-      final encodedUrl = Uri.encodeComponent(url!);
       final response = await http.get(Uri.parse(url!));//url parse
 
       if (response.statusCode != 200) return;
@@ -318,6 +306,8 @@ class _ArticlePageState extends State<ArticlePage> {
     //article builder
    @override
    Widget build(BuildContext context){
+    final rawAuthor = widget.article.dc?.creator ?? widget.article.author ?? '';
+    final author = rawAuthor.isNotEmpty ? rawAuthor.split(',').first.trim() : '';
     final screenWidth = MediaQuery.of(context).size.width;
     String html = widget.article.content?.value ?? widget.article.description ?? '';
       debugPrint('HTML: ');
@@ -340,9 +330,6 @@ class _ArticlePageState extends State<ArticlePage> {
       ),
 
        body: SingleChildScrollView(
-        physics: _isInteracting
-        ? const NeverScrollableScrollPhysics()
-        : const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -363,6 +350,18 @@ class _ArticlePageState extends State<ArticlePage> {
                       (loadingProgress == null) ? child : CircularProgressIndicator(),
                   ),
                   
+                ),
+              ),
+            if (author.isNotEmpty) //author name display
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 8.0),
+                child: Text(
+                  '  Story by $author',
+                  style: TextStyle(
+                    fontFamily: 'Georgia',
+                    fontStyle: FontStyle.italic,
+                    color: Colors.black
+                  ),
                 ),
               ),
             SizedBox(
@@ -416,7 +415,7 @@ class _ArticlePageState extends State<ArticlePage> {
                     fontSize: FontSize(18),
                     fontWeight: FontWeight(500),
                     margin: Margins.symmetric(horizontal: 25),
-                    padding: HtmlPaddings.only(bottom: 20.0)
+                    padding: HtmlPaddings.only(bottom: 40.0)
                   ),
                 }
               ),
