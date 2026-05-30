@@ -1,20 +1,14 @@
 // ignore_for_file: avoid_print
 
-import 'dart:collection';
-import 'bookmark_log.dart';
 import 'package:grant_mag_app/bookmark_log.dart';
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:webfeed_plus/domain/media/group.dart';
-import 'package:webfeed_plus/domain/media/group.dart';
 import 'package:webfeed_plus/webfeed_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:ui' as ui;
+
 class CustomScrollPhysics extends BouncingScrollPhysics {
   const CustomScrollPhysics({super.parent});
 
@@ -76,7 +70,12 @@ class GrantMagFeedState extends State<GrantMagFeed> {
   }
 
 Widget list() { //article builder
-  const excludedCategories = {'PDF Issues', "PDF Issue", 'Flipbooks', "Flipbook", "Video", "Videos", "Interactive", "Quiz", "Quizzes"};
+  const excludedCategories = { //categories that are filtered out of the feed because the app isn't be able to deal with them
+    'PDF Issues', "PDF Issue", 'Flipbooks', "Flipbook", "Video", "Videos", "Interactive", 
+    "Quiz", "Quizzes", "Podcast", "Podcasts", "Multimedia", "Multi-media", "Multi-Media", 
+    "Form", "Forms", "Survey",  "Surveys", "Featured Video", "Featured Videos", "Featured video", 
+    "Featured videos"
+  }; 
   final filteredItems = widget.feed.items?.where((item) {
           final categories = item.categories?.map((c) => c.value).toSet() ?? {};
           return categories.intersection(excludedCategories).isEmpty;
@@ -400,6 +399,7 @@ class _ArticlePageState extends State<ArticlePage> {
                   "figure": Style( //html style rendering for figs (captions) and text
                     width: Width(screenWidth),
                     fontSize: FontSize(16), //caption text styling
+                    fontStyle: FontStyle.italic,
                     height: Height.auto(),
                     fontFamily: 'Georgia',
                     fontWeight: FontWeight(500),

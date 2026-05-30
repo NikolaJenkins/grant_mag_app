@@ -86,7 +86,7 @@ class GrantMagApp extends StatelessWidget {
   //base widget constructor
   const GrantMagApp({super.key});
   final keyIsFirstLoaded = 'is_first_loaded';
-  static const appTitle = '  Grant Magazine';
+  static const appTitle = '   Grant Magazine'; //spaces for alignment
 
   @override
   Widget build(BuildContext context) {
@@ -571,6 +571,7 @@ Widget build(BuildContext context) {
               color: Colors.white),
             onPressed: () { //show checklist dialog to choose notification settings when bell icon is clicked
               showDialog(
+                fullscreenDialog: true,
                 context: context,
                 builder: (context) => StatefulBuilder(
                   builder: (context, setState) => AlertDialog(
